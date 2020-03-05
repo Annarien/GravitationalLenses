@@ -4,7 +4,6 @@ Training/DESSky
 Training/idealisedlenses
 Training/MockImages
 Training/TrainingSet
-TrainingSet.csv
 Training/ExcelData
 Training/SimulatedImages
 MachineLearning
@@ -24,7 +23,6 @@ model_baseline.h5
 DESa_lsst_lists.pkl
 DESb_lsst_lists.pkl
 DESc_lsst_lists.pkl
-Training/KnownLenses.xlsx
 Training/lenses_DESa.txt
 Training/lenses_DESb.txt
 Training/lenses_DESc.txt
