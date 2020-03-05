@@ -14,6 +14,7 @@ from astropy.io import fits
 from astLib import astWCS
 from astLib import astImages
 from bs4 import BeautifulSoup
+from astropy.visualization import make_lupton_rgb
 
 def makeInitialTable(num):
     """ 
@@ -262,28 +263,16 @@ def rgbImageNewForNorm(num, path):
     Returns:
         A rgb images are saved in the form of jpeg and png as images are combined with the r, g, i images. 
     """
-    i_img = fits.getdata('%s/i_norm.fits' % path)
-    r_img = fits.getdata('%s/r_norm.fits' % path)
-    g_img = fits.getdata('%s/g_norm.fits' % path)
+    i = fits.open('%s/i_norm.fits' % path)[0].data
+    r = fits.open('%s/r_norm.fits' % path)[0].data
+    g = fits.open('%s/g_norm.fits' % path)[0].data
 
-    # imin, imax = i_img.mean() - 0.75 * i_img.std(), i_img.mean() + 5 * i_img.std()
-    # rmin, rmax = r_img.mean() - 0.75 * r_img.std(), r_img.mean() + 5 * r_img.std()
-    # gmin, gmax = g_img.mean() - 0.75 * g_img.std(), g_img.mean() + 5 * g_img.std()
-
-    # img = np.zeros((i_img.shape[0], i_img.shape[1], 3), dtype = float)
-    # img[:,:,0] = img_scale.sqrt(i_img, scale_min=imin, scale_max=imax)
-    # img[:,:,1] = img_scale.sqrt(r_img, scale_min=rmin, scale_max=rmax)
-    # img[:,:,2] = img_scale.sqrt(g_img, scale_min=gmin, scale_max=gmax)
-
-    img = np.zeros((i_img.shape[0], i_img.shape[1], 3), dtype = float)
-    img[:,:,0] = img_scale.log(i_img, scale_min = 0, scale_max = 10)
-    img[:,:,1] = img_scale.log(r_img, scale_min = 0, scale_max = 10)
-    img[:,:,2] = img_scale.log(g_img, scale_min = 0, scale_max = 10)
+    rgb = make_lupton_rgb(i, r, g) 
 
     plt.figure(figsize = (10, 10))
     plt.axes([0, 0, 1, 1])
-    plt.imshow(img, aspect = 'equal')
-    plt.savefig('%s/RGB_%i.png' % (path, num))
+    plt.imshow(rgb, aspect = 'equal')
+    plt.savefig('%s/%s_rgb.jpeg' % (path, num))
     plt.close()
 
 def randomXY(bandDES):

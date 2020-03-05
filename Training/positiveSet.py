@@ -14,6 +14,8 @@ import img_scale
 import astropy.table  as atpy
 from astropy.io import fits
 from astLib import astImages
+from astropy.visualization import make_lupton_rgb
+
 
 cosmos = atpy.Table().read("COSMOS_Ilbert2009.fits")
 # to take out all nans in cosmos
@@ -334,7 +336,7 @@ def addToHeadersPositiveNoiseless(num, g_ml, r_ml, i_ml, g_ms, r_ms, i_ms, ql, b
 
 #https://www.astrobetter.com/blog/2010/10/22/making-rgb-images-from-fits-files-with-pythonmatplotlib/
 # To see the source of making RGB Images
-def rgbImageNew(num, path):
+def rgbImageNew(num, base_dir = 'PositiveWithDESSky'):
     """ 
     A universal function to create Red, Green and Blue images for 'PositiveNoiseless' Images and for 'PositiveWithDESSky' Images,
     which are set under in the respective folders with the source folder number(i).
@@ -358,29 +360,16 @@ def rgbImageNew(num, path):
         A rgb images are saved in the form of jpeg and png as images are combined with the r, g, i images. 
     # """
     
-    i_img = fits.getdata(glob.glob('%s_i_norm.fits' % path)[0])
-    r_img = fits.getdata(glob.glob('%s_r_norm.fits' % path)[0])
-    g_img = fits.getdata(glob.glob('%s_g_norm.fits' % path)[0])
+    i = fits.open('%s/%s/%s_posSky_i_norm.fits' % (base_dir, num, num))[0].data
+    r = fits.open('%s/%s/%s_posSky_r_norm.fits' % (base_dir, num, num))[0].data
+    g = fits.open('%s/%s/%s_posSky_g_norm.fits' % (base_dir, num, num))[0].data
 
-    imin,imax = i_img.mean() - 0.5 * i_img.std(), i_img.mean() + 5.0 * i_img.std()
-    rmin,rmax = r_img.mean() - 0.5 * r_img.std(), r_img.mean() + 5.0 * r_img.std()
-    gmin,gmax = g_img.mean() - 0.5 * g_img.std(), g_img.mean() + 5.0 * g_img.std()
-
-    # img = np.zeros((i_img.shape[0], i_img.shape[1], 3), dtype = float)
-    # img[:,:,0] = img_scale.log(i_img, scale_min = 0, scale_max = 5000)
-    # img[:,:,1] = img_scale.log(r_img, scale_min = 0, scale_max = 5000)
-    # img[:,:,2] = img_scale.log(g_img, scale_min = 0, scale_max = 5000)
-
-    img = np.zeros((i_img.shape[0], i_img.shape[1], 3), dtype = float)
-    img[:,:,0] = img_scale.linear(i_img, scale_min = imin, scale_max = imax)
-    img[:,:,1] = img_scale.linear(r_img, scale_min = rmin, scale_max = rmax)
-    img[:,:,2] = img_scale.linear(g_img, scale_min = gmin, scale_max = gmax)
+    rgb = make_lupton_rgb(i, r, g)
 
     plt.figure(figsize = (10, 10))
     plt.axes([0, 0, 1, 1])
-    plt.imshow(img,aspect = 'equal')
-    #plt.savefig('%s_RGB_%i.jpeg' % (path, num))
-    plt.savefig('%s_RGB.png' % (path))
+    plt.imshow(rgb,aspect = 'equal')
+    plt.savefig('%s/%s/%s_rgb.jpeg' % (base_dir, num,num))
     plt.close() 
 
 # def rotateImage(num, path):
@@ -457,5 +446,4 @@ for num in range(numObjects):
     normalise(num, normPosSkyPath)
     normalise(num, normPosNoiselessPath)
     addToHeadersPositiveNoiseless(num, g_ml, r_ml, i_ml, g_ms, r_ms, i_ms, ql, b, qs, rl, rs, ps)
-    rgbImageNew(num, normPosNoiselessPath)
-    rgbImageNew(num, normPosSkyPath)
+    rgbImageNew(num)
