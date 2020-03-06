@@ -33,3 +33,5 @@ Training/lenses_LSSTc.txt
 Training/lenspopsplines.pkl
 Training/lsst.1sqdegree_catalog2.pkl
 Training/lsst.1sqdegree_catalog2.txt
+DataNeg.pkl
+DataPos.pkl
