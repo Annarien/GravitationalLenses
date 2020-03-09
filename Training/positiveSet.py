@@ -280,7 +280,7 @@ def normalise(num, path):
     paths = {}
     paths['iImg'] = glob.glob('%s_i*.fits' % path)[0]
     paths['rImg'] = glob.glob('%s_r*.fits' % path)[0]
-    paths['gImg'] = glob.glob('%s_r*.fits' % path)[0]
+    paths['gImg'] = glob.glob('%s_g*.fits' % path)[0]
 
     for band in ['g','r','i']:
         with fits.open(paths[band + 'Img']) as image:
