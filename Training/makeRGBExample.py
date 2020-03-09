@@ -45,4 +45,3 @@ p=astPlots.ImagePlot([rgbDict['i'], rgbDict['r'], rgbDict['g']], wcs,
                      cutLevels = cutLevels, axesLabels = None, 
                      axesFontSize=26.0, axes = [0, 0, 1, 1])
 plt.savefig(outFileName)
-
