@@ -18,10 +18,10 @@ import IPython
 normed=True
 
 if normed == False:
-    filesList=glob.glob("3901/3901_posSky_?.fits")
+    filesList=glob.glob("3/3_posSky_?.fits")
     outFileName="norm.png"
 else:
-    filesList=glob.glob("3901/*_norm.fits")
+    filesList=glob.glob("3/*_norm.fits")
     outFileName="not-normed.png"
 rgbDict={}
 wcs=None
@@ -45,3 +45,4 @@ p=astPlots.ImagePlot([rgbDict['i'], rgbDict['r'], rgbDict['g']], wcs,
                      cutLevels = cutLevels, axesLabels = None, 
                      axesFontSize=26.0, axes = [0, 0, 1, 1])
 plt.savefig(outFileName)
+
