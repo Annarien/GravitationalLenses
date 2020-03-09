@@ -15,13 +15,13 @@ import IPython
 
 # Choose which set of images to use
 # If the non-normed set is chosen, we normalise here on the fly
-normed=True
+normed = False
 
 if normed == False:
-    filesList=glob.glob("3/3_posSky_?.fits")
+    filesList=glob.glob("PositiveWithDESSky/0/0_posSky_?.fits")
     outFileName="norm.png"
 else:
-    filesList=glob.glob("3/*_norm.fits")
+    filesList=glob.glob("PositiveWithDESSky/0/*_norm.fits")
     outFileName="not-normed.png"
 rgbDict={}
 wcs=None
@@ -39,9 +39,12 @@ for f in filesList:
         rgbDict[band]=d
 
 minCut, maxCut=-1, 3
-cutLevels=[[minCut, maxCut],[minCut, maxCut],[minCut, maxCut]]
+cutLevels=[[minCut, maxCut], [minCut, maxCut], [minCut, maxCut]]
 plt.figure(figsize=(10,10))
-p=astPlots.ImagePlot([rgbDict['i'], rgbDict['r'], rgbDict['g']], wcs, 
-                     cutLevels = cutLevels, axesLabels = None, 
-                     axesFontSize=26.0, axes = [0, 0, 1, 1])
+p=astPlots.ImagePlot([rgbDict['i'], rgbDict['r'], rgbDict['g']],
+                    wcs,
+                    cutLevels = cutLevels,
+                    axesLabels = None,
+                    axesFontSize= 26.0,
+                    axes = [0, 0, 1, 1])
 plt.savefig(outFileName)

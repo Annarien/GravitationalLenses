@@ -112,35 +112,24 @@ def loadDES(num, source, base_dir = 'DES/DES_Original'):
                         print()
         print()
 
+def randomXY(source, base_dir = 'DES/DES_Original'):
+    # This code only ever gets called for the g band, so why not just make it like this:
+
+    with fits.open(glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0]) as bandDES:
+        inHDUList = bandDES[1].header
+        print ('NAXIS1: ' + str(inHDUList['NAXIS1']))
+        print ('NAXIS2: ' + str(inHDUList['NAXIS2']))
+        
+        xMax = inHDUList['NAXIS1']
+        yMax = inHDUList['NAXIS2']
+        xRandom = random.randint(100, xMax - 100)
+        yRandom = random.randint(100, yMax - 100)
+
+        print("x: " + str(xRandom))
+        print("y: " + str(yRandom))
+        return (xRandom, yRandom)
+
 def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_Original'):
-    """
-    This is the function which makes a folder containing clipped images for the sources that are used to check the simulation.
-    These clipped images are to be added to the PositiveNoiseless images to create the PositiveWithDESSky images. 
-    This is clipped as (x, y, clipSizePix)=(x, y, 100), where x, y are random coordinates.     
-    The clipped images (bandSky numpy array) are created, then checked to see if there is any zero value.
-    If there is a zero in the clipped image, then a new clipped image is created from the orginal image with new x, y coordinates.
-    This is repeated until a clipped image is created without zero in it. 
-    The 'g' band is used to clip images as there is no need to go through all the bands but only need to check one band,
-    as the possibility of a zero is great in the other bands as well if there is a zero in the 'g' band.
-
-    Args:
-        paths (dictionary):       The paths to the original fits DES images.
-        madeSky (boolean):        A boolean value set to 'False', and in the following while loop, clipped images are made if there is no sky.
-        clippedSky (dictionary):  Dictionary of all the clipped images.
-        headers (dictionary):     Dictionary of the headers of the clipped images and the original images.
-        allImagesValid (boolean): A boolean value set as 'True' when there is no madeSky made, 
-                                  and is set to 'False' if the images there is any zeros in the bandSky.
-        bandDES (numpy array):    Numpy array of the original DES images.
-        x (int):                  Interger of a random x coordinate in the original DES image received from the randomXY function.
-        y (int):                  Interger of a random y coordinate in the original DES image received from the randomXY function.
-        bandSky (numpy array):    Clipped image that is set at (x, y) coordinates with a dimension of 100 * 100 pixels.
-
-    Returns:
-        clippedSky (dictionary):  The images the are clipped, and this is added as the noise or 
-                                  background sky of the PositiveNoiseless images creating the 
-                                  PositiveWithDESSky images. These clipped images are also saved in the DESSky folder.
-
-    """
     paths = {}
     paths['gBandPath'] = glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0]
     paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0]
@@ -150,13 +139,12 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_O
         os.mkdir('DESSky')
     
     madeSky = False
+    clippedSky = {}
     while madeSky == False:
-        clippedSky = {}
         allImagesValid = True
+        x, y = randomXY(source)
         for band in ['g', 'r', 'i']:
             with fits.open(paths[band + 'BandPath']) as bandDES:
-                if band == 'g':
-                    x, y = randomXY(bandDES)
                 bandSky = astImages.clipImageSectionPix(bandDES[1].data, x, y, [100, 100])
                 
                 if np.any(bandSky) == 0:
@@ -177,9 +165,76 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_O
         header['G_MAG'] = gmag
         header['I_MAG'] = imag
         header['R_MAG'] = rmag
-        fits.writeto('DESSky/%i_%s_sky.fits' % (num, band), clippedSky[band],header = header, overwrite = True)
+        fits.writeto('DESSky/%i_%s_sky.fits' % (num, band), clippedSky[band], header = header, overwrite = True)
+
+# def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_Original'):
+#     """
+#     This is the function which makes a folder containing clipped images for the sources that are used to check the simulation.
+#     These clipped images are to be added to the PositiveNoiseless images to create the PositiveWithDESSky images. 
+#     This is clipped as (x, y, clipSizePix)=(x, y, 100), where x, y are random coordinates.     
+#     The clipped images (bandSky numpy array) are created, then checked to see if there is any zero value.
+#     If there is a zero in the clipped image, then a new clipped image is created from the orginal image with new x, y coordinates.
+#     This is repeated until a clipped image is created without zero in it. 
+#     The 'g' band is used to clip images as there is no need to go through all the bands but only need to check one band,
+#     as the possibility of a zero is great in the other bands as well if there is a zero in the 'g' band.
+
+#     Args:
+#         paths (dictionary):       The paths to the original fits DES images.
+#         madeSky (boolean):        A boolean value set to 'False', and in the following while loop, clipped images are made if there is no sky.
+#         clippedSky (dictionary):  Dictionary of all the clipped images.
+#         headers (dictionary):     Dictionary of the headers of the clipped images and the original images.
+#         allImagesValid (boolean): A boolean value set as 'True' when there is no madeSky made, 
+#                                   and is set to 'False' if the images there is any zeros in the bandSky.
+#         bandDES (numpy array):    Numpy array of the original DES images.
+#         x (int):                  Interger of a random x coordinate in the original DES image received from the randomXY function.
+#         y (int):                  Interger of a random y coordinate in the original DES image received from the randomXY function.
+#         bandSky (numpy array):    Clipped image that is set at (x, y) coordinates with a dimension of 100 * 100 pixels.
+
+#     Returns:
+#         clippedSky (dictionary):  The images the are clipped, and this is added as the noise or 
+#                                   background sky of the PositiveNoiseless images creating the 
+#                                   PositiveWithDESSky images. These clipped images are also saved in the DESSky folder.
+
+#     """
+#     paths = {}
+#     paths['gBandPath'] = glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0]
+#     paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0]
+#     paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, source, source))[0]
+
+#     if not os.path.exists('DESSky'):
+#         os.mkdir('DESSky')
+    
+#     madeSky = False
+#     while madeSky == False:
+#         clippedSky = {}
+#         allImagesValid = True
+#         for band in ['g', 'r', 'i']:
+#             with fits.open(paths[band + 'BandPath']) as bandDES:
+#                 if band == 'g':
+#                     x, y = randomXY(bandDES)
+#                 bandSky = astImages.clipImageSectionPix(bandDES[1].data, x, y, [100, 100])
+                
+#                 if np.any(bandSky) == 0:
+#                     allImagesValid = False
+#                     print("randomly-chosen postage stamp position contained zero values - trying again ...")
+#                     break
+#                 else:
+#                     clippedSky[band] = bandSky
+
+#         if allImagesValid == True:
+#             madeSky = True
+    
+#     for band in clippedSky.keys():
+#         header = fits.Header()
+#         header['TILENAME'] = source
+#         header['RA'] = ra
+#         header['DEC'] = dec
+#         header['G_MAG'] = gmag
+#         header['I_MAG'] = imag
+#         header['R_MAG'] = rmag
+#         fits.writeto('DESSky/%i_%s_sky.fits' % (num, band), clippedSky[band],header = header, overwrite = True)
         
-    return(clippedSky)
+#     return(clippedSky)
 
 def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original', base_new = 'DES/DES_Processed'):
     """
@@ -218,7 +273,7 @@ def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/
     newPath = {}
     newPath = ('%s/%s_%s' % (base_new, num, source))
     if not os.path.exists(newPath):
-        os.mkdir('%s/%s_%s'%(base_new, num, source))
+        os.mkdir('%s/%s_%s' % (base_new, num, source))
     
     for band in ['g','r','i']:
         with fits.open(paths[band+'BandPath']) as bandDES:
@@ -236,7 +291,7 @@ def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/
             im = WCSClipped['data']
             normImage = (im-im.mean())/np.std(im)
             
-            astImages.saveFITS('%s/%s_norm.fits' % (newPath,band), normImage, WCS)
+            astImages.saveFITS('%s/%s_norm.fits' % (newPath, band), normImage, WCS)
             print('Normalised %s clipped images at %s/%s' % (band, newPath, band))
     return(WCSClipped)
 
@@ -275,32 +330,32 @@ def rgbImageNewForNorm(num, path):
     plt.savefig('%s/%s_rgb.jpeg' % (path, num))
     plt.close()
 
-def randomXY(bandDES):
-    """ 
-    This function creates a random x,y, coordinates that is seen in the g, r, i images DES images.
-    The x,y coordinates are the same for all bands of that source.
-    This has to be within the image, and not outside.
+# def randomXY(bandDES):
+#     """ 
+#     This function creates a random x,y, coordinates that is seen in the g, r, i images DES images.
+#     The x,y coordinates are the same for all bands of that source.
+#     This has to be within the image, and not outside.
 
-    Args:
-        x(integer):     Random integer from 0 to 9900, since that is the width of a DES image is 10000.
-        y(integer):     Random integer from 0 to 9900, since that is the height of a DES image is 10000. 
+#     Args:
+#         x(integer):     Random integer from 0 to 9900, since that is the width of a DES image is 10000.
+#         y(integer):     Random integer from 0 to 9900, since that is the height of a DES image is 10000. 
 
-    Return:
-        x,y (integers): The coordinates, that are random and will be used in the RandomSkyClips to 
-                        create 100*100 pixels images of random sky. 
-    """
-    inHDUList = bandDES[1].header
-    print ('NAXIS1: ' + str(inHDUList['NAXIS1']))
-    print ('NAXIS2: ' + str(inHDUList['NAXIS2']))
+#     Return:
+#         x,y (integers): The coordinates, that are random and will be used in the RandomSkyClips to 
+#                         create 100*100 pixels images of random sky. 
+#     """
+#     inHDUList = bandDES[1].header
+#     print ('NAXIS1: ' + str(inHDUList['NAXIS1']))
+#     print ('NAXIS2: ' + str(inHDUList['NAXIS2']))
     
-    xMax = inHDUList['NAXIS1']
-    yMax = inHDUList['NAXIS2']
-    xRandom = random.randint(100, xMax - 100)
-    yRandom = random.randint(100, yMax - 100)
+#     xMax = inHDUList['NAXIS1']
+#     yMax = inHDUList['NAXIS2']
+#     xRandom = random.randint(100, xMax - 100)
+#     yRandom = random.randint(100, yMax - 100)
 
-    print("x: " + str(xRandom))
-    print("y: " + str(yRandom))
-    return (xRandom, yRandom)
+#     print("x: " + str(xRandom))
+#     print("y: " + str(yRandom))
+#     return (xRandom, yRandom)
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
 # MAIN
 """

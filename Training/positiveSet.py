@@ -13,7 +13,7 @@ import numpy as np
 import img_scale
 import astropy.table  as atpy
 from astropy.io import fits
-from astLib import astImages
+from astLib import *
 from astropy.visualization import make_lupton_rgb
 
 
@@ -246,8 +246,8 @@ def addSky(num):
     for band in ['g','r','i']:
         bandSkyImage = fits.open('DESSky/%i_%s_sky.fits' % (num, band))
         bandPosNoiselessImage = fits.open('PositiveNoiseless/%s/%s_image_%s_SDSS.fits' % (num, num, band))
-        WithSky = bandSkyImage[0].data + bandPosNoiselessImage[0].data
-        astImages.saveFITS('PositiveWithDESSky/%i/%i_posSky_%s.fits' % (num, num, band), WithSky)
+        withSky = bandSkyImage[0].data + bandPosNoiselessImage[0].data
+        astImages.saveFITS('PositiveWithDESSky/%i/%i_posSky_%s.fits' % (num, num, band), withSky)
         # fits.writeto('PositiveWithDESSky/%i/%i_posSky_%s.fits' % (num, num, band), WithSky)
 
     # skyPaths = {}
@@ -262,7 +262,6 @@ def addSky(num):
     #         fits.open('PositiveNoiseless/%s/%s_image_%s_SDSS.fits' % (num, num, band))
     #         WithSky = DesSky[0].data + bandPosNoiselessImage[0].data
     #         fits.writeto('PositiveWithDESSky/%i/%i_posSky_%s.fits' % (num, num, band), WithSky)
-
 
 def normalise(num, path):
     """
@@ -282,11 +281,27 @@ def normalise(num, path):
     paths['rImg'] = glob.glob('%s_r*.fits' % path)[0]
     paths['gImg'] = glob.glob('%s_g*.fits' % path)[0]
 
+    rgbDict={}
+    wcs=None
     for band in ['g','r','i']:
         with fits.open(paths[band + 'Img']) as image:
             im = image[0].data
             normImage = (im-im.mean())/np.std(im)
-            astImages.saveFITS('%s_%s_norm.fits' % (path, band), normImage, None) 
+            astImages.saveFITS('%s_%s_norm.fits' % (path, band), normImage, None)
+            if wcs is None:
+                wcs=astWCS.WCS(im[0].header, mode = 'pyfits')
+            rgbDict[band] = im
+
+    minCut, maxCut=-1, 3
+    cutLevels=[[minCut, maxCut], [minCut, maxCut], [minCut, maxCut]]
+    plt.figure(figsize=(10,10))
+    p=astPlots.ImagePlot([rgbDict['i'], rgbDict['r'], rgbDict['g']],
+                        wcs,
+                        cutLevels = cutLevels,
+                        axesLabels = None,
+                        axesFontSize= 26.0,
+                        axes = [0, 0, 1, 1])
+    plt.savefig('%s/%i/%i_rgb.png' % ('PositiveWithDESSky', num, num))
 
 def addToHeadersPositiveNoiseless(num, g_ml, r_ml, i_ml, g_ms, r_ms, i_ms, ql, b, qs, rl, rs, ps, base_dir = 'PositiveNoiseless'):
     """ 
@@ -368,7 +383,7 @@ def rgbImageNew(num, base_dir = 'PositiveWithDESSky'):
 
     plt.figure(figsize = (10, 10))
     plt.axes([0, 0, 1, 1])
-    plt.imshow(rgb,aspect = 'equal')
+    plt.imshow(rgb, aspect = 'equal')
     plt.savefig('%s/%s/%s_rgb.jpeg' % (base_dir, num,num))
     plt.close() 
 
@@ -407,7 +422,6 @@ sourceRandomTable, lensRandomTable = cutCosmosTable(cosmos)
 tab = makeInitialTable(numObjects)
 
 for num in range(numObjects):
-
     rndmRow = np.random.randint(0, len(lensRandomTable))
     print('Random row number was %i' % (rndmRow))
     g_ml = (lensRandomTable['Gmag'][rndmRow]) - 2 # ml in g band
@@ -444,6 +458,3 @@ for num in range(numObjects):
     makeTable(tab, g_ml, r_ml, i_ml, g_ms, r_ms, i_ms, rl, ql, b, xs, ys, qs, ps, rs, num)
     addSky(num)
     normalise(num, normPosSkyPath)
-    normalise(num, normPosNoiselessPath)
-    addToHeadersPositiveNoiseless(num, g_ml, r_ml, i_ml, g_ms, r_ms, i_ms, ql, b, qs, rl, rs, ps)
-    rgbImageNew(num)
