@@ -50,9 +50,9 @@ def getPosWDESSky(num, base_dir = 'PositiveWithDESSky'):
 
 # Open PositiveWithDESSky norm. fits images and assign a variable to the ...posSky_g, r, i_norm images.
 def getPosWDESSkyNorm(num, base_dir = 'PositiveWithDESSky'):
-    gPosSkyNorm = fits.open(glob.glob('%s/%s/%s_posSky_g_norm.fits' % (base_dir, num, num))[0])
-    rPosSkyNorm = fits.open(glob.glob('%s/%s/%s_posSky_r_norm.fits' % (base_dir, num, num))[0])
-    iPosSkyNorm = fits.open(glob.glob('%s/%s/%s_posSky_i_norm.fits' % (base_dir, num, num))[0])
+    gPosSkyNorm = fits.open(glob.glob('%s/%s/%s_g_norm.fits' % (base_dir, num, num))[0])
+    rPosSkyNorm = fits.open(glob.glob('%s/%s/%s_r_norm.fits' % (base_dir, num, num))[0])
+    iPosSkyNorm = fits.open(glob.glob('%s/%s/%s_i_norm.fits' % (base_dir, num, num))[0])
     return(gPosSkyNorm, rPosSkyNorm, iPosSkyNorm)
 
 def getNumOrRowsForGrid(numOfColsForGrid): #Give me a description please!!!
@@ -164,7 +164,7 @@ for num in range(0, num):
 
     print('Number of iterations done: %s' % num)
 
-    rgbPosImagePaths.append('PositiveWithDESSky/%s/%s_rgb.jpeg' % (num, num))
+    rgbPosImagePaths.append('PositiveWithDESSky/%s/%s_rgb.png' % (num, num))
     
     rgbDESImagePaths.append(getDESRGBPath(num))
 

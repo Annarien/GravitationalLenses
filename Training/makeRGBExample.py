@@ -15,7 +15,7 @@ import IPython
 
 # Choose which set of images to use
 # If the non-normed set is chosen, we normalise here on the fly
-normed = False
+normed = True
 
 if normed == False:
     filesList=glob.glob("PositiveWithDESSky/0/0_posSky_?.fits")
@@ -23,6 +23,7 @@ if normed == False:
 else:
     filesList=glob.glob("PositiveWithDESSky/0/*_norm.fits")
     outFileName="not-normed.png"
+print filesList
 rgbDict={}
 wcs=None
 for f in filesList:
@@ -30,7 +31,7 @@ for f in filesList:
         d=img[0].data
         # NOTE: If the header had the band as a keyword, we wouldn't need to get the band from the filename...
         if normed == True:
-            band=os.path.split(f)[-1].split("posSky_")[1].split("_norm")[0]
+            band=os.path.split(f)[-1].split("_")[1].split("_norm")[0]
         else:
             band=os.path.split(f)[-1].split(".fits")[0][-1]
             d=(d-d.mean())/np.std(d)    # Normalise on the fly

@@ -248,22 +248,8 @@ def addSky(num):
         bandPosNoiselessImage = fits.open('PositiveNoiseless/%s/%s_image_%s_SDSS.fits' % (num, num, band))
         withSky = bandSkyImage[0].data + bandPosNoiselessImage[0].data
         astImages.saveFITS('PositiveWithDESSky/%i/%i_posSky_%s.fits' % (num, num, band), withSky)
-        # fits.writeto('PositiveWithDESSky/%i/%i_posSky_%s.fits' % (num, num, band), WithSky)
-
-    # skyPaths = {}
-    # skyPaths['iSkyPath'] = glob.glob('DESSky/*_%s_i_sky.fits' % (num))
-    # skyPaths['gSkyPath'] = glob.glob('DESSky/*_%s_g_sky.fits' % (num))
-    # skyPaths['rSkyPath'] = glob.glob('DESSky/*_%s_r_sky.fits' % (num))
-    
-    # # PosNoiselessPath = 'PositiveNoiseless/%s/%s_image_%s_SDSS.fits' % (num, num, band)
-
-    # for band in ['g','r','i']:
-    #     with fits.open(skyPaths[band + 'SkyPath']) as DesSky:
-    #         fits.open('PositiveNoiseless/%s/%s_image_%s_SDSS.fits' % (num, num, band))
-    #         WithSky = DesSky[0].data + bandPosNoiselessImage[0].data
-    #         fits.writeto('PositiveWithDESSky/%i/%i_posSky_%s.fits' % (num, num, band), WithSky)
-
-def normalise(num, path):
+       
+def normalise(num, base_dir = 'PositiveWithDESSky'):
     """
     The normalization follows a gaussian normalisation. The images are created in the directory path provided.
 
@@ -277,127 +263,33 @@ def normalise(num, path):
         normImages (numpy array):   Images of the normalisation for the WCSClipped images are saved in the PositiveWithDESSky folder.
     """
     paths = {}
-    paths['iImg'] = glob.glob('%s_i*.fits' % path)[0]
-    paths['rImg'] = glob.glob('%s_r*.fits' % path)[0]
-    paths['gImg'] = glob.glob('%s_g*.fits' % path)[0]
+    paths['iImg'] = glob.glob('%s/%s/%s_posSky_i.fits' % (base_dir, num, num))[0]
+    paths['rImg'] = glob.glob('%s/%s/%s_posSky_r.fits' % (base_dir, num, num))[0]
+    paths['gImg'] = glob.glob('%s/%s/%s_posSky_g.fits' % (base_dir, num, num))[0]
+
+    print (paths)
 
     rgbDict={}
     wcs=None
-    for band in ['g','r','i']:
+    for band in ['g', 'r', 'i']:
         with fits.open(paths[band + 'Img']) as image:
             im = image[0].data
             normImage = (im-im.mean())/np.std(im)
-            astImages.saveFITS('%s_%s_norm.fits' % (path, band), normImage, None)
+            astImages.saveFITS('%s/%s/%s_%s_norm.fits' % (base_dir, num, num, band), normImage, None)
             if wcs is None:
-                wcs=astWCS.WCS(im[0].header, mode = 'pyfits')
-            rgbDict[band] = im
+                wcs=astWCS.WCS(image[0].header, mode = 'pyfits')
+            rgbDict[band] = normImage
 
     minCut, maxCut=-1, 3
     cutLevels=[[minCut, maxCut], [minCut, maxCut], [minCut, maxCut]]
-    plt.figure(figsize=(10,10))
-    p=astPlots.ImagePlot([rgbDict['i'], rgbDict['r'], rgbDict['g']],
+    plt.figure(figsize=(10, 10))
+    astPlots.ImagePlot([rgbDict['i'], rgbDict['r'], rgbDict['g']],
                         wcs,
                         cutLevels = cutLevels,
                         axesLabels = None,
                         axesFontSize= 26.0,
                         axes = [0, 0, 1, 1])
     plt.savefig('%s/%i/%i_rgb.png' % ('PositiveWithDESSky', num, num))
-
-def addToHeadersPositiveNoiseless(num, g_ml, r_ml, i_ml, g_ms, r_ms, i_ms, ql, b, qs, rl, rs, ps, base_dir = 'PositiveNoiseless'):
-    """ 
-    This simple function adds headers to the PositiveNoiseless.fits files. This is done in order 
-    for the user to have information, about the parameters that have been made to create these 
-    gravitational images in the main function, and is saved to (paths[('%sPosNoiseless' % band)].
-
-    Args:
-        paths (dictionary): The path for the g, r, i .fits files for each image in the PositiveNoiseless folder.
-        header (header):    This is the actual header for these images, and is adjusted to include the magnitudes of g, r, i.
-        g_ml (float):       The g magnitude of the lens.
-        r_ml (float):       The r magnitude of the lens.
-        i_ml (float):       The i magnitude of the lens.
-        g_ms (float):       The g magnitude of the source.
-        r_ms (float):       The r magnitude of the source.
-        i_ms (float):       The i magnitude of the source.
-        ql (float):         Flattening of the lens (1 = circular, 0 = line).
-        qs (float):         Flattening of the source (1 = circular, 0 = line).
-        b (float):          Einsten radius, in arcsec.
-        rl (float):         Half-light radius of the lens, in arcsec.
-        rs (float):         Half-light radius of the source, in arcsec.
-    
-    Returns:
-        Saving the PosNoiseless images with the headers.
-    """
-    paths = {}
-    paths['gPosNoiseless'] = glob.glob('%s/%s/%s_image_g_*.fits' % (base_dir, num, num))[0]
-    paths['rPosNoiseless'] = glob.glob('%s/%s/%s_image_r_*.fits' % (base_dir, num, num))[0]
-    paths['iPosNoiseless'] = glob.glob('%s/%s/%s_image_i_*.fits' % (base_dir, num, num))[0]
-
-    bands = ['g','r','i']         
-    for band in bands:
-        data, header = fits.getdata(paths[('%sPosNoiseless' % band)], header = True)
-        header.set('G_LENS', g_ml)
-        header.set('R_LENS', r_ml)
-        header.set('I_LENS', i_ml)
-        header.set('G_SRC', g_ms)
-        header.set('R_SRC', r_ms)
-        header.set('I_SRC', i_ms)
-        header.set('ql', ql)
-        header.set('qs', qs)
-        header.set('b', b)
-        header.set('rl', rl)
-        header.set('rs', rs)
-        header.set('Angle of arc', ps)
-        fits.writeto(paths[('%sPosNoiseless' % band)], data, header, overwrite = True)
-
-#https://www.astrobetter.com/blog/2010/10/22/making-rgb-images-from-fits-files-with-pythonmatplotlib/
-# To see the source of making RGB Images
-def rgbImageNew(num, base_dir = 'PositiveWithDESSky'):
-    """ 
-    A universal function to create Red, Green and Blue images for 'PositiveNoiseless' Images and for 'PositiveWithDESSky' Images,
-    which are set under in the respective folders with the source folder number(i).
-    This is saved as both jpeg and png files. It is saved as both files, incase so that we may use it for 
-    the article or to check if everything is ok immediatley with the images. 
-
-    Args: 
-        path (string):       This is the folder in which the rgb is made and saved.
-        i_img (array):       This is the data that is retrieved from the sources i band .fits image.
-        r_img (array):       This is the data that is retrieved from the sources r band . fits image.
-        g_img (array):       This is the data that is retrieved from the sources g band . fits image.
-        imin (float):        Minimum value for the i band, where the image mean - 0.4 times of the standard deviation. 
-        imax (float):        Maximum value for the i band, where the image mean + 0.4 times of the standard deviation. 
-        rmin (float):        Minimum value for the r band, where the image mean - 0.4 times of the standard deviation. 
-        rmax (float):        Maximum value for the r band, where the image mean + 0.4 times of the standard deviation.
-        gmin (float):        Minimum value for the g band, where the image mean - 0.4 times of the standard deviation. 
-        gmax (float):        Maximum value for the g band, where the image mean + 0.4 times of the standard deviation.
-        img (array):         This is an image created using r, g , i images to get a true colour image with squareroot scaling 
-                             where the min and max is calculated using imin,imax,rmin,rmax,gmin,gmax. 
-    Returns:
-        A rgb images are saved in the form of jpeg and png as images are combined with the r, g, i images. 
-    # """
-    
-    i = fits.open('%s/%s/%s_posSky_i_norm.fits' % (base_dir, num, num))[0].data
-    r = fits.open('%s/%s/%s_posSky_r_norm.fits' % (base_dir, num, num))[0].data
-    g = fits.open('%s/%s/%s_posSky_g_norm.fits' % (base_dir, num, num))[0].data
-
-    rgb = make_lupton_rgb(i, r, g)
-
-    plt.figure(figsize = (10, 10))
-    plt.axes([0, 0, 1, 1])
-    plt.imshow(rgb, aspect = 'equal')
-    plt.savefig('%s/%s/%s_rgb.jpeg' % (base_dir, num,num))
-    plt.close() 
-
-# def rotateImage(num, path):
-#     paths = {}
-#     paths['iImg'] = glob.glob('%s_i_norm.fits' % path)[0]
-#     paths['rImg'] = glob.glob('%s_r_norm.fits' % path)[0]
-#     paths['gImg'] = glob.glob('%s_g_norm.fits' % path)[0]
-
-#     for band in ['g','r','i']:
-#         with fits.open(paths[band + 'Img']) as image:
-#             for angle in [0.0, 90.0, 180.0, 270.0]:
-#                 rotatedImage = rotate(image[0].data, angle, axes = (0, 0))
-#                 astImages.saveFITS(path + '_%s_norm_rotated_%i.fits' % (band, angle), rotatedImage, None)
 
 #------------------------------------------------------------------------------------------------------------
 # Main
@@ -451,10 +343,8 @@ for num in range(numObjects):
     ps = float(random.uniform(0, 360))  # Position angle of source (in degrees)
     rs = float(random.uniform(1, 2))   # Half-light radius of the source, in arcsec.
 
-    normPosSkyPath = '%s/%i/%i_posSky' % ('PositiveWithDESSky', num, num)
-    normPosNoiselessPath = '%s/%i/%i_image' % ('PositiveNoiseless', num, num)
-
+    
     makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num)
     makeTable(tab, g_ml, r_ml, i_ml, g_ms, r_ms, i_ms, rl, ql, b, xs, ys, qs, ps, rs, num)
     addSky(num)
-    normalise(num, normPosSkyPath)
+    normalise(num)
