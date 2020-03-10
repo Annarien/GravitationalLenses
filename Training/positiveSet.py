@@ -275,9 +275,10 @@ def normalise(num, base_dir = 'PositiveWithDESSky'):
         with fits.open(paths[band + 'Img']) as image:
             im = image[0].data
             normImage = (im-im.mean())/np.std(im)
-            astImages.saveFITS('%s/%s/%s_%s_norm.fits' % (base_dir, num, num, band), normImage, None)
+            # astImages.saveFITS('%s/%s/%s_%s_norm.fits' % (base_dir, num, num, band), normImage, None)
             if wcs is None:
                 wcs=astWCS.WCS(image[0].header, mode = 'pyfits')
+            astImages.saveFITS('%s/%s/%s_%s_norm.fits' % (base_dir, num, num, band), normImage, None)
             rgbDict[band] = normImage
 
     minCut, maxCut=-1, 3

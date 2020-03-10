@@ -11,8 +11,9 @@ import numpy as np
 import img_scale
 import pylab as plt
 from astropy.io import fits
-from astLib import astWCS
-from astLib import astImages
+from astLib import *
+# from astLib import astWCS
+# from astLib import astImages
 from bs4 import BeautifulSoup
 from astropy.visualization import make_lupton_rgb
 
@@ -167,76 +168,7 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_O
         header['R_MAG'] = rmag
         fits.writeto('DESSky/%i_%s_sky.fits' % (num, band), clippedSky[band], header = header, overwrite = True)
 
-# def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_Original'):
-#     """
-#     This is the function which makes a folder containing clipped images for the sources that are used to check the simulation.
-#     These clipped images are to be added to the PositiveNoiseless images to create the PositiveWithDESSky images. 
-#     This is clipped as (x, y, clipSizePix)=(x, y, 100), where x, y are random coordinates.     
-#     The clipped images (bandSky numpy array) are created, then checked to see if there is any zero value.
-#     If there is a zero in the clipped image, then a new clipped image is created from the orginal image with new x, y coordinates.
-#     This is repeated until a clipped image is created without zero in it. 
-#     The 'g' band is used to clip images as there is no need to go through all the bands but only need to check one band,
-#     as the possibility of a zero is great in the other bands as well if there is a zero in the 'g' band.
-
-#     Args:
-#         paths (dictionary):       The paths to the original fits DES images.
-#         madeSky (boolean):        A boolean value set to 'False', and in the following while loop, clipped images are made if there is no sky.
-#         clippedSky (dictionary):  Dictionary of all the clipped images.
-#         headers (dictionary):     Dictionary of the headers of the clipped images and the original images.
-#         allImagesValid (boolean): A boolean value set as 'True' when there is no madeSky made, 
-#                                   and is set to 'False' if the images there is any zeros in the bandSky.
-#         bandDES (numpy array):    Numpy array of the original DES images.
-#         x (int):                  Interger of a random x coordinate in the original DES image received from the randomXY function.
-#         y (int):                  Interger of a random y coordinate in the original DES image received from the randomXY function.
-#         bandSky (numpy array):    Clipped image that is set at (x, y) coordinates with a dimension of 100 * 100 pixels.
-
-#     Returns:
-#         clippedSky (dictionary):  The images the are clipped, and this is added as the noise or 
-#                                   background sky of the PositiveNoiseless images creating the 
-#                                   PositiveWithDESSky images. These clipped images are also saved in the DESSky folder.
-
-#     """
-#     paths = {}
-#     paths['gBandPath'] = glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0]
-#     paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0]
-#     paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, source, source))[0]
-
-#     if not os.path.exists('DESSky'):
-#         os.mkdir('DESSky')
-    
-#     madeSky = False
-#     while madeSky == False:
-#         clippedSky = {}
-#         allImagesValid = True
-#         for band in ['g', 'r', 'i']:
-#             with fits.open(paths[band + 'BandPath']) as bandDES:
-#                 if band == 'g':
-#                     x, y = randomXY(bandDES)
-#                 bandSky = astImages.clipImageSectionPix(bandDES[1].data, x, y, [100, 100])
-                
-#                 if np.any(bandSky) == 0:
-#                     allImagesValid = False
-#                     print("randomly-chosen postage stamp position contained zero values - trying again ...")
-#                     break
-#                 else:
-#                     clippedSky[band] = bandSky
-
-#         if allImagesValid == True:
-#             madeSky = True
-    
-#     for band in clippedSky.keys():
-#         header = fits.Header()
-#         header['TILENAME'] = source
-#         header['RA'] = ra
-#         header['DEC'] = dec
-#         header['G_MAG'] = gmag
-#         header['I_MAG'] = imag
-#         header['R_MAG'] = rmag
-#         fits.writeto('DESSky/%i_%s_sky.fits' % (num, band), clippedSky[band],header = header, overwrite = True)
-        
-#     return(clippedSky)
-
-def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original', base_new = 'DES/DES_Processed'):
+def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original', base_new = 'DES/DES_Processed'):
     """
     Clips the g, r, i original .fits images for each source from DES to have 100*100 pixel size or 0.0073125*0.007315 degrees.
     The WCS coordinates are used, to maintain the necessary information that may be needed in future.
@@ -288,74 +220,79 @@ def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/
             astImages.saveFITS('%s/%s_WCSClipped.fits' % (newPath, band), WCSClipped['data'], WCS)
             print('Created %s_WCSclipped at %s/%s_WCSClipped.fits' % (band, newPath, band))
 
-            im = WCSClipped['data']
-            normImage = (im-im.mean())/np.std(im)
+            # im = WCSClipped['data']
+            # normImage = (im-im.mean())/np.std(im)
             
-            astImages.saveFITS('%s/%s_norm.fits' % (newPath, band), normImage, WCS)
-            print('Normalised %s clipped images at %s/%s' % (band, newPath, band))
+            # astImages.saveFITS('%s/%s_norm.fits' % (newPath, band), normImage, WCS)
+            # print('Normalised %s clipped images at %s/%s' % (band, newPath, band))
     return(WCSClipped)
 
-def rgbImageNewForNorm(num, path):
-    """ 
-    A universal function to create Red, Green and Blue images for DES clipped Images that is gaussian normalised.
-    These images are set under in the respective folders with the source folder number(i).
-    This is saved as both jpeg and png files. It is saved as both files, incase so that we may use it for 
-    the article or to check if everything is ok immediatley with the images. 
+def normaliseRGB(num, source, base_dir = 'DES/DES_Processed'):
+    paths = {}
+    paths['iBandPath'] = glob.glob('%s/%s_%s/i_WCSClipped.fits' % (base_dir, num,source))[0]
+    paths['rBandPath'] = glob.glob('%s/%s_%s/r_WCSClipped.fits' % (base_dir, num,source))[0]   
+    paths['gBandPath'] = glob.glob('%s/%s_%s/g_WCSClipped.fits' % (base_dir, num,source))[0]   
 
-    Args: 
-        path (string):       This is the file path in which the rgb is made and saved.
-        i_img (array):       This is the data that is retrieved from the sources i band .fits image.
-        r_img (array):       This is the data that is retrieved from the sources r band . fits image.
-        g_img (array):       This is the data that is retrieved from the sources g band . fits image.
-        imin (float):        Minimum value for the i band, where the image mean - 0.4 times of the standard deviation. 
-        imax (float):        Maximum value for the i band, where the image mean + 0.4 times of the standard deviation. 
-        rmin (float):        Minimum value for the r band, where the image mean - 0.4 times of the standard deviation. 
-        rmax (float):        Maximum value for the r band, where the image mean + 0.4 times of the standard deviation.
-        gmin (float):        Minimum value for the g band, where the image mean - 0.4 times of the standard deviation. 
-        gmax (float):        Maximum value for the g band, where the image mean + 0.4 times of the standard deviation.
-        img (array):         This is an image created using r, g , i images to get a true colour image with squareroot scaling 
-                             where the min and max is calculated using imin,imax,rmin,rmax,gmin,gmax. 
-    Returns:
-        A rgb images are saved in the form of jpeg and png as images are combined with the r, g, i images. 
-    """
-    i = fits.open('%s/i_norm.fits' % path)[0].data
-    r = fits.open('%s/r_norm.fits' % path)[0].data
-    g = fits.open('%s/g_norm.fits' % path)[0].data
+    print (paths)
+    rgbDict = {}
+    wcs = None
 
-    rgb = make_lupton_rgb(i, r, g) 
+    for band in ['g', 'r', 'i']:
+        with fits.open(paths[band+'BandPath']) as image:
+            im = image[0].data
+            normImage = (im - im.mean())/np.std(im)
+            if wcs is None:
+                wcs = astWCS.WCS(image[0].header, mode = 'pyfits')
+            astImages.saveFITS('%s/%s_%s/%s_norm.fits' % (base_dir, num, source, band), normImage, wcs)
+            rgbDict[band] = normImage
 
+    minCut, maxCut = -1, 3
+    cutLevels = [[minCut, maxCut], [minCut, maxCut], [minCut, maxCut]]
     plt.figure(figsize = (10, 10))
-    plt.axes([0, 0, 1, 1])
-    plt.imshow(rgb, aspect = 'equal')
-    plt.savefig('%s/%s_rgb.jpeg' % (path, num))
-    plt.close()
+    astPlots.ImagePlot([rgbDict['i'], rgbDict['r'], rgbDict['g']],
+                    wcs,
+                    cutLevels = cutLevels,
+                    axesLabels = None,
+                    axesFontSize= 26.0,
+                    axes = [0, 0, 1, 1])
+    plt.savefig('%s/%s_%s/rgb.png' %(base_dir, num, source))
 
-# def randomXY(bandDES):
+# def rgbImageNewForNorm(num, path):
 #     """ 
-#     This function creates a random x,y, coordinates that is seen in the g, r, i images DES images.
-#     The x,y coordinates are the same for all bands of that source.
-#     This has to be within the image, and not outside.
+#     A universal function to create Red, Green and Blue images for DES clipped Images that is gaussian normalised.
+#     These images are set under in the respective folders with the source folder number(i).
+#     This is saved as both jpeg and png files. It is saved as both files, incase so that we may use it for 
+#     the article or to check if everything is ok immediatley with the images. 
 
-#     Args:
-#         x(integer):     Random integer from 0 to 9900, since that is the width of a DES image is 10000.
-#         y(integer):     Random integer from 0 to 9900, since that is the height of a DES image is 10000. 
-
-#     Return:
-#         x,y (integers): The coordinates, that are random and will be used in the RandomSkyClips to 
-#                         create 100*100 pixels images of random sky. 
+#     Args: 
+#         path (string):       This is the file path in which the rgb is made and saved.
+#         i_img (array):       This is the data that is retrieved from the sources i band .fits image.
+#         r_img (array):       This is the data that is retrieved from the sources r band . fits image.
+#         g_img (array):       This is the data that is retrieved from the sources g band . fits image.
+#         imin (float):        Minimum value for the i band, where the image mean - 0.4 times of the standard deviation. 
+#         imax (float):        Maximum value for the i band, where the image mean + 0.4 times of the standard deviation. 
+#         rmin (float):        Minimum value for the r band, where the image mean - 0.4 times of the standard deviation. 
+#         rmax (float):        Maximum value for the r band, where the image mean + 0.4 times of the standard deviation.
+#         gmin (float):        Minimum value for the g band, where the image mean - 0.4 times of the standard deviation. 
+#         gmax (float):        Maximum value for the g band, where the image mean + 0.4 times of the standard deviation.
+#         img (array):         This is an image created using r, g , i images to get a true colour image with squareroot scaling 
+#                              where the min and max is calculated using imin,imax,rmin,rmax,gmin,gmax. 
+#     Returns:
+#         A rgb images are saved in the form of jpeg and png as images are combined with the r, g, i images. 
 #     """
-#     inHDUList = bandDES[1].header
-#     print ('NAXIS1: ' + str(inHDUList['NAXIS1']))
-#     print ('NAXIS2: ' + str(inHDUList['NAXIS2']))
-    
-#     xMax = inHDUList['NAXIS1']
-#     yMax = inHDUList['NAXIS2']
-#     xRandom = random.randint(100, xMax - 100)
-#     yRandom = random.randint(100, yMax - 100)
+#     i = fits.open('%s/i_norm.fits' % path)[0].data
+#     r = fits.open('%s/r_norm.fits' % path)[0].data
+#     g = fits.open('%s/g_norm.fits' % path)[0].data
 
-#     print("x: " + str(xRandom))
-#     print("y: " + str(yRandom))
-#     return (xRandom, yRandom)
+#     rgb = make_lupton_rgb(i, r, g) 
+
+#     plt.figure(figsize = (10, 10))
+#     plt.axes([0, 0, 1, 1])
+#     plt.imshow(rgb, aspect = 'equal')
+#     plt.savefig('%s/%s_rgb.jpeg' % (path, num))
+#     plt.close()
+
+
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
 # MAIN
 """
@@ -394,6 +331,7 @@ for num in range(0, num):
     addRowToTable(tab, num, tileName, gmag, rmag, imag, ra, dec)
     loadDES(num, tileName) 
     randomSkyClips(num, tileName, ra, dec, gmag, rmag, imag)  
-    clipWCSAndNormalise(tileName, num, gmag, rmag, imag,ra, dec) # takes DES images and clips it with RA, and DEC
-    path = "DES/DES_Processed/%s_%s" % (num, tileName)
-    rgbImageNewForNorm(num, path)
+    clipWCS(tileName, num, gmag, rmag, imag,ra, dec) # takes DES images and clips it with RA, and DEC
+    normaliseRGB(num, tileName)
+    # path = "DES/DES_Processed/%s_%s" % (num, tileName)
+    # rgbImageNewForNorm(num, path)

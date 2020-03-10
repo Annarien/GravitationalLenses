@@ -15,7 +15,7 @@ import IPython
 
 # Choose which set of images to use
 # If the non-normed set is chosen, we normalise here on the fly
-normed = True
+normed = False
 
 if normed == False:
     filesList=glob.glob("PositiveWithDESSky/0/0_posSky_?.fits")

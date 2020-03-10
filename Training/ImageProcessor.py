@@ -87,7 +87,7 @@ def plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath, rgbIm
     plt.close(fig3)
 
 def getDESRGBPath(num):
-    rgbDESPath = glob.glob('DES/DES_Processed/%s_*/%s_rgb.jpeg' % (num, num))[0]
+    rgbDESPath = glob.glob('DES/DES_Processed/%s_*/rgb.png' % (num))[0]
     return (rgbDESPath)
 # ___________________________________________________________________________________________________________________________________________
 # MAIN 
