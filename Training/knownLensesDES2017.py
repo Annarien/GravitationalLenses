@@ -9,6 +9,8 @@ import wget
 import astropy.table as atpy
 import glob
 import numpy as np
+import pandas as pd
+import xlrd
 from astropy.io import fits
 from astLib import astWCS
 from astLib import astImages
@@ -40,8 +42,15 @@ def loadDES(num, tileName, base_dir = 'DES/DES_Original'):
     if os.path.exists('%s/%s/%s.html' % (base_dir, tileName, tileName)):
         os.remove('%s/%s/%s.html' % (base_dir, tileName, tileName))
 
+    ################################################################################################
+
+    import urllib
     # Download HTML file containing all files in directory
     url = 'http://desdr-server.ncsa.illinois.edu/despublic/dr1_tiles/' + tileName + '/'
+    url = urllib.quote(url.encode('utf8'), ':/')
+
+
+    ################################################################################################
 
     wget.download(url, '%s/%s/%s.html' % (base_dir, tileName, tileName))
 
@@ -88,9 +97,9 @@ def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/
     sizeWCS = [0.0073125, 0.0073125] # 100*100 pixels in degrees 
     
     paths = {}
-    paths['gBandPath'] = glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0]
-    paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0]
-    paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, source, source))[0]
+    paths['gBandPath'] = glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))
+    paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))
+    paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, source, source))
 
     if not os.path.exists('%s' % (base_new)):
         os.mkdir('%s' % (base_new))
@@ -123,22 +132,29 @@ def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/
 # ____________________________________________________________________________________________________________________
 # MAIN
 
-tableKnownDES = atpy.Table().read("KnownLenses/DES2017.csv")
-lenTabKnownDES = len(tableKnownDES)
-print ("The length of the knownLenses from DES2017:" + str(lenTabKnownDES))
+loc = ("KnownLenses/DES2017.xlsx") #location of a file
+wb = xlrd.open_workbook(loc) #opening a workbook
+sheet = wb.sheet_by_index(0) 
 
-for num in range(0, lenTabKnownDES):
-    tileName = tableKnownDES['TILENAME'][num]
+for num in range(1, (sheet.nrows)): 
+    print(num)
+    print(sheet.cell_value(num , 0)) 
+    tileName = sheet.cell_value(num+1, 0)
     print(type(tileName))
-    gmag = tableKnownDES['MAG_AUTO_G'][num]
-    imag = tableKnownDES['MAG_AUTO_I'][num]
-    rmag = tableKnownDES['MAG_AUTO_R'][num]
-    ra = tableKnownDES['RA'][num]
-    dec = tableKnownDES['DEC'][num]
+    ra = sheet.cell_value(num, 1)
+    dec = sheet.cell_value(num, 2)
+    gmag = sheet.cell_value(num, 3)
+    imag = sheet.cell_value(num, 5)
+    rmag = sheet.cell_value(num, 4)
+    print('TILENAME: ' +((tileName).encode('utf-8')))
+    print('RA: ' +str(ra))
+    print('DEC: '+str(dec))
     print('Gmag: ' + str(gmag))
     print('Imag: ' + str(imag))
     print('Rmag: ' + str(rmag))
 
     loadDES(num, tileName)
     clipWCSAndNormalise(tileName, num, gmag, rmag, imag,ra, dec)
+
+
     

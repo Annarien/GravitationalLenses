@@ -129,6 +129,7 @@ print ("The length of the knownLenses from CollettDES:" + str(lenTabKnownDES))
 
 for num in range(0, lenTabKnownDES):
     tileName = tableKnownDES['TILENAME'][num]
+    print(tileName)
     print(type(tileName))
     gmag = tableKnownDES['MAG_AUTO_G'][num]
     imag = tableKnownDES['MAG_AUTO_I'][num]
