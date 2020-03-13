@@ -123,7 +123,7 @@ def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/
 # ____________________________________________________________________________________________________________________
 # MAIN
 
-tableKnownDES =  atpy.Table().read("KnownLenses/CollettFromDES_ObjectID.fits")
+tableKnownDES = atpy.Table().read("KnownLenses/CollettFromDES_ObjectID.fits")
 lenTabKnownDES = len(tableKnownDES)
 print ("The length of the knownLenses from CollettDES:" + str(lenTabKnownDES))
 
