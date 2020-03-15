@@ -139,7 +139,7 @@ sheet = wb.sheet_by_index(0)
 for num in range(1, (sheet.nrows)): 
     print(num)
     print(sheet.cell_value(num , 0)) 
-    tileName = sheet.cell_value(num+1, 0)
+    tileName = sheet.cell_value(num, 0)
     print(type(tileName))
     ra = sheet.cell_value(num, 1)
     dec = sheet.cell_value(num, 2)
