@@ -61,7 +61,7 @@ def loadDES(num, tileName, base_dir = 'DES/DES_Original'):
                         print()
         print()
 
-def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, pathProcessed, base_dir = 'DES/DES_Original'):
+def clipWCS(source, num, gmag, rmag, imag, ra, dec, pathProcessed, base_dir = 'DES/DES_Original'):
     """
     Clips the g, r, i original .fits images for each source from DES to have 100*100 pixel size or 0.0073125*0.007315 degrees.
     The WCS coordinates are used, to maintain the necessary information that may be needed in future.
@@ -99,7 +99,7 @@ def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, pathProcessed, b
     newPath = {}
     newPath = ('%s/%s_%s' % (base_new, num, source))
     if not os.path.exists(newPath):
-        os.mkdir('%s/%s_%s'%(base_new, num, source))
+        os.mkdir('%s/%s_%s' % (base_new, num, source))
     
     for band in ['g','r','i']:
         with fits.open(paths[band+'BandPath']) as bandDES:
@@ -114,12 +114,43 @@ def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, pathProcessed, b
             astImages.saveFITS('%s/%s_WCSClipped.fits' % (newPath, band), WCSClipped['data'], WCS)
             print('Created %s_WCSclipped at %s/%s_WCSClipped.fits' % (band, newPath, band))
 
-            im = WCSClipped['data']
-            normImage = (im-im.mean())/np.std(im)
+            # im = WCSClipped['data']
+            # normImage = (im-im.mean())/np.std(im)
             
-            astImages.saveFITS('%s/%s_norm.fits' % (newPath,band), normImage, WCS)
-            print('Normalised %s clipped images at %s/%s' % (band, newPath, band))
+            # astImages.saveFITS('%s/%s_norm.fits' % (newPath, band), normImage, WCS)
+            # print('Normalised %s clipped images at %s/%s' % (band, newPath, band))
     return(WCSClipped)
+
+def normaliseRGB(num, source, pathProcessed):
+    base_dir = pathProcessed
+    paths = {}
+    paths['iBandPath'] = glob.glob('%s/%s_%s/i_WCSClipped.fits' % (base_dir, num,source))[0]
+    paths['rBandPath'] = glob.glob('%s/%s_%s/r_WCSClipped.fits' % (base_dir, num,source))[0]   
+    paths['gBandPath'] = glob.glob('%s/%s_%s/g_WCSClipped.fits' % (base_dir, num,source))[0]   
+
+    print (paths)
+    rgbDict = {}
+    wcs = None
+
+    for band in ['g', 'r', 'i']:
+        with fits.open(paths[band+'BandPath']) as image:
+            im = image[0].data
+            normImage = (im - im.mean())/np.std(im)
+            if wcs is None:
+                wcs = astWCS.WCS(image[0].header, mode = 'pyfits')
+            astImages.saveFITS('%s/%s_%s/%s_norm.fits' % (base_dir, num, source, band), normImage, wcs)
+            rgbDict[band] = normImage
+
+    minCut, maxCut = -1, 3
+    cutLevels = [[minCut, maxCut], [minCut, maxCut], [minCut, maxCut]]
+    plt.figure(figsize = (10, 10))
+    astPlots.ImagePlot([rgbDict['i'], rgbDict['r'], rgbDict['g']],
+                    wcs,
+                    cutLevels = cutLevels,
+                    axesLabels = None,
+                    axesFontSize= 26.0,
+                    axes = [0, 0, 1, 1])
+    plt.savefig('%s/%s_%s/rgb.png' %(base_dir, num, source))
 
 # ____________________________________________________________________________________________________________________
 # MAIN
@@ -138,11 +169,6 @@ while table != 'Jacobs' and table != 'DES2017':
         pathProcessed = 'KnownLenses/DES2017_KnownLenses'
         break
 
-
-print(pathProcessed)
-if os.path.exists(pathProcessed) == False:
-    os.makedirs(pathProcessed)
-
 lenTabKnown = len(tableKnown)
 print ("The length of the knownLenses from CollettDES:" + str(lenTabKnown))
 
@@ -160,5 +186,5 @@ for num in range(0, lenTabKnown):
     print('Rmag: ' + str(rmag))
 
     loadDES(num, tileName)
-    clipWCSAndNormalise(tileName, num, gmag, rmag, imag, ra, dec, pathProcessed)
-    
+    clipWCS(tileName, num, gmag, rmag, imag, ra, dec, pathProcessed)
+    normaliseRGB(num, tileName, pathProcessed)
