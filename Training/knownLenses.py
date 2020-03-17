@@ -6,12 +6,14 @@
 import os
 import sys
 import wget
+import random
 import astropy.table as atpy
 import glob
+import img_scale
 import numpy as np
+import pylab as plt
 from astropy.io import fits
-from astLib import astWCS
-from astLib import astImages
+from astLib import *
 from bs4 import BeautifulSoup
 
 def loadDES(num, tileName, base_dir = 'DES/DES_Original'):
@@ -170,7 +172,7 @@ while table != 'Jacobs' and table != 'DES2017':
         break
 
 lenTabKnown = len(tableKnown)
-print ("The length of the knownLenses from CollettDES:" + str(lenTabKnown))
+print ("The length of the knownLenses of " + str(table)+ " is  :" + str(lenTabKnown))
 
 for num in range(0, lenTabKnown):
     tileName = tableKnown['TILENAME'][num]
