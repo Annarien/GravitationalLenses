@@ -122,20 +122,30 @@ def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/
 
 # ____________________________________________________________________________________________________________________
 # MAIN
+table = ''
+while table != 'Jacobs' and table != 'DES2017':
+    table = raw_input("Which table would you like to find Known Lenses: Jacobs or DES2017?")
+    print ("You have chosen the table: " + str (table))
 
-tableKnownDES = atpy.Table().read("KnownLenses/CollettFromDES_ObjectID.fits")
-lenTabKnownDES = len(tableKnownDES)
-print ("The length of the knownLenses from CollettDES:" + str(lenTabKnownDES))
+    if table == 'Jacobs': 
+        tableKnown = atpy.Table.read("KnownLenses/Jacobs_KnownLenses.fits")
+        break
+    elif table == 'DES2017':
+        tableKnown = atpy.Table.read("KnownLenses/DES2017_KnownLenses.fits")
+        break
 
-for num in range(0, lenTabKnownDES):
-    tileName = tableKnownDES['TILENAME'][num]
+lenTabKnown = len(tableKnown)
+print ("The length of the knownLenses from CollettDES:" + str(lenTabKnown))
+
+for num in range(0, lenTabKnown):
+    tileName = tableKnown['TILENAME'][num]
     print(tileName)
     print(type(tileName))
-    gmag = tableKnownDES['MAG_AUTO_G'][num]
-    imag = tableKnownDES['MAG_AUTO_I'][num]
-    rmag = tableKnownDES['MAG_AUTO_R'][num]
-    ra = tableKnownDES['RA'][num]
-    dec = tableKnownDES['DEC'][num]
+    gmag = tableKnown['MAG_AUTO_G'][num]
+    imag = tableKnown['MAG_AUTO_I'][num]
+    rmag = tableKnown['MAG_AUTO_R'][num]
+    ra = tableKnown['RA'][num]
+    dec = tableKnown['DEC'][num]
     print('Gmag: ' + str(gmag))
     print('Imag: ' + str(imag))
     print('Rmag: ' + str(rmag))
