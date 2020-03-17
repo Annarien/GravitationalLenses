@@ -61,7 +61,7 @@ def loadDES(num, tileName, base_dir = 'DES/DES_Original'):
                         print()
         print()
 
-def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original', base_new = 'KnownLenses/Known_Processed'):
+def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, pathProcessed, base_dir = 'DES/DES_Original'):
     """
     Clips the g, r, i original .fits images for each source from DES to have 100*100 pixel size or 0.0073125*0.007315 degrees.
     The WCS coordinates are used, to maintain the necessary information that may be needed in future.
@@ -92,6 +92,7 @@ def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/
     paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0]
     paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, source, source))[0]
 
+    base_new = pathProcessed
     if not os.path.exists('%s' % (base_new)):
         os.mkdir('%s' % (base_new))
 
@@ -123,16 +124,24 @@ def clipWCSAndNormalise(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/
 # ____________________________________________________________________________________________________________________
 # MAIN
 table = ''
+path = ''
 while table != 'Jacobs' and table != 'DES2017':
     table = raw_input("Which table would you like to find Known Lenses: Jacobs or DES2017?")
     print ("You have chosen the table: " + str (table))
 
     if table == 'Jacobs': 
         tableKnown = atpy.Table.read("KnownLenses/Jacobs_KnownLenses.fits")
+        pathProcessed = 'KnownLenses/Jacobs_KnownLenses/'
         break
     elif table == 'DES2017':
         tableKnown = atpy.Table.read("KnownLenses/DES2017_KnownLenses.fits")
+        pathProcessed = 'KnownLenses/DES2017_KnownLenses/'
         break
+
+
+print(pathProcessed)
+if os.path.exists(pathProcessed) == False:
+    os.makedirs(pathProcessed)
 
 lenTabKnown = len(tableKnown)
 print ("The length of the knownLenses from CollettDES:" + str(lenTabKnown))
@@ -151,5 +160,5 @@ for num in range(0, lenTabKnown):
     print('Rmag: ' + str(rmag))
 
     loadDES(num, tileName)
-    clipWCSAndNormalise(tileName, num, gmag, rmag, imag,ra, dec)
+    clipWCSAndNormalise(tileName, num, gmag, rmag, imag, ra, dec, pathProcessed)
     
