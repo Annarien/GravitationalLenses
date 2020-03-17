@@ -131,11 +131,11 @@ while table != 'Jacobs' and table != 'DES2017':
 
     if table == 'Jacobs': 
         tableKnown = atpy.Table.read("KnownLenses/Jacobs_KnownLenses.fits")
-        pathProcessed = 'KnownLenses/Jacobs_KnownLenses/'
+        pathProcessed = 'KnownLenses/Jacobs_KnownLenses'
         break
     elif table == 'DES2017':
         tableKnown = atpy.Table.read("KnownLenses/DES2017_KnownLenses.fits")
-        pathProcessed = 'KnownLenses/DES2017_KnownLenses/'
+        pathProcessed = 'KnownLenses/DES2017_KnownLenses'
         break
 
 
