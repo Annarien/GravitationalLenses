@@ -5,6 +5,8 @@ import os
 import sys
 import random
 import wget
+import random
+
 import astropy.table as atpy
 import glob
 import numpy as np
@@ -12,10 +14,7 @@ import img_scale
 import pylab as plt
 from astropy.io import fits
 from astLib import *
-# from astLib import astWCS
-# from astLib import astImages
 from bs4 import BeautifulSoup
-from astropy.visualization import make_lupton_rgb
 
 def makeInitialTable(num):
     """ 
@@ -131,6 +130,34 @@ def randomXY(source, base_dir = 'DES/DES_Original'):
         return (xRandom, yRandom)
 
 def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_Original'):
+    """
+    This is the function which makes a folder containing clipped images for the sources that are used to check the simulation.
+    These clipped images are to be added to the PositiveNoiseless images to create the PositiveWithDESSky images. 
+    This is clipped as (x, y, clipSizePix)=(x, y, 100), where x, y are random coordinates.     
+    The clipped images (bandSky numpy array) are created, then checked to see if there is any zero value.
+    If there is a zero in the clipped image, then a new clipped image is created from the orginal image with new x, y coordinates.
+    This is repeated until a clipped image is created without zero in it. 
+    The 'g' band is used to clip images as there is no need to go through all the bands but only need to check one band,
+    as the possibility of a zero is great in the other bands as well if there is a zero in the 'g' band.
+
+    Args:
+        paths (dictionary):       The paths to the original fits DES images.
+        madeSky (boolean):        A boolean value set to 'False', and in the following while loop, clipped images are made if there is no sky.
+        clippedSky (dictionary):  Dictionary of all the clipped images.
+        headers (dictionary):     Dictionary of the headers of the clipped images and the original images.
+        allImagesValid (boolean): A boolean value set as 'True' when there is no madeSky made, 
+                                  and is set to 'False' if the images there is any zeros in the bandSky.
+        bandDES (numpy array):    Numpy array of the original DES images.
+        x (int):                  Interger of a random x coordinate in the original DES image received from the randomXY function.
+        y (int):                  Interger of a random y coordinate in the original DES image received from the randomXY function.
+        bandSky (numpy array):    Clipped image that is set at (x, y) coordinates with a dimension of 100 * 100 pixels.
+
+    Returns:
+        clippedSky (dictionary):  The images the are clipped, and this is added as the noise or 
+                                  background sky of the PositiveNoiseless images creating the 
+                                  PositiveWithDESSky images. These clipped images are also saved in the DESSky folder.
+
+    """
     paths = {}
     paths['gBandPath'] = glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0]
     paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0]
@@ -140,12 +167,13 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_O
         os.mkdir('DESSky')
     
     madeSky = False
-    clippedSky = {}
     while madeSky == False:
+        clippedSky = {}
         allImagesValid = True
-        x, y = randomXY(source)
         for band in ['g', 'r', 'i']:
             with fits.open(paths[band + 'BandPath']) as bandDES:
+                if band == 'g':
+                    x, y = randomXY(bandDES)
                 bandSky = astImages.clipImageSectionPix(bandDES[1].data, x, y, [100, 100])
                 
                 if np.any(bandSky) == 0:
@@ -166,9 +194,11 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_O
         header['G_MAG'] = gmag
         header['I_MAG'] = imag
         header['R_MAG'] = rmag
-        fits.writeto('DESSky/%i_%s_sky.fits' % (num, band), clippedSky[band], header = header, overwrite = True)
+        fits.writeto('DESSky/%i_%s_sky.fits' % (num, band), clippedSky[band],header = header, overwrite = True)
+        
+    return(clippedSky)
 
-def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original', base_new = 'DES/DES_Processed'):
+def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original', base_new = 'KnownLenses/Unknown_Processed'):
     """
     Clips the g, r, i original .fits images for each source from DES to have 100*100 pixel size or 0.0073125*0.007315 degrees.
     The WCS coordinates are used, to maintain the necessary information that may be needed in future.
@@ -227,7 +257,7 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original
             # print('Normalised %s clipped images at %s/%s' % (band, newPath, band))
     return(WCSClipped)
 
-def normaliseRGB(num, source, base_dir = 'DES/DES_Processed'):
+def normaliseRGB(num, source, base_dir = 'KnownLenses/Unknown_Processed'):
     paths = {}
     paths['iBandPath'] = glob.glob('%s/%s_%s/i_WCSClipped.fits' % (base_dir, num,source))[0]
     paths['rBandPath'] = glob.glob('%s/%s_%s/r_WCSClipped.fits' % (base_dir, num,source))[0]   
@@ -265,6 +295,20 @@ Its is then clipped using the clipImages function.
 And we write these images to a file in .fits format using writeClippedImagesToFile function.
 """ 
 
+knownTable = ''
+numSources = 0
+while knownTable != 'Jacobs' and knownTable != 'DES2017':
+    table = raw_input("Which table did you use to get the known lenses: Jacobs or DES2017?")
+    print ("You have chosen the table: " + str (table))
+
+    if table == 'Jacobs': 
+        numSources = 84
+        break
+    elif table == 'DES2017':
+        numSources = 56
+        break
+
+
 tableDES = atpy.Table().read("DES/DESGalaxies_18_I_22.fits")
 
 # ensuring there is no none numbers in the gmag, rmag, and imag in the DES table. 
@@ -275,11 +319,9 @@ for key in ['MAG_AUTO_G','MAG_AUTO_R','MAG_AUTO_I']:
 tableDES = tableDES[tableDES['MAG_AUTO_G']< 24]
 lenTabDES = len(tableDES)
 
-num = int(sys.argv[1])
+numStart = 92000 - numSources
 
-tab = makeInitialTable(num)
-
-for num in range(0, num):
+for num in range(numStart, 92000):
     
     tileName = tableDES['TILENAME'][num]
     print(type(tileName))
@@ -292,10 +334,8 @@ for num in range(0, num):
     print('Imag: ' + str(imag))
     print('Rmag: ' + str(rmag))
 
-    addRowToTable(tab, num, tileName, gmag, rmag, imag, ra, dec)
+    #addRowToTable(tab, num, tileName, gmag, rmag, imag, ra, dec)
     loadDES(num, tileName) 
     randomSkyClips(num, tileName, ra, dec, gmag, rmag, imag)  
     clipWCS(tileName, num, gmag, rmag, imag,ra, dec) # takes DES images and clips it with RA, and DEC
     normaliseRGB(num, tileName)
-    # path = "DES/DES_Processed/%s_%s" % (num, tileName)
-    # rgbImageNewForNorm(num, path)
