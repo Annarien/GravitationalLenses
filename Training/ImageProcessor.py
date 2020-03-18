@@ -8,15 +8,14 @@ import sys
 from astropy.io import fits
 from astLib import astImages
 from PIL import Image
+from os import walk
 
 
 # Open DES Processed WCS .fits files, and assign a variable to the g, r, i images.
 def getDESProcessedWCS(num, base_dir = 'DES/DES_Processed'):
-    
     gWCS = fits.open(glob.glob('%s/%s_*/g_WCSClipped.fits' % (base_dir, num))[0])
     rWCS = fits.open(glob.glob('%s/%s_*/r_WCSClipped.fits' % (base_dir, num))[0])
     iWCS = fits.open(glob.glob('%s/%s_*/i_WCSClipped.fits' % (base_dir, num))[0])
-    
     return(gWCS, rWCS,iWCS) 
 
 # Open DES Processed norm .fits files and assign a variable to the g, r, i images.
@@ -89,24 +88,26 @@ def plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath, rgbIm
 def getDESRGBPath(num):
     rgbDESPath = glob.glob('DES/DES_Processed/%s_*/rgb.png' % (num))[0]
     return (rgbDESPath)
+
+def getKnownRGBPath(num):
+    rgbKnown = glob.glob('KnownLenses/DES2017_KnownLenses/%s_*/rgb.png' % (num))[0]
 # ___________________________________________________________________________________________________________________________________________
 # MAIN 
 #Number of Images creating grids to view.
-num = int(sys.argv[1])
+numberIterations = int(sys.argv[1])
 rgbPosImagePaths = []
 rgbDESImagePaths = []
-for num in range(0, num):
+for num in range(0, numberIterations):
+
     gWCS, rWCS, iWCS = getDESProcessedWCS(num)
     gDESNorm, rDESNorm, iDESNorm = getDESProcessedNorm(num)
     gDESSky, rDESSky, iDESSky = getDESSky(num)
     gPos, rPos, iPos = getPosNoiseless(num)
     gPosSky, rPosSky, iPosSky = getPosWDESSky(num)
     gPosSkyNorm, rPosSkyNorm, iPosSkyNorm = getPosWDESSkyNorm(num)
-    #print (gPosSkyNorm,rPosSkyNorm, iPosSkyNorm)
 
     #creating grids of images
-    #creating the first grid, in which the DES_Processed images are seen.
-   
+    #creating the first grid, in which the DES_Processed images are seen.   
     fig1, axs = plt.subplots(3, 3)
     axs[0, 0].imshow(gWCS[0].data, cmap = 'gray')
     axs[0, 1].imshow(rWCS[0].data, cmap = 'gray')
@@ -161,11 +162,9 @@ for num in range(0, num):
     gPosSkyNorm.close()
     rPosSkyNorm.close()
     iPosSkyNorm.close()
-
     print('Number of iterations done: %s' % num)
 
     rgbPosImagePaths.append('PositiveWithDESSky/%s/%s_rgb.png' % (num, num))
-    
     rgbDESImagePaths.append(getDESRGBPath(num))
 
 # creating the rgb grid for Positive Images
@@ -181,3 +180,22 @@ lenRGB = len(rgbDESImagePaths)
 numOfColsForRgbGrid = 3
 numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid)
 plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath4, rgbDESImagePaths)
+
+# image grid for Known Lenses
+numOfKnownCheck = 0
+numOfKnownCheck = raw_input(" Please insert a number to indicate how many random images you would like to check from PositiveWithDESSky")
+rgbKnownImagePaths = []
+for num in range(0, int(numOfKnownCheck)):
+    rgbKnownImagePaths.append(getKnownRGBPath(num))
+
+filepath5 = "KnownLenses/DES2017_RGB_ImageGrid.png"
+lenRGB = len(rgbKnownImagePaths)
+numOfColsForRgbGrid = 4
+numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid)
+plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath5, rgbPosImagePaths)
+
+
+
+
+
+# plotting 10 random images from DES to check how they are. 
