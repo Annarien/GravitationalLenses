@@ -310,11 +310,12 @@ qs = 0
 ps = 0
 rs = 0
 
-numObjects = int(sys.argv[1]) # number of objects selected
+numStart = int(sys.argv[1]) # number of objects selected
+numEnd = int(sys.arg[2])
 sourceRandomTable, lensRandomTable = cutCosmosTable(cosmos)
-tab = makeInitialTable(numObjects)
+tab = makeInitialTable(numEnd - numStart)
 
-for num in range(numObjects):
+for num in range(numStart, numEnd):
     rndmRow = np.random.randint(0, len(lensRandomTable))
     print('Random row number was %i' % (rndmRow))
     g_ml = (lensRandomTable['Gmag'][rndmRow]) - 2 # ml in g band

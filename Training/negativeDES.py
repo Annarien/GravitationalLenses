@@ -275,11 +275,11 @@ for key in ['MAG_AUTO_G','MAG_AUTO_R','MAG_AUTO_I']:
 tableDES = tableDES[tableDES['MAG_AUTO_G']< 24]
 lenTabDES = len(tableDES)
 
-num = int(sys.argv[1])
+numStart = int(sys.argv[1])
+numEnd = int(sys.argv[2])
+tab = makeInitialTable(numEnd)
 
-tab = makeInitialTable(num)
-
-for num in range(0, num):
+for num in range(numStart, numEnd):
     
     tileName = tableDES['TILENAME'][num]
     print(type(tileName))
