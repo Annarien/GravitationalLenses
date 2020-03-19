@@ -36,3 +36,5 @@ Training/lsst.1sqdegree_catalog2.txt
 DataNeg.pkl
 DataPos.pkl
 UpdatingCyclops
+Miniconda2-latest-Linux-x86_64.sh
+Training/DESTileImages
