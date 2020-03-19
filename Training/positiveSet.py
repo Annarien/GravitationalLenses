@@ -311,9 +311,9 @@ ps = 0
 rs = 0
 
 numStart = int(sys.argv[1]) # number of objects selected
-numEnd = int(sys.arg[2])
+numEnd = int(sys.argv[2])
 sourceRandomTable, lensRandomTable = cutCosmosTable(cosmos)
-tab = makeInitialTable(numEnd - numStart)
+tab = makeInitialTable(numEnd)
 
 for num in range(numStart, numEnd):
     rndmRow = np.random.randint(0, len(lensRandomTable))
