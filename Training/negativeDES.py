@@ -232,8 +232,6 @@ def normaliseRGB(num, source, base_dir = 'DES/DES_Processed'):
     paths['iBandPath'] = glob.glob('%s/%s_%s/i_WCSClipped.fits' % (base_dir, num,source))[0]
     paths['rBandPath'] = glob.glob('%s/%s_%s/r_WCSClipped.fits' % (base_dir, num,source))[0]   
     paths['gBandPath'] = glob.glob('%s/%s_%s/g_WCSClipped.fits' % (base_dir, num,source))[0]   
-
-    print (paths)
     rgbDict = {}
     wcs = None
 
@@ -277,7 +275,7 @@ lenTabDES = len(tableDES)
 
 numStart = int(sys.argv[1])
 numEnd = int(sys.argv[2])
-tab = makeInitialTable(numEnd)
+#tab = makeInitialTable(numEnd)
 
 for num in range(numStart, numEnd):
     
@@ -292,7 +290,7 @@ for num in range(numStart, numEnd):
     print('Imag: ' + str(imag))
     print('Rmag: ' + str(rmag))
 
-    addRowToTable(tab, num, tileName, gmag, rmag, imag, ra, dec)
+    #addRowToTable(tab, num, tileName, gmag, rmag, imag, ra, dec)
     loadDES(num, tileName) 
     randomSkyClips(num, tileName, ra, dec, gmag, rmag, imag)  
     clipWCS(tileName, num, gmag, rmag, imag,ra, dec) # takes DES images and clips it with RA, and DEC

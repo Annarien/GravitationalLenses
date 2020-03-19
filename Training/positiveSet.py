@@ -267,8 +267,6 @@ def normalise(num, base_dir = 'PositiveWithDESSky'):
     paths['rImg'] = glob.glob('%s/%s/%s_posSky_r.fits' % (base_dir, num, num))[0]
     paths['gImg'] = glob.glob('%s/%s/%s_posSky_g.fits' % (base_dir, num, num))[0]
 
-    print (paths)
-
     rgbDict={}
     wcs=None
     for band in ['g', 'r', 'i']:
