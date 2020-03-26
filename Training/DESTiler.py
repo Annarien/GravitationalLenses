@@ -101,6 +101,7 @@ class DESTiler:
         
         if os.path.exists(outDir) == False:
             os.makedirs(outDir)
+            print(outDir)
         for row in self.tileTab[tileMask]:
             for band in bands:
                 url=row['FITS_IMAGE_%s' % (band.upper())]
