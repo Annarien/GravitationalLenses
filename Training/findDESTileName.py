@@ -15,5 +15,6 @@ RADeg, decDeg=10, -40
 tileName=tiler.getTileName(RADeg, decDeg)
 
 # How to fetch all images for tile which contains given coords
-tiler.fetchTileImages(RADeg, decDeg, 'DESTileImages')
+tiler.fetchTileImages(RADeg, decDeg, 'KnownLenses/DESTileImages/%s/' % tileName)
 
+for num in range (0, )

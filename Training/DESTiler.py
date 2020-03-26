@@ -15,7 +15,6 @@ import time
 import IPython
 import wget
 
-
 class DESTiler:
     """A class for relating RA, dec coords to DES tiled survey geometry.
     
