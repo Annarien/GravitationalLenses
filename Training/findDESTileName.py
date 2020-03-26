@@ -4,8 +4,12 @@ Example of how to figure out which DES tile given RA, dec coords are in.
 
 
 """
-
+# IMPORTS
 import DESTiler
+#_____________________________________________________________________________________________________________________________
+# FUNCTIONS
+#_____________________________________________________________________________________________________________________________
+# MAIN
 
 # Set-up of this is slow, so do only once...
 tiler=DESTiler.DESTiler("KnownLenses/DES_DR1_TILE_INFO.csv")
@@ -17,4 +21,3 @@ tileName=tiler.getTileName(RADeg, decDeg)
 # How to fetch all images for tile which contains given coords
 tiler.fetchTileImages(RADeg, decDeg, 'KnownLenses/DESTileImages/%s/' % tileName)
 
-for num in range (0, )

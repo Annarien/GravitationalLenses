@@ -12,6 +12,9 @@ import glob
 import img_scale
 import numpy as np
 import pylab as plt
+import pandas as pd
+import xlrd
+import DESTiler
 from astropy.io import fits
 from astLib import *
 from bs4 import BeautifulSoup
@@ -165,28 +168,69 @@ while table != 'Jacobs' and table != 'DES2017':
     if table == 'Jacobs': 
         tableKnown = atpy.Table.read("KnownLenses/Jacobs_KnownLenses.fits")
         pathProcessed = 'KnownLenses/Jacobs_KnownLenses'
+
+        lenTabKnown = len(tableKnown)
+        print ("The length of the knownLenses of " + str(table)+ " is  :" + str(lenTabKnown))
+
+        for num in range(0, lenTabKnown):
+            tileName = tableKnown['TILENAME'][num]
+            print(tileName)
+            print(type(tileName))
+            gmag = tableKnown['MAG_AUTO_G'][num]
+            imag = tableKnown['MAG_AUTO_I'][num]
+            rmag = tableKnown['MAG_AUTO_R'][num]
+            ra = tableKnown['RA'][num]
+            dec = tableKnown['DEC'][num]
+            print('Gmag: ' + str(gmag))
+            print('Imag: ' + str(imag))
+            print('Rmag: ' + str(rmag))
+
+            loadDES(num, tileName)
+            clipWCS(tileName, num, gmag, rmag, imag, ra, dec, pathProcessed)
+            normaliseRGB(num, tileName, pathProcessed)
         break
+
+
     elif table == 'DES2017':
-        tableKnown = atpy.Table.read("KnownLenses/DES2017_KnownLenses.fits")
-        pathProcessed = 'KnownLenses/DES2017_KnownLenses'
-        break
 
-lenTabKnown = len(tableKnown)
-print ("The length of the knownLenses of " + str(table)+ " is  :" + str(lenTabKnown))
+        loc = ("KnownLenses/DES2017.xlsx") #location of a file
+        wb = xlrd.open_workbook(loc) #opening a workbook
+        sheet = wb.sheet_by_index(0) 
+        numOfRows = sheet.nrows
+        print (numOfRows)
+        ra = 0.0
+        dec = 0.0
+        
+        for num in range(0, (sheet.nrows)): 
+            # print(num)
+            print(sheet.cell_value(num , 0)) 
+            ra = sheet.cell_value(num, 1).encode('utf-8')
+            colC = sheet.cell_value(num, 2)
+            dec = sheet.cell_value(num, 4).encode('utf-8')
+            # print(type(ra))
+            # print(type(dec))
+            print('Num = ' + str(num) + '; RA = ' + ra + '; DEC = ' + dec)
 
-for num in range(0, lenTabKnown):
-    tileName = tableKnown['TILENAME'][num]
-    print(tileName)
-    print(type(tileName))
-    gmag = tableKnown['MAG_AUTO_G'][num]
-    imag = tableKnown['MAG_AUTO_I'][num]
-    rmag = tableKnown['MAG_AUTO_R'][num]
-    ra = tableKnown['RA'][num]
-    dec = tableKnown['DEC'][num]
-    print('Gmag: ' + str(gmag))
-    print('Imag: ' + str(imag))
-    print('Rmag: ' + str(rmag))
+            ra = float(ra)
+            print('RA: ' + str(ra) + ' TYPE: ' + str(type(ra)))
 
-    loadDES(num, tileName)
-    clipWCS(tileName, num, gmag, rmag, imag, ra, dec, pathProcessed)
-    normaliseRGB(num, tileName, pathProcessed)
+            if colC == 1:
+                decDegree = 0 - float(dec)
+            elif colC ==0:
+                decDegree = dec
+            print('DEC: ' + str(decDegree) + ' TYPE: ' + str(type(decDegree)))
+
+            tiler = DESTiler.DESTiler("KnownLenses/DES_DR1_TILE_INFO.csv")
+
+            # How to get tile name
+            RADeg, decDeg = ra, decDegree
+            tileName = tiler.getTileName(RADeg, decDeg)
+            print('TileName: ' + tileName)
+
+            # How to fetch all images for tile which contains given coords
+            tiler.fetchTileImages(RADeg, decDeg, 'DES/DES_Original/')
+
+            break
+
+
+
