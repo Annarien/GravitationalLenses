@@ -105,6 +105,7 @@ class DESTiler:
             for band in bands:
                 url=row['FITS_IMAGE_%s' % (band.upper())]
                 fileName=outDir + os.path.sep  + os.path.split(url)[-1]
+                print("FILENAME: " +str(fileName))
                 print("... fetching %s-band image from %s" % (band, url))
                 if os.path.exists(fileName) == False or refetch == True:
                     wget.download(url, fileName)

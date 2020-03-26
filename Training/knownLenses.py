@@ -97,14 +97,9 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, pathProcessed, base_dir = 'D
     paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0]
     paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, source, source))[0]
 
-    base_new = pathProcessed
-    if not os.path.exists('%s' % (base_new)):
-        os.mkdir('%s' % (base_new))
-
-    newPath = {}
-    newPath = ('%s/%s_%s' % (base_new, num, source))
-    if not os.path.exists(newPath):
-        os.mkdir('%s/%s_%s' % (base_new, num, source))
+    newPath = pathProcessed
+    if not os.path.exists('%s' % (newPath)):
+        os.mkdir('%s' % (newPath))
     
     for band in ['g','r','i']:
         with fits.open(paths[band+'BandPath']) as bandDES:
@@ -202,35 +197,30 @@ while table != 'Jacobs' and table != 'DES2017':
         dec = 0.0
         
         for num in range(0, (sheet.nrows)): 
-            # print(num)
-            print(sheet.cell_value(num , 0)) 
+            print(num)
             ra = sheet.cell_value(num, 1).encode('utf-8')
             colC = sheet.cell_value(num, 2)
-            dec = sheet.cell_value(num, 4).encode('utf-8')
-            # print(type(ra))
-            # print(type(dec))
-            print('Num = ' + str(num) + '; RA = ' + ra + '; DEC = ' + dec)
-
+            decDegree = sheet.cell_value(num, 4).encode('utf-8')
+            
             ra = float(ra)
             print('RA: ' + str(ra) + ' TYPE: ' + str(type(ra)))
 
             if colC == 1:
-                decDegree = 0 - float(dec)
+                dec = 0 - float(decDegree)
             elif colC ==0:
-                decDegree = dec
-            print('DEC: ' + str(decDegree) + ' TYPE: ' + str(type(decDegree)))
+                dec = decDegree
+            print('DEC: ' + str(dec) + ' TYPE: ' + str(type(dec)))
 
             tiler = DESTiler.DESTiler("KnownLenses/DES_DR1_TILE_INFO.csv")
 
             # How to get tile name
-            RADeg, decDeg = ra, decDegree
-            tileName = tiler.getTileName(RADeg, decDeg)
+            raDeg, decDeg = ra, dec
+            tileName = tiler.getTileName(raDeg, decDeg)
             print('TileName: ' + tileName)
 
             # How to fetch all images for tile which contains given coords
-            tiler.fetchTileImages(RADeg, decDeg, 'DES/DES_Original/')
-
-            break
-
-
-
+            tiler.fetchTileImages(raDeg, decDeg, 'DES/DES_Original/%s/' % tileName)
+            pathProcessed = 'KnownLenses/DES2017/%s_%s/' %(num, tileName)
+            #get gmag, rmag, i mag
+            clipWCS(tileName, num, gmag, rmag, imag, raDeg, decDeg, pathProcessed)
+            normaliseRGB(num, tileName, pathProcessed)
