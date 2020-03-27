@@ -66,7 +66,7 @@ def loadDES(num, tileName, base_dir = 'DES/DES_Original'):
                         print()
         print()
 
-def clipWCS(tileName, num, ra, dec, base_dir = 'DES/DES_Original'):
+def clipWCS(tileName, num, ra, dec, desTile, base_dir = 'DES/DES_Original'):
     """
     Clips the g, r, i original .fits images for each source from DES to have 100*100 pixel size or 0.0073125*0.007315 degrees.
     The WCS coordinates are used, to maintain the necessary information that may be needed in future.
@@ -94,22 +94,18 @@ def clipWCS(tileName, num, ra, dec, base_dir = 'DES/DES_Original'):
     
     paths = {}
 
-    paths['gBandPath'] = ('%s/%s/%s*_g.fits.fz' % (base_dir, tileName, tileName))
-    paths['rBandPath'] = ('%s/%s/%s*_r.fits.fz' % (base_dir, tileName, tileName))
-    paths['iBandPath'] = ('%s/%s/%s*_i.fits.fz' % (base_dir, tileName, tileName))
+    paths['gBandPath'] = glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, tileName, tileName))[0]
+    paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, tileName, tileName))[0]
+    paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, tileName, tileName))[0]
 
-    # paths['gBandPath'] = glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, tileName, tileName))[0]
-    # paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, tileName, tileName))[0]
-    # paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, tileName, tileName))[0]
-
-    print("G path:  "+ str(paths['gBandPath']))
-    newPath = 'KnownLenses/DES2017/%s_%s/' % (num, tileName)
+    newPath = 'KnownLenses/DES2017/%s_%s' % (num, tileName)
     if not os.path.exists('%s' % (newPath)):
         os.mkdir('%s' % (newPath))
     
     for band in ['g','r','i']:
         with fits.open(paths[band+'BandPath']) as bandDES:
             header = bandDES[1].header
+            # header.set('DESJ', desTile)
             header.set('RA', ra)
             header.set('DEC', dec)
             WCS=astWCS.WCS(header, mode = "pyfits") 
@@ -124,10 +120,10 @@ def clipWCS(tileName, num, ra, dec, base_dir = 'DES/DES_Original'):
             # print('Normalised %s clipped images at %s/%s' % (band, newPath, band))
     return(WCSClipped)
 
-def normaliseRGB(num, source, pathProcessed):
-    base_dir = pathProcessed
+def normaliseRGB(num, source, base_dir = 'KnownLenses/DES2017'):
+
     paths = {}
-    paths['iBandPath'] = glob.glob('%s/%s_%s/i_WCSClipped.fits' % (base_dir, num,source))[0]
+    paths['iBandPath'] = '%s/%s_%s/i_WCSClipped.fits' % (base_dir, num,source)
     paths['rBandPath'] = glob.glob('%s/%s_%s/r_WCSClipped.fits' % (base_dir, num,source))[0]   
     paths['gBandPath'] = glob.glob('%s/%s_%s/g_WCSClipped.fits' % (base_dir, num,source))[0]   
 
@@ -195,24 +191,21 @@ while table != 'Jacobs' and table != 'DES2017':
         wb = xlrd.open_workbook(loc) #opening a workbook
         sheet = wb.sheet_by_index(0) 
         numOfRows = sheet.nrows
-        print (numOfRows)
         ra = 0.0
         dec = 0.0
         
         for num in range(0, (sheet.nrows)): 
-            print(num)
+            
+            desTile = sheet.cell_value(num, 0).encode('utf-8')
             ra = sheet.cell_value(num, 1).encode('utf-8')
             colC = sheet.cell_value(num, 2)
             decDegree = sheet.cell_value(num, 4).encode('utf-8')
             
             ra = float(ra)
-            print('RA: ' + str(ra) + ' TYPE: ' + str(type(ra)))
-
             if colC == 1:
                 dec = 0 - float(decDegree)
             elif colC ==0:
                 dec = decDegree
-            print('DEC: ' + str(dec) + ' TYPE: ' + str(type(dec)))
 
             tiler = DESTiler.DESTiler("KnownLenses/DES_DR1_TILE_INFO.csv")
 
@@ -223,7 +216,7 @@ while table != 'Jacobs' and table != 'DES2017':
 
             # How to fetch all images for tile which contains given coords
             tiler.fetchTileImages(raDeg, decDeg, num, tileName)
-            pathProcessed = 'KnownLenses/DES2017/%s_%s/' %(num, tileName)
+            
             #get gmag, rmag, imag
-            clipWCS(tileName, num, raDeg, decDeg, pathProcessed)
-            normaliseRGB(num, tileName, pathProcessed)
+            clipWCS(tileName, num, raDeg, decDeg, desTile)
+            normaliseRGB(num, tileName)
