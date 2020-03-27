@@ -66,7 +66,7 @@ def loadDES(num, tileName, base_dir = 'DES/DES_Original'):
                         print()
         print()
 
-def clipWCS(source, num, gmag, rmag, imag, ra, dec, pathProcessed, base_dir = 'DES/DES_Original'):
+def clipWCS(source, num, ra, dec, pathProcessed, base_dir = 'DES/DES_Original'):
     """
     Clips the g, r, i original .fits images for each source from DES to have 100*100 pixel size or 0.0073125*0.007315 degrees.
     The WCS coordinates are used, to maintain the necessary information that may be needed in future.
@@ -104,9 +104,6 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, pathProcessed, base_dir = 'D
     for band in ['g','r','i']:
         with fits.open(paths[band+'BandPath']) as bandDES:
             header = bandDES[1].header
-            header.set('MAG_G', gmag)
-            header.set('MAG_I', imag)
-            header.set('MAG_R', rmag)
             header.set('RA', ra)
             header.set('DEC', dec)
             WCS=astWCS.WCS(header, mode = "pyfits") 
@@ -219,8 +216,8 @@ while table != 'Jacobs' and table != 'DES2017':
             print('TileName: ' + tileName)
 
             # How to fetch all images for tile which contains given coords
-            tiler.fetchTileImages(raDeg, decDeg, 'DES/DES_Original/%s/' % tileName)
+            tiler.fetchTileImages(raDeg, decDeg, num, tileName)
             pathProcessed = 'KnownLenses/DES2017/%s_%s/' %(num, tileName)
-            #get gmag, rmag, i mag
-            clipWCS(tileName, num, gmag, rmag, imag, raDeg, decDeg, pathProcessed)
+            #get gmag, rmag, imag
+            clipWCS(tileName, num, raDeg, decDeg, pathProcessed)
             normaliseRGB(num, tileName, pathProcessed)

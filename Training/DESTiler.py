@@ -14,6 +14,7 @@ import urllib
 import time
 import IPython
 import wget
+from bs4 import BeautifulSoup
 
 class DESTiler:
     """A class for relating RA, dec coords to DES tiled survey geometry.
@@ -83,7 +84,7 @@ class DESTiler:
             return self.tileTab[tileMask]['TILENAME'][0] 
 
 
-    def fetchTileImages(self, RADeg, decDeg, outDir, bands = ['g', 'r', 'i'], refetch = False):
+    def fetchTileImages(self, RADeg, decDeg, num, tileName, base_dir = 'DES/DES_Original', bands = ['g', 'r', 'i'], refetch = False):
         """Fetches DES FITS images for the tile in which the given coords are found. 
         Output is stored under outDir.
                 
@@ -98,14 +99,28 @@ class DESTiler:
         if tileMask.sum() == 0:
             return None
         
-        if os.path.exists(outDir) == False:
-            os.makedirs(outDir)
-            print(outDir)
-        for row in self.tileTab[tileMask]:
-            for band in bands:
-                url=row['FITS_IMAGE_%s' % (band.upper())]
-                fileName=outDir + os.path.sep  + os.path.split(url)[-1]
-                print("FILENAME: " +str(fileName))
-                print("... fetching %s-band image from %s" % (band, url))
-                if os.path.exists(fileName) == False or refetch == True:
-                    wget.download(url, fileName)
+        if os.path.exists('%s/%s' % (base_dir, tileName)) == False:
+            os.makedirs('%s/%s' % (base_dir, tileName))
+
+        if os.path.exists('%s/%s/%s.html' % (base_dir, tileName, tileName)):
+            os.remove('%s/%s/%s.html' % (base_dir, tileName, tileName))
+
+        url = 'http://desdr-server.ncsa.illinois.edu/despublic/dr1_tiles/' + tileName + '/'
+
+        wget.download(url, '%s/%s/%s.html' % (base_dir, tileName, tileName))
+
+        with open('%s/%s/%s.html' % (base_dir, tileName, tileName), 'r') as content_file:
+            content = content_file.read()
+            print()
+            soup = BeautifulSoup(content, 'html.parser')
+            for row in soup.find_all('tr'):
+                for col in row.find_all('td'):
+                    if col.text.find("r.fits.fz") != -1 or col.text.find("i.fits.fz") != -1 or col.text.find("g.fits.fz") != -1:
+                        if not os.path.exists('%s/%s/%s' % (base_dir, tileName, col.text)):
+                            print('Downloading: ' + url + col.text)
+                            wget.download(url + col.text, '%s/%s/%s' % (base_dir, tileName, col.text))
+                            print()
+                        else:
+                            print('%s/%s/%s already downloaded...' % (base_dir, tileName, col.text))
+                            print()
+            print()
