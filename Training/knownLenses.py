@@ -66,7 +66,7 @@ def loadDES(num, tileName, base_dir = 'DES/DES_Original'):
                         print()
         print()
 
-def clipWCS(source, num, ra, dec, pathProcessed, base_dir = 'DES/DES_Original'):
+def clipWCS(tileName, num, ra, dec, base_dir = 'DES/DES_Original'):
     """
     Clips the g, r, i original .fits images for each source from DES to have 100*100 pixel size or 0.0073125*0.007315 degrees.
     The WCS coordinates are used, to maintain the necessary information that may be needed in future.
@@ -93,11 +93,17 @@ def clipWCS(source, num, ra, dec, pathProcessed, base_dir = 'DES/DES_Original'):
     sizeWCS = [0.0073125, 0.0073125] # 100*100 pixels in degrees 
     
     paths = {}
-    paths['gBandPath'] = glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0]
-    paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0]
-    paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, source, source))[0]
 
-    newPath = pathProcessed
+    paths['gBandPath'] = ('%s/%s/%s*_g.fits.fz' % (base_dir, tileName, tileName))
+    paths['rBandPath'] = ('%s/%s/%s*_r.fits.fz' % (base_dir, tileName, tileName))
+    paths['iBandPath'] = ('%s/%s/%s*_i.fits.fz' % (base_dir, tileName, tileName))
+
+    # paths['gBandPath'] = glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, tileName, tileName))[0]
+    # paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, tileName, tileName))[0]
+    # paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, tileName, tileName))[0]
+
+    print("G path:  "+ str(paths['gBandPath']))
+    newPath = 'KnownLenses/DES2017/%s_%s/' % (num, tileName)
     if not os.path.exists('%s' % (newPath)):
         os.mkdir('%s' % (newPath))
     
