@@ -193,7 +193,7 @@ while table != 'Jacobs' and table != 'DES2017':
         dec = 0.0
         
         for num in range(0, (sheet.nrows)): 
-            
+            print("Num: " + str(num))
             desTile = sheet.cell_value(num, 0).encode('utf-8')
             print("DESTILE: " + (desTile) + " TYPE: " + str(type(desTile)))
             ra = sheet.cell_value(num, 1).encode('utf-8')
@@ -204,7 +204,10 @@ while table != 'Jacobs' and table != 'DES2017':
             if colC == 1:
                 dec = 0 - float(decDegree)
             elif colC ==0:
-                dec = decDegree
+                dec = float(decDegree)
+
+            print("ra: " + str(ra) + " TYPE: " + str(type(ra)))
+            print("dec: " + str(dec) + " TYPE: " + str(type(dec)))
 
             tiler = DESTiler.DESTiler("KnownLenses/DES_DR1_TILE_INFO.csv")
 

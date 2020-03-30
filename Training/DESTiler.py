@@ -66,8 +66,7 @@ class DESTiler:
             row['RAMax']=max([ra0, ra1])
             row['decMin']=min([dec0, dec1])
             row['decMax']=max([dec0, dec1])
-    
-    
+        
     def getTileName(self, RADeg, decDeg):
         """Returns the DES TILENAME in which the given coordinates are found. Returns None if the coords
         are not in the DES footprint.
@@ -77,6 +76,15 @@ class DESTiler:
                               np.less(RADeg, self.tileTab['RAMax']))
         decMask=np.logical_and(np.greater_equal(decDeg, self.tileTab['decMin']), 
                                np.less(decDeg, self.tileTab['decMax']))
+
+        # print("RAMin: " + str(self.tileTab['RAMin']) + " TYPE: " + str(type(self.tileTab['RAMin'])))
+        # print("RAMax: " + str(self.tileTab['RAMax']) + " TYPE: " + str(type(self.tileTab['RAMax'])))
+        # print("decMin: " + str(self.tileTab['decMin']) + " TYPE: " + str(type(self.tileTab['decMin'])))
+        # print("decMax: " + str(self.tileTab['decMax']) + " TYPE: " + str(type(self.tileTab['decMax'])))
+        # print("raMask: " + str(raMask) + " TYPE: " + str(type(raMask)))
+        # print("decMask: " + str(decMask) + "TYPE: " +str(type(decMask)))
+
+
         tileMask=np.logical_and(raMask, decMask)
         if tileMask.sum() == 0:
             return None
