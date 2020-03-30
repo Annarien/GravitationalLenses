@@ -220,11 +220,6 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original
             astImages.saveFITS('%s/%s_WCSClipped.fits' % (newPath, band), WCSClipped['data'], WCS)
             print('Created %s_WCSclipped at %s/%s_WCSClipped.fits' % (band, newPath, band))
 
-            # im = WCSClipped['data']
-            # normImage = (im-im.mean())/np.std(im)
-            
-            # astImages.saveFITS('%s/%s_norm.fits' % (newPath, band), normImage, WCS)
-            # print('Normalised %s clipped images at %s/%s' % (band, newPath, band))
     return(WCSClipped)
 
 def normaliseRGB(num, source, base_dir = 'DES/DES_Processed'):
