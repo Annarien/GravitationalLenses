@@ -90,7 +90,7 @@ def getDESRGBPath(num):
     return (rgbDESPath)
 
 def getKnownRGBPath(num):
-    rgbKnown = glob.glob('KnownLenses/DES2017_KnownLenses/%s_*/rgb.png' % (num))[0]
+    rgbKnown = glob.glob('KnownLenses/DES2017/%s_*/rgb.png' % (num))[0]
 # ___________________________________________________________________________________________________________________________________________
 # MAIN 
 #Number of Images creating grids to view.
@@ -190,7 +190,7 @@ for num in range(0, int(numOfKnownCheck)):
 
 filepath5 = "KnownLenses/DES2017_RGB_ImageGrid.png"
 lenRGB = len(rgbKnownImagePaths)
-numOfColsForRgbGrid = 4
+numOfColsForRgbGrid = 3
 numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid)
 plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath5, rgbPosImagePaths)
 
