@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import sys
+import random
 from astropy.io import fits
 from astLib import astImages
 from PIL import Image
@@ -183,7 +184,7 @@ plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath4, rgbDESIm
 
 # image grid for Known Lenses
 numOfKnownCheck = 0
-numOfKnownCheck = raw_input(" Please insert a number to indicate how many random images you would like to check from PositiveWithDESSky")
+numOfKnownCheck = raw_input(" Please insert a number to indicate how many random images you would like to check from Known Lenses")
 rgbKnownImagePaths = []
 for num in range(0, int(numOfKnownCheck)):
     rgbKnownImagePaths.append(getKnownRGBPath(num))
@@ -192,10 +193,36 @@ filepath5 = "KnownLenses/DES2017_RGB_ImageGrid.png"
 lenRGB = len(rgbKnownImagePaths)
 numOfColsForRgbGrid = 3
 numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid)
-plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath5, rgbPosImagePaths)
+plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath5, rgbKnownImagePaths)
+
+# plotting 20 random images from negativeDES to check how they are.
+negPath = 'DES/DES_Processed/' 
+negArray = []
+folders = {}
+for root, dirs, files in os.walk(negPath):
+    for folder in dirs:
+        key = folder
+        value = os.path.join(root, folder)
+        folders[key] = value
+        print ("Folder: " + str(folder))
+        print("Value: " + str(value))
+        print("Key: " + str(key))
+        negPath = negArray.append(key)
+
+negArrayLength = len(negArray)
+negRandomArray = {}
+negRandom = 0
+for num in range(0, 10):
+    if len(negRandomArray) < 10 :
+    
+
+        while negRandom not in negRandomArray:
+            negRandom = random.randint(0, negArrayLength +1)
+            print("INT: " + str(negRandom))
 
 
 
 
 
-# plotting 10 random images from DES to check how they are. 
+# plotting 20 random iamges from positiveSet to check how they are.
+

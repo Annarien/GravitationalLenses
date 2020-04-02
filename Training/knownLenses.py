@@ -98,7 +98,7 @@ def clipWCS(tileName, num, ra, dec, desTile, base_dir = 'DES/DES_Original'):
     paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, tileName, tileName))[0]
     paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, tileName, tileName))[0]
 
-    newPath = 'KnownLenses/DES2017/%s_%s_%s' % (num, tileName, desTile)
+    newPath = 'KnownLenses/DES2017/%s_%s' % (num, tileName)
     if not os.path.exists('%s' % (newPath)):
         os.mkdir('%s' % (newPath))
     
@@ -107,6 +107,7 @@ def clipWCS(tileName, num, ra, dec, desTile, base_dir = 'DES/DES_Original'):
             header = bandDES[1].header
             header.set('RA', ra)
             header.set('DEC', dec)
+            header.set('DESJ', desTile)
             WCS=astWCS.WCS(header, mode = "pyfits") 
             WCSClipped = astImages.clipImageSectionWCS(bandDES[1].data, WCS, ra, dec, sizeWCS)
             astImages.saveFITS('%s/%s_WCSClipped.fits' % (newPath, band), WCSClipped['data'], WCS)
@@ -119,12 +120,12 @@ def clipWCS(tileName, num, ra, dec, desTile, base_dir = 'DES/DES_Original'):
             # print('Normalised %s clipped images at %s/%s' % (band, newPath, band))
     return(WCSClipped)
 
-def normaliseRGB(num, source, desTile, base_dir = 'KnownLenses/DES2017'):
+def normaliseRGB(num, source, base_dir = 'KnownLenses/DES2017'):
 
     paths = {}
-    paths['iBandPath'] = '%s/%s_%s_%s/i_WCSClipped.fits' % (base_dir, num, source, desTile)
-    paths['rBandPath'] = '%s/%s_%s_%s/r_WCSClipped.fits' % (base_dir, num, source, desTile) 
-    paths['gBandPath'] = '%s/%s_%s_%s/g_WCSClipped.fits' % (base_dir, num, source, desTile)   
+    paths['iBandPath'] = '%s/%s_%s/i_WCSClipped.fits' % (base_dir, num, source)
+    paths['rBandPath'] = '%s/%s_%s/r_WCSClipped.fits' % (base_dir, num, source) 
+    paths['gBandPath'] = '%s/%s_%s/g_WCSClipped.fits' % (base_dir, num, source)   
 
     rgbDict = {}
     wcs = None
@@ -135,7 +136,7 @@ def normaliseRGB(num, source, desTile, base_dir = 'KnownLenses/DES2017'):
             normImage = (im - im.mean())/np.std(im)
             if wcs is None:
                 wcs = astWCS.WCS(image[0].header, mode = 'pyfits')
-            astImages.saveFITS('%s/%s_%s_%s/%s_norm.fits' % (base_dir, num, source,desTile, band), normImage, wcs)
+            astImages.saveFITS('%s/%s_%s/%s_norm.fits' % (base_dir, num, source, band), normImage, wcs)
             rgbDict[band] = normImage
 
     minCut, maxCut = -1, 3
@@ -147,7 +148,7 @@ def normaliseRGB(num, source, desTile, base_dir = 'KnownLenses/DES2017'):
                     axesLabels = None,
                     axesFontSize= 26.0,
                     axes = [0, 0, 1, 1])
-    plt.savefig('%s/%s_%s_%s/rgb.png' %(base_dir, num, source, desTile))
+    plt.savefig('%s/%s_%s/rgb.png' %(base_dir, num, source))
 
 # ____________________________________________________________________________________________________________________
 # MAIN
@@ -221,4 +222,4 @@ while table != 'Jacobs' and table != 'DES2017':
             
             #get gmag, rmag, imag
             clipWCS(tileName, num, raDeg, decDeg, desTile)
-            normaliseRGB(num, tileName, desTile)
+            normaliseRGB(num, tileName)
