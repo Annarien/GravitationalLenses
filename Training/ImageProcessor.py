@@ -92,6 +92,8 @@ def getDESRGBPath(num):
 
 def getKnownRGBPath(num):
     rgbKnown = glob.glob('KnownLenses/DES2017/%s_*/rgb.png' % (num))[0]
+    print("RGB Known: " + str (rgbKnown))
+    return(rgbKnown)
 # ___________________________________________________________________________________________________________________________________________
 # MAIN 
 #Number of Images creating grids to view.
@@ -173,6 +175,7 @@ filepath3 = "PositiveWithDESSky/PositiveWithDESSky_RGB_ImageGrid.png"
 lenRGB = len(rgbPosImagePaths)
 numOfColsForRgbGrid = 3
 numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid)
+# plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
 plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath3, rgbPosImagePaths)
 
 # creating the rgb grid for the DES Images
@@ -180,49 +183,41 @@ filepath4 = "DES/DES_RGB_ImageGrid.png"
 lenRGB = len(rgbDESImagePaths)
 numOfColsForRgbGrid = 3
 numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid)
+# plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
 plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath4, rgbDESImagePaths)
 
 # image grid for Known Lenses
 numOfKnownCheck = 0
-numOfKnownCheck = raw_input(" Please insert a number to indicate how many random images you would like to check from Known Lenses")
+numOfKnownCheck = raw_input(" Please insert a number to indicate how many random images you would like to check from Known Lenses. ")
 rgbKnownImagePaths = []
 for num in range(0, int(numOfKnownCheck)):
     rgbKnownImagePaths.append(getKnownRGBPath(num))
-
+    
 filepath5 = "KnownLenses/DES2017_RGB_ImageGrid.png"
 lenRGB = len(rgbKnownImagePaths)
-numOfColsForRgbGrid = 3
+numOfColsForRgbGrid = 5
 numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid)
+# plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
 plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath5, rgbKnownImagePaths)
+print("DONE")
 
-# plotting 20 random images from negativeDES to check how they are.
-negPath = 'DES/DES_Processed/' 
-negArray = []
-folders = {}
-for root, dirs, files in os.walk(negPath):
-    for folder in dirs:
-        key = folder
-        value = os.path.join(root, folder)
-        folders[key] = value
-        print ("Folder: " + str(folder))
-        print("Value: " + str(value))
-        print("Key: " + str(key))
-        negPath = negArray.append(key)
+#_______________________________________________________________________________________________
+# GET RANDOM RGB IMAGES FROM POSITIVE IMAGES
+# get integer of how many random images is asking for positive images
+numPos = 0
+numPos = int(raw_input("Enter how many random positive images are to be checked. "))
+randomPos = []
+print("NUMPOS: " + str(numPos) + " TYPE: " + str(type(numPos)))
+for num in range(0, numPos):
+    randPos = random.randint(0, len(rgbPosImagePaths))
+    while randPos not in randomPos:
+        randomPos.append(randPos)
 
-negArrayLength = len(negArray)
-negRandomArray = {}
-negRandom = 0
-for num in range(0, 10):
-    if len(negRandomArray) < 10 :
-    
+print ("RANDOM POS ARRAY: " + str (randomPos))
 
-        while negRandom not in negRandomArray:
-            negRandom = random.randint(0, negArrayLength +1)
-            print("INT: " + str(negRandom))
-
-
-
-
-
-# plotting 20 random iamges from positiveSet to check how they are.
+#_______________________________________________________________________________________________
+# GET RANDOM RGB IMAGES FOR NEGATIVE DES IMAGES
+# get integer of how many random images is asking for negative DES images
+# numNeg = raw_input("Enter how many random negative images are to be checked. ")
+# randomNeg = []
 
