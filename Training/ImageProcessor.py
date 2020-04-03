@@ -188,7 +188,7 @@ plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath4, rgbDESIm
 
 # image grid for Known Lenses
 numOfKnownCheck = 0
-numOfKnownCheck = raw_input(" Please insert a number to indicate how many random images you would like to check from Known Lenses. ")
+numOfKnownCheck = raw_input(" Please insert a number to indicate how many images you would like to check from Known Lenses. ")
 rgbKnownImagePaths = []
 for num in range(0, int(numOfKnownCheck)):
     rgbKnownImagePaths.append(getKnownRGBPath(num))
@@ -211,6 +211,7 @@ print("NUMPOS: " + str(numPos) + " TYPE: " + str(type(numPos)))
 for num in range(0, numPos):
     randPos = random.randint(0, len(rgbPosImagePaths))
     while randPos not in randomPos:
+        randPos = random.randint(0, len(rgbPosImagePaths))
         randomPos.append(randPos)
 
 print ("RANDOM POS ARRAY: " + str (randomPos))
