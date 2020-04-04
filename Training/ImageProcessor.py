@@ -165,7 +165,6 @@ for num in range(0, numberIterations):
     gPosSkyNorm.close()
     rPosSkyNorm.close()
     iPosSkyNorm.close()
-    print('Number of iterations done: %s' % num)
 
     rgbPosImagePaths.append('PositiveWithDESSky/%s/%s_rgb.png' % (num, num))
     rgbDESImagePaths.append(getDESRGBPath(num))
