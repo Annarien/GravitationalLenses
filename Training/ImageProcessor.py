@@ -207,7 +207,7 @@ randomPos = []
 randPosIndex = 0
 rgbRandomPos = []
 
-numPos = int(raw_input("Enter how many random positive images are to be checked. "))
+numCheck = int(raw_input("Enter how many random images are to be checked. "))
 
 # get length of folders in PositiveWithDESSky images
 files = folders = 0
@@ -219,7 +219,7 @@ for _, dirnames, filenames in os.walk(path):
 
 print ("{:,} files, {:,} folders".format(files, folders))
 
-for num in range(0, numPos):
+for num in range(0, numCheck):
     randPos = random.randint(0, folders - 1)
     while randPos in randomPos:
         randPos = random.randint(0, folders - 1)
@@ -250,8 +250,6 @@ randomNeg = []
 randNegIndex = 0
 rgbRandomNeg = []
 
-numNeg = int(raw_input("Enter how many random negativve images are to be checked. "))
-
 # get length of folders in DES/DES_Processed images
 files = folders = 0
 path = 'DES/DES_Processed/'
@@ -262,13 +260,13 @@ for _, dirnames, filenames in os.walk(path):
 
 print ("{:,} files, {:,} folders".format(files, folders))
 
-for num in range(0, numNeg):
+for num in range(0, numCheck):
     randNeg = random.randint(0, folders - 1)
     while randNeg in randomNeg:
         randNeg = random.randint(0, folders - 1)
-    randomNeg.append(randPos)
-
+    randomNeg.append(randNeg)
 print ("RANDOM NEG ARRAY: " + str (randomNeg))
+
 for num in range(0, len(randomNeg)):
     randNegIndex = randomNeg[num]
     rgbRandomNeg.append(getDESRGBPath(randNegIndex))
