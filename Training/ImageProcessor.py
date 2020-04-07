@@ -55,14 +55,19 @@ def getPosWDESSkyNorm(num, base_dir = 'PositiveWithDESSky'):
     iPosSkyNorm = fits.open(glob.glob('%s/%s/%s_i_norm.fits' % (base_dir, num, num))[0])
     return(gPosSkyNorm, rPosSkyNorm, iPosSkyNorm)
 
-def getNumOrRowsForGrid(numOfColsForGrid): #Give me a description please!!!
+def getNumOrRowsForGrid(numOfColsForRgbGrid, arrayRGB): #Give me a description please!!!
+    lenRGB = len(arrayRGB)
     numOfRowsForRgbGrid = (lenRGB / numOfColsForRgbGrid)
     if lenRGB % numOfColsForRgbGrid != 0:
         numOfRowsForRgbGrid += 1
 
     return numOfRowsForRgbGrid
 
-def plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath, rgbImagePaths): #You should probably pass num in here or something like that and save many images
+def plotAndSaveRgbGrid(filepath, rgbImagePaths, imageTitleArray): #You should probably pass num in here or something like that and save many images
+    lenRGB = len(rgbImagePaths)
+    numOfColsForRgbGrid = 3
+    numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid, rgbImagePaths)
+    
     fig3, axs = plt.subplots(numOfRowsForRgbGrid, numOfColsForRgbGrid)
     rowNum = 0
     currentIndex = 0
@@ -78,8 +83,9 @@ def plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath, rgbIm
             img = Image.open(imagesForRow[columnNum])
             img.thumbnail((100, 100))
             axs[rowNum, columnNum].imshow(img)
+            imageTitle = imageTitleArray[columnNum]
+            axs[rowNum,columnNum].set_title("%s" % imageTitle, fontdict = None, loc = 'center', color = 'k' )
             img.close()
-
         rowNum += 1
 
     filepath3 = "PositiveWithDESSky/PositiveWithDESSky_RGB_ImageGrid.png"
@@ -91,192 +97,177 @@ def getDESRGBPath(num):
     return (rgbDESPath)
 
 def getKnownRGBPath(num):
+    # get path of KnownRGBPath
     rgbKnown = glob.glob('KnownLenses/DES2017/%s_*/rgb.png' % (num))[0]
-    #print("RGB Known: " + str (rgbKnown))
-    return(rgbKnown)
+    
+    #get header of g image so that we can get the DESJ tile name
 
+    gBand = glob.glob('KnownLenses/DES2017/%s_*/g_WCSClipped.fits' % (num))[0]
+    hdu1 = fits.open(gBand)
+    desJ=hdu1[0].header['DESJ']
+    print(desJ)
+
+    tilename = hdu1[0].header['TILENAME']
+    print(tilename)
+
+    return(rgbKnown, desJ, tilename)
+
+def progressNegativePositive(numberIterations):
+    #Number of Images creating grids to view.
+    numberIterations = int(sys.argv[1])
+    rgbPosImagePaths = []
+    rgbDESImagePaths = []
+    imageTitleArray = []
+    for num in range(0, numberIterations):
+
+        gWCS, rWCS, iWCS = getDESProcessedWCS(num)
+        gDESNorm, rDESNorm, iDESNorm = getDESProcessedNorm(num)
+        gDESSky, rDESSky, iDESSky = getDESSky(num)
+        gPos, rPos, iPos = getPosNoiseless(num)
+        gPosSky, rPosSky, iPosSky = getPosWDESSky(num)
+        gPosSkyNorm, rPosSkyNorm, iPosSkyNorm = getPosWDESSkyNorm(num)
+
+        #creating grids of images
+        #creating the first grid, in which the DES_Processed images are seen.   
+        fig1, axs = plt.subplots(3, 3)
+        axs[0, 0].imshow(gWCS[0].data, cmap = 'gray')
+        axs[0, 1].imshow(rWCS[0].data, cmap = 'gray')
+        axs[0, 2].imshow(iWCS[0].data, cmap = 'gray')
+        axs[1, 0].imshow(gDESNorm[0].data, cmap = 'gray')
+        axs[1, 1].imshow(rDESNorm[0].data, cmap = 'gray')
+        axs[1, 2].imshow(iDESNorm[0].data, cmap = 'gray')
+        axs[2, 0].imshow(gDESSky[0].data, cmap = 'gray')
+        axs[2, 1].imshow(rDESSky[0].data, cmap = 'gray')
+        axs[2, 2].imshow(iDESSky[0].data, cmap = 'gray')
+
+        pathToPos = 'PositiveWithDESSky/'
+        pathToNeg = 'DES/DES_Processed'
+
+        filepath1 = (glob.glob('DES/DES_Processed/%s_*' % (num)))[0]
+        fig1.savefig("%s/DES_Processed_Grid.png"%(filepath1))
+        plt.close(fig1)
+        
+        gWCS.close()
+        rWCS.close()
+        iWCS.close()
+        gDESNorm.close()
+        rDESNorm.close()
+        iDESNorm.close()
+        gDESSky.close()
+        rDESSky.close()
+        iDESSky.close()
+
+        # creating the second grid, in which the Simulated images are seen.
+        fig2, axs = plt.subplots(3, 3)
+        axs[0, 0].imshow(gPos[0].data, cmap = 'gray')
+        axs[0, 1].imshow(rPos[0].data, cmap = 'gray')
+        axs[0, 2].imshow(iPos[0].data, cmap = 'gray')
+        axs[1, 0].imshow(gPosSky[0].data, cmap = 'gray')
+        axs[1, 1].imshow(rPosSky[0].data, cmap = 'gray')
+        axs[1, 2].imshow(iPosSky[0].data, cmap = 'gray')
+        axs[2, 0].imshow(gPosSkyNorm[0].data, cmap = 'gray')
+        axs[2, 1].imshow(rPosSkyNorm[0].data, cmap = 'gray')
+        axs[2, 2].imshow(iPosSkyNorm[0].data, cmap = 'gray')
+
+        filepath2 = ("%s/%s/%s_posSky_ImageGrid.png" % ('PositiveWithDESSky', num, num))
+        fig2.savefig(filepath2)
+        plt.close(fig2)
+
+        # closing images to save RAM
+        gPos.close()
+        rPos.close()
+        iPos.close()
+        gPosSky.close()
+        rPosSky.close()
+        iPosSky.close()
+        gPosSkyNorm.close()
+        rPosSkyNorm.close()
+        iPosSkyNorm.close()
+
+        rgbPosImagePaths.append('PositiveWithDESSky/%s/%s_rgb.png' % (num, num))
+        rgbDESImagePaths.append(getDESRGBPath(num))
+        imageTitle = '%s' % (num)
+        imageTitleArray.append(imageTitle)
+
+
+    filepath3 = "PositiveWithDESSky/PositiveWithDESSky_RGB_ImageGrid.png"
+    # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
+    plotAndSaveRgbGrid(filepath3, rgbPosImagePaths, imageTitleArray)
+
+    # creating the rgb grid for the DES Images
+    filepath4 = "DES/DES_RGB_ImageGrid.png"
+    # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
+    plotAndSaveRgbGrid(filepath4, rgbDESImagePaths, imageTitleArray)
+
+def plotKnownLenses():
+    numOfKnownCheck = 0
+    numOfKnownCheck = raw_input(" Please insert a number to indicate how many images you would like to check from Known Lenses. ")
+    rgbKnownImagePaths = []
+    imageTitleArray = []
+    for num in range(0, int(numOfKnownCheck)):
+        rgbKnown, desJ, tileName = getKnownRGBPath(num)
+        rgbKnownImagePaths.append(rgbKnown)
+        imageTitle = '%s/%s' % (num,desJ)
+        imageTitleArray.append(imageTitle)
+        
+    
+    filepath5 = "KnownLenses/DES2017_RGB_ImageGrid.png"
+    # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
+    plotAndSaveRgbGrid(filepath5, rgbKnownImagePaths, imageTitleArray)
+
+def randomRGBImages(path ):
+    numCheck = int(raw_input("Enter how many random images are to be checked. "))
+    randomNum = 0
+    randomArray = []
+    randomArrayIndex = 0
+    rgbRandomArray = []
+    imageTitleArray = []
+
+    files = folders = 0
+    for _, dirnames, filenames in os.walk(path):
+    # ^ this idiom means "we won't be using this value"
+        files += len(filenames)
+        folders += len(dirnames)
+
+    print ("{:,} files, {:,} folders".format(files, folders))
+
+    for num in range(0, numCheck):
+        randomNum = random.randint(0, folders - 1)
+        while randomNum in randomArray:
+            randomNum = random.randint(0, folders - 1)
+        randomArray.append(randomNum)
+
+    print ("RANDOM ARRAY: " + str (randomArray))
+    for num in range(0, len(randomArray)):
+        randomArrayIndex = randomArray[num]
+        if path == 'PositiveWithDESSky':
+            rgbRandomArray.append('%s/%s/%s_rgb.png' % (path,randomArrayIndex, randomArrayIndex))
+            imageTitleArray.append(randomArrayIndex)
+        elif path == 'DES/DES_Processed':
+            rgbRandomArray.append('%s/%s_*/rgb.png'%(path, randomArrayIndex))
+            imageTitleArray.append(randomArrayIndex)
+    return(randomArray, imageTitleArray)
 
 # ___________________________________________________________________________________________________________________________________________
 # MAIN 
 #Number of Images creating grids to view.
 numberIterations = int(sys.argv[1])
-rgbPosImagePaths = []
-rgbDESImagePaths = []
-for num in range(0, numberIterations):
 
-    gWCS, rWCS, iWCS = getDESProcessedWCS(num)
-    gDESNorm, rDESNorm, iDESNorm = getDESProcessedNorm(num)
-    gDESSky, rDESSky, iDESSky = getDESSky(num)
-    gPos, rPos, iPos = getPosNoiseless(num)
-    gPosSky, rPosSky, iPosSky = getPosWDESSky(num)
-    gPosSkyNorm, rPosSkyNorm, iPosSkyNorm = getPosWDESSkyNorm(num)
+# plot KnownLenses rgb images
+plotKnownLenses()
 
-    #creating grids of images
-    #creating the first grid, in which the DES_Processed images are seen.   
-    fig1, axs = plt.subplots(3, 3)
-    axs[0, 0].imshow(gWCS[0].data, cmap = 'gray')
-    axs[0, 1].imshow(rWCS[0].data, cmap = 'gray')
-    axs[0, 2].imshow(iWCS[0].data, cmap = 'gray')
-    axs[1, 0].imshow(gDESNorm[0].data, cmap = 'gray')
-    axs[1, 1].imshow(rDESNorm[0].data, cmap = 'gray')
-    axs[1, 2].imshow(iDESNorm[0].data, cmap = 'gray')
-    axs[2, 0].imshow(gDESSky[0].data, cmap = 'gray')
-    axs[2, 1].imshow(rDESSky[0].data, cmap = 'gray')
-    axs[2, 2].imshow(iDESSky[0].data, cmap = 'gray')
+# plot progress and rgb images of negative and positive images 
+progressNegativePositive(numberIterations)
 
-    pathToPos = 'PositiveWithDESSky/'
-    pathToNeg = 'DES/DES_Processed'
-
-    filepath1 = (glob.glob('DES/DES_Processed/%s_*' % (num)))[0]
-    fig1.savefig("%s/DES_Processed_Grid.png"%(filepath1))
-    plt.close(fig1)
-    
-    gWCS.close()
-    rWCS.close()
-    iWCS.close()
-    gDESNorm.close()
-    rDESNorm.close()
-    iDESNorm.close()
-    gDESSky.close()
-    rDESSky.close()
-    iDESSky.close()
-
-    # creating the second grid, in which the Simulated images are seen.
-    fig2, axs = plt.subplots(3, 3)
-    axs[0, 0].imshow(gPos[0].data, cmap = 'gray')
-    axs[0, 1].imshow(rPos[0].data, cmap = 'gray')
-    axs[0, 2].imshow(iPos[0].data, cmap = 'gray')
-    axs[1, 0].imshow(gPosSky[0].data, cmap = 'gray')
-    axs[1, 1].imshow(rPosSky[0].data, cmap = 'gray')
-    axs[1, 2].imshow(iPosSky[0].data, cmap = 'gray')
-    axs[2, 0].imshow(gPosSkyNorm[0].data, cmap = 'gray')
-    axs[2, 1].imshow(rPosSkyNorm[0].data, cmap = 'gray')
-    axs[2, 2].imshow(iPosSkyNorm[0].data, cmap = 'gray')
-
-    filepath2 = ("%s/%s/%s_posSky_ImageGrid.png" % ('PositiveWithDESSky', num, num))
-    fig2.savefig(filepath2)
-    plt.close(fig2)
-
-    # closing images to save RAM
-    gPos.close()
-    rPos.close()
-    iPos.close()
-    gPosSky.close()
-    rPosSky.close()
-    iPosSky.close()
-    gPosSkyNorm.close()
-    rPosSkyNorm.close()
-    iPosSkyNorm.close()
-
-    rgbPosImagePaths.append('PositiveWithDESSky/%s/%s_rgb.png' % (num, num))
-    rgbDESImagePaths.append(getDESRGBPath(num))
-
-# creating the rgb grid for Positive Images
-filepath3 = "PositiveWithDESSky/PositiveWithDESSky_RGB_ImageGrid.png"
-lenRGB = len(rgbPosImagePaths)
-numOfColsForRgbGrid = 3
-numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid)
-# plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
-plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath3, rgbPosImagePaths)
-
-# creating the rgb grid for the DES Images
-filepath4 = "DES/DES_RGB_ImageGrid.png"
-lenRGB = len(rgbDESImagePaths)
-numOfColsForRgbGrid = 3
-numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid)
-# plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
-plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath4, rgbDESImagePaths)
-
-# image grid for Known Lenses
-numOfKnownCheck = 0
-numOfKnownCheck = raw_input(" Please insert a number to indicate how many images you would like to check from Known Lenses. ")
-rgbKnownImagePaths = []
-for num in range(0, int(numOfKnownCheck)):
-    rgbKnownImagePaths.append(getKnownRGBPath(num))
-    
-filepath5 = "KnownLenses/DES2017_RGB_ImageGrid.png"
-lenRGB = len(rgbKnownImagePaths)
-numOfColsForRgbGrid = 5
-numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid)
-# plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
-plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath5, rgbKnownImagePaths)
-#_______________________________________________________________________________________________
-# GET RANDOM RGB IMAGES FROM POSITIVE IMAGES
-# get integer of how many random images is asking for positive images
-numPos = 0
-randomPos = []
-randPosIndex = 0
-rgbRandomPos = []
-
-numCheck = int(raw_input("Enter how many random images are to be checked. "))
-
-# get length of folders in PositiveWithDESSky images
-files = folders = 0
+# Get Random RGB images from PositiveWithDESSky
 path = 'PositiveWithDESSky/'
-for _, dirnames, filenames in os.walk(path):
-  # ^ this idiom means "we won't be using this value"
-    files += len(filenames)
-    folders += len(dirnames)
-
-print ("{:,} files, {:,} folders".format(files, folders))
-
-for num in range(0, numCheck):
-    randPos = random.randint(0, folders - 1)
-    while randPos in randomPos:
-        randPos = random.randint(0, folders - 1)
-    randomPos.append(randPos)
-
-print ("RANDOM POS ARRAY: " + str (randomPos))
-for num in range(0, len(randomPos)):
-    randPosIndex = randomPos[num]
-    rgbRandomPos.append('PositiveWithDESSky/%s/%s_rgb.png' % (randPosIndex, randPosIndex))
-
-#make a grid of these random rgb images of PositiveWithDESSky
 filepath6 = "PositiveWithDESSky/randomRGB_ImageGrid.png"
-lenRGB = len(rgbRandomPos)
-numOfColsForRgbGrid = 3
-numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid)
-# plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
-plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath6, rgbRandomPos)
+rgbRandom, imageTitleArray = randomRGBImages(path)
+plotAndSaveRgbGrid(filepath6,rgbRandom, imageTitleArray)
 
-#_______________________________________________________________________________________________
-# GET RANDOM RGB IMAGES FOR NEGATIVE DES IMAGES
-# get integer of how many random images is asking for negative DES images
-# numNeg = raw_input("Enter how many random negative images are to be checked. ")
-# randomNeg = []
-
-numNeg = 0
-randNeg = 0
-randomNeg = []
-randNegIndex = 0
-rgbRandomNeg = []
-
-# get length of folders in DES/DES_Processed images
-files = folders = 0
-path = 'DES/DES_Processed/'
-for _, dirnames, filenames in os.walk(path):
-  # ^ this idiom means "we won't be using this value"
-    files += len(filenames)
-    folders += len(dirnames)
-
-print ("{:,} files, {:,} folders".format(files, folders))
-
-for num in range(0, numCheck):
-    randNeg = random.randint(0, folders - 1)
-    while randNeg in randomNeg:
-        randNeg = random.randint(0, folders - 1)
-    randomNeg.append(randNeg)
-print ("RANDOM NEG ARRAY: " + str (randomNeg))
-
-for num in range(0, len(randomNeg)):
-    randNegIndex = randomNeg[num]
-    rgbRandomNeg.append(getDESRGBPath(randNegIndex))
-
-#make a grid of these random rgb images of DES_Processed
+# Get Random RGB images from NegativeDES
+path = 'DES/DES_Processed'
 filepath7 = "DES/randomRGB_ImageGrid.png"
-lenRGB = len(rgbRandomNeg)
-numOfColsForRgbGrid = 3
-numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid)
+rgbRandom, imageTitleArray = randomRGBImages(path)
 # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
-plotAndSaveRgbGrid(numOfRowsForRgbGrid, numOfColsForRgbGrid, filepath7, rgbRandomNeg)
-
+plotAndSaveRgbGrid(filepath7, rgbRandom, imageTitleArray)
