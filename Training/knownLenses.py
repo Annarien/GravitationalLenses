@@ -1,7 +1,14 @@
-# download DES Images from known lenses
-# get coordinates from colletts known lenses.
-# do cutouts of 100*100 pixels
+"""
+Using two different tables, which ever is chosen, to create a data set of previously identified known lenses. 
+The two tables are Jacobs or DES2017.
+The Jacobs known lenses are from: https://arxiv.org/abs/1811.03786 . 
+The DES2017 known lenses are from: https://iopscience.iop.org/article/10.3847/1538-4365/aa8667 .
 
+The data from the chosen table is then put into a readible format, either .fits or .xlsx files. 
+This data is read, and the g, r and i DES images are downloaded corresponding to the given ra, and dec
+coordinates in the respective files. These original DES images are clipped using WCS, to create 
+a 100*100 pixel image. These images are then normalised and a RGB composite is made. These images are the KnownLenses.
+"""
 # importing modules needed
 import os
 import sys
@@ -21,18 +28,20 @@ from bs4 import BeautifulSoup
 
 def loadDES(num, tileName, base_dir = 'DES/DES_Original'):
     """
-    Firstly the .fits file was downloaded from DES DR1. This contains the g, r, i magnitudes as well as the RA and DEC, for each tileName.
-    Then g, r, i .fits files are downloaded for each tileName from the DES DR1 server.
+    Firstly the .fits files are downloaded from DES DR1. 
+    This contains the g, r, and i magnitudes as well as the RA and DEC, for each tileName.
+    Then g, r, and i .fits files are downloaded for each tileName from the DES DR1 server.
     DownLoading the images in a folder, only containg DES original .fits files.
 
     Args:
         url(string):        Url for the DES survey plus each tileName so that the tileName is fetched correctly. 
-        tileName(string):     This is the tilename given in the DR1 database, and this is name of each tileName.
+        tileName(string):   This is the tilename given in the DR1 database, and this is name of each tileName.
         num(integer):       Number given to identify the order the the sources are processed in.
         base_dir(string):   This is the base directory in which the folders are made.
     
     Returns:
-        Downloads the images from DES for g, r, i .fits files of each tileName. These images are downloaded to 'DES/DES_Original'.
+        Downloads the images from DES for g, r, and i .fits files of each tileName. 
+        These images are downloaded to 'DES/DES_Original'.
     """
     if not os.path.exists('%s'  % (base_dir)):
         os.mkdir('%s' % (base_dir))
@@ -66,7 +75,7 @@ def loadDES(num, tileName, base_dir = 'DES/DES_Original'):
                         print()
         print()
 
-def clipWCS(tileName, num, ra, dec, desTile, base_dir = 'DES/DES_Original'):
+def clipWCS(tileName, num, ra, dec, pathProcessed, desTile='', base_dir = 'DES/DES_Original'):
     """
     Clips the g, r, i original .fits images for each source from DES to have 100*100 pixel size or 0.0073125*0.007315 degrees.
     The WCS coordinates are used, to maintain the necessary information that may be needed in future.
@@ -74,21 +83,22 @@ def clipWCS(tileName, num, ra, dec, desTile, base_dir = 'DES/DES_Original'):
     The WCS images, are normalised and saved at ('%s.norm.fits' % (paths[band + 'BandPath']).
 
     Args:
-        paths (dictionary):          The path for the g, r, i .fits files for each source.
-        header (header):             This is tha actual header for these images, and is adjusted to include the magnitudes of g, r, i.
-        RA (float):                  This is the Right Ascension of the source retrieved from the DES_Access table.
-        Dec (float):                 This is the Declination of the source retrieved from the  DEC_Access table.
-        sizeWCS (list):              This is a list of (x,y) size in degrees which is 100*100 pixels.
-        WCS (astWCS.WCS):            This is the WCS coordinates that are retrieved from the g, r, i . fits files.
-        WCSClipped (numpy array):    Clipped image section and updated the astWCS.WCS object for the clipped image section.
-                                     and the coordinates of clipped section that is within the imageData in format {'data', 'wcs', 'clippedSection'}.
-        im (numpy array):            Numpy array of the WCSClipped data.
-        normImage(numpy array):      Normalised numpy array which is calculated as normImage = im/np.std(im) where np.std is the standard deviation.  
+        paths(dictionary):         The path for the g, r, i .fits files for each source.
+        header(header):            This is tha actual header for these images, and is adjusted to include the magnitudes of g, r, i.
+        ra(float):                 This is the Right Ascension of the source retrieved from the DES_Access table.
+        dec(float):                This is the Declination of the source retrieved from the  DEC_Access table.
+        sizeWCS(list):             This is a list of (x,y) size in degrees which is 100*100 pixels.
+        WCS(astWCS.WCS):           This is the WCS coordinates that are retrieved from the g, r, i . fits files.
+        WCSClipped(numpy array):   Clipped image section and updated the astWCS.WCS object for the clipped image section.
+                                   and the coordinates of clipped section that is within the imageData in format {'data', 'wcs',
+                                   'clippedSection'}.
     
     Returns:
-        WCSClipped (numpy array):    A numpy array of the WCSclipped, with its WCS coordinates.
-        normImages (numpy array):    Images of the normalisation for the WCSClipped images are saved in the PositiveWithDESSky folder.
+        WCSClipped (numpy array):   A numpy array of the WCSclipped, with its WCS coordinates.
+        The g, r, and i WCSClipped images are saved under 'KnownLense/table', with the revelant
+        astronomical parameters in the header of these images.
     """
+
     # Getting the RA and Dec of each source
     sizeWCS = [0.0073125, 0.0073125] # 100*100 pixels in degrees 
     
@@ -98,7 +108,7 @@ def clipWCS(tileName, num, ra, dec, desTile, base_dir = 'DES/DES_Original'):
     paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, tileName, tileName))[0]
     paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, tileName, tileName))[0]
 
-    newPath = 'KnownLenses/DES2017/%s_%s' % (num, tileName)
+    newPath = '%s/%s_%s' % (pathProcessed, num, tileName)
     if not os.path.exists('%s' % (newPath)):
         os.mkdir('%s' % (newPath))
     
@@ -113,15 +123,11 @@ def clipWCS(tileName, num, ra, dec, desTile, base_dir = 'DES/DES_Original'):
             astImages.saveFITS('%s/%s_WCSClipped.fits' % (newPath, band), WCSClipped['data'], WCS)
             print('Created %s_WCSclipped at %s/%s_WCSClipped.fits' % (band, newPath, band))
 
-            # im = WCSClipped['data']
-            # normImage = (im-im.mean())/np.std(im)
-            
-            # astImages.saveFITS('%s/%s_norm.fits' % (newPath, band), normImage, WCS)
-            # print('Normalised %s clipped images at %s/%s' % (band, newPath, band))
     return(WCSClipped)
 
-def normaliseRGB(num, source, base_dir = 'KnownLenses/DES2017'):
+def normaliseRGB(num, source, pathProcessed):
 
+    base_dir = pathProcessed
     paths = {}
     paths['iBandPath'] = '%s/%s_%s/i_WCSClipped.fits' % (base_dir, num, source)
     paths['rBandPath'] = '%s/%s_%s/r_WCSClipped.fits' % (base_dir, num, source) 
@@ -179,7 +185,7 @@ while table != 'Jacobs' and table != 'DES2017':
             print('Rmag: ' + str(rmag))
 
             loadDES(num, tileName)
-            clipWCS(tileName, num, gmag, rmag, imag, ra, dec, pathProcessed)
+            clipWCS(tileName, num, ra, dec, pathProcessed)
             normaliseRGB(num, tileName, pathProcessed)
         break
 
@@ -220,6 +226,7 @@ while table != 'Jacobs' and table != 'DES2017':
             # How to fetch all images for tile which contains given coords
             tiler.fetchTileImages(raDeg, decDeg, num, tileName)
             
+            pathProcessed = 'KnownLenses/DES2017'
             #get gmag, rmag, imag
-            clipWCS(tileName, num, raDeg, decDeg, desTile)
-            normaliseRGB(num, tileName)
+            clipWCS(tileName, num, raDeg, decDeg, pathProcessed, desTile)
+            normaliseRGB(num, tileName, pathProcessed)

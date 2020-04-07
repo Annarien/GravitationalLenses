@@ -22,7 +22,7 @@ from bs4 import BeautifulSoup
 
 def loadDES(num, source, base_dir = 'DES/DES_Original'):
     """
-    Firstly the .fits file was downloaded from DES DR1. 
+    Firstly the .fits files are downloaded from DES DR1. 
     This contains the g, r, i magnitudes as well as the RA and DEC, for each source.
     The g, r, i .fits files are downloaded for each source from the DES DR1 server.
     DownLoading the images in a folder, only containg DES original .fits files.
@@ -281,11 +281,8 @@ for key in ['MAG_AUTO_G','MAG_AUTO_R','MAG_AUTO_I']:
 tableDES = tableDES[tableDES['MAG_AUTO_G']< 24]
 lenTabDES = len(tableDES)
 
-# numStart = int(sys.argv[1])
-# numEnd = int(sys.argv[2])
-
-numStart  = 0
-numEnd = 10
+numStart = int(sys.argv[1])
+numEnd = int(sys.argv[2])
 
 for num in range(numStart, numEnd):
     
