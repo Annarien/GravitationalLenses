@@ -102,16 +102,16 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_O
     Clipping of the g, r, and i DES Original fits images, to create a 100*100 pixel sized image of noise/sky. 
     
     Args:
-        paths(dictionary):      The path names of the original DES images, for each g, r, and i band.
-        madeSky(boolean):       This is a boolean holder, which is set to default False. 
-                                This variable indicate whether or not, sky has been clipped, and made. 
-        clippedSky(dictionary): This is the dictionary containing the the data of the images that have been 
-                                clipped using the random x, y coordinates.  
-        allImagesValid(boolean):This is a boolean, which is set to True. This variable indicates 
-                                that all pixels within the clippedSky image contain data, and is not empty. 
-        bandDES(HDUList):       The opened fits image of the orignal DES images.
-        bandSky(numpy array):   The clipped DES original images that have been clipped using the x, y random 
-                                coordinates, and to the size of 100*100 pixels. 
+        paths(dictionary):          The path names of the original DES images, for each g, r, and i band.
+        madeSky(boolean):           This is a boolean holder, which is set to default False. 
+                                    This variable indicate whether or not, sky has been clipped, and made. 
+        clippedSky(dictionary):     This is the dictionary containing the the data of the images that have been 
+                                    clipped using the random x, y coordinates.  
+        allImagesValid(boolean):    This is a boolean, which is set to True. This variable indicates 
+                                    that all pixels within the clippedSky image contain data, and is not empty. 
+        bandDES(HDUList):           The opened fits image of the orignal DES images.
+        bandSky(numpy array):       The clipped DES original images that have been clipped using the x, y random 
+                                    coordinates, and to the size of 100*100 pixels. 
         
     Returns:
     Saves these randomly clipped 100*100 g, r, and i images to the folder called 'DESSky/', and saves the revelant headers, 
@@ -163,15 +163,15 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original
     The WCS images, are normalised and saved at ('%s.norm.fits' % (paths[band + 'BandPath']).
 
     Args:
-        paths (dictionary):         The path for the g, r, i .fits files for each source.
-        header (header):            This is tha actual header for these images, and is adjusted to include the magnitudes of g, r, i.
-        RA (float):                 This is the Right Ascension of the source retrieved from the DES_Access table.
-        Dec (float):                This is the Declination of the source retrieved from the  DEC_Access table.
-        sizeWCS (list):             This is a list of (x,y) size in degrees which is 100*100 pixels.
-        WCS (astWCS.WCS):           This is the WCS coordinates that are retrieved from the g, r, i . fits files.
-        WCSClipped (numpy array):   Clipped image section and updated the astWCS.WCS object for the clipped image section.
-                                    and the coordinates of clipped section that is within the imageData in format {'data', 'wcs',
-                                    'clippedSection'}.
+        paths(dictionary):         The path for the g, r, i .fits files for each source.
+        header(header):            This is tha actual header for these images, and is adjusted to include the magnitudes of g, r, i.
+        ra(float):                 This is the Right Ascension of the source retrieved from the DES_Access table.
+        dec(float):                This is the Declination of the source retrieved from the  DEC_Access table.
+        sizeWCS(list):             This is a list of (x,y) size in degrees which is 100*100 pixels.
+        WCS(astWCS.WCS):           This is the WCS coordinates that are retrieved from the g, r, i . fits files.
+        WCSClipped(numpy array):   Clipped image section and updated the astWCS.WCS object for the clipped image section.
+                                   and the coordinates of clipped section that is within the imageData in format {'data', 'wcs',
+                                   'clippedSection'}.
     
     Returns:
         WCSClipped (numpy array):   A numpy array of the WCSclipped, with its WCS coordinates.
@@ -218,6 +218,7 @@ def normaliseRGB(num, source, base_dir = 'DES/DES_Processed'):
         rgbDict(dictionary):    Dictionary containing the g,r, and i normalised images, and is to be used to create the rgb image.
         wcs(instance):          This is the World Coordinate System(WCS), set to a default of None. 
                                 If it is None, then the WCS is retrieved from the header of the WCSClipped fits image. 
+        normImage(numpy array): Normalised Image Array where the normalisation is calculated as (im - im.mean())/np.std(im)
         minCut(integer):        Low value of pixels.
         maxCut(integer):        High value of pixels.
         cutLevels(list):        Sets the image scaling, specified manually for the r, g, b as [[r min, rmax], [g min, g max], [b min, b max]].
@@ -244,6 +245,7 @@ def normaliseRGB(num, source, base_dir = 'DES/DES_Processed'):
                 wcs = astWCS.WCS(image[0].header, mode = 'pyfits')
             astImages.saveFITS('%s/%s_%s/%s_norm.fits' % (base_dir, num, source, band), normImage, wcs)
             rgbDict[band] = normImage
+            
 
     minCut, maxCut = -1, 3
     cutLevels = [[minCut, maxCut], [minCut, maxCut], [minCut, maxCut]]
@@ -274,8 +276,11 @@ for key in ['MAG_AUTO_G','MAG_AUTO_R','MAG_AUTO_I']:
 tableDES = tableDES[tableDES['MAG_AUTO_G']< 24]
 lenTabDES = len(tableDES)
 
-numStart = int(sys.argv[1])
-numEnd = int(sys.argv[2])
+# numStart = int(sys.argv[1])
+# numEnd = int(sys.argv[2])
+
+numStart  = 0
+numEnd = 10
 
 for num in range(numStart, numEnd):
     
