@@ -95,7 +95,7 @@ def clipWCS(tileName, num, ra, dec, pathProcessed, desTile='', base_dir = 'DES/D
     
     Returns:
         WCSClipped (numpy array):   A numpy array of the WCSclipped, with its WCS coordinates.
-        The g, r, and i WCSClipped images are saved under 'KnownLense/table', with the revelant
+        The g, r, and i WCSClipped images are saved under 'KnownLense/table/num_source/', with the revelant
         astronomical parameters in the header of these images.
     """
 
@@ -126,6 +126,25 @@ def clipWCS(tileName, num, ra, dec, pathProcessed, desTile='', base_dir = 'DES/D
     return(WCSClipped)
 
 def normaliseRGB(num, source, pathProcessed):
+    """
+    This is to normalise the g, r, and i WCSClipped images and to make a rgb composite image of the three band together. 
+    
+    Args:
+        paths(dictionary):      The path for the g, r, i .WCSClipped fits files for each source.  
+        rgbDict(dictionary):    Dictionary containing the g,r, and i normalised images, and is to be used to create the rgb image.
+        wcs(instance):          This is the World Coordinate System(WCS), set to a default of None. 
+                                If it is None, then the WCS is retrieved from the header of the WCSClipped fits image. 
+        normImage(numpy array): Normalised Image Array where the normalisation is calculated as (im - im.mean())/np.std(im)
+        minCut(integer):        Low value of pixels.
+        maxCut(integer):        High value of pixels.
+        cutLevels(list):        Sets the image scaling, specified manually for the r, g, b as [[r min, rmax], [g min, g max], [b min, b max]].
+        axesLabels(string):     Labels of the axes, specified as None.
+        axesFontSize(float):    Font size of the axes labels.   
+        
+    Returns:
+        Saves normalised images with the wcs as headers. These normalised images are saved under 'KnownLenses/table/num_source/'.
+        The rgb composite images are created and saved under 'KnownLense/table/num_source/'.
+    """
 
     base_dir = pathProcessed
     paths = {}
