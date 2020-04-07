@@ -8,68 +8,18 @@ import wget
 import astropy.table as atpy
 import glob
 import numpy as np
-import img_scale
 import pylab as plt
 from astropy.io import fits
-from astLib import *
-# from astLib import astWCS
-# from astLib import astImages
+from astLib import astWCS
+from astLib import astImages
+from astLib import astPlots
 from bs4 import BeautifulSoup
-from astropy.visualization import make_lupton_rgb
-
-def makeInitialTable(num):
-    """ 
-    Writes a default of all zeroes table for g,r, i bands to include all the parameters that create the lenses and sources.
-    The reason for this table is t quickly look at the images and to compare magnitudes and to look at a few sources at once from DES. 
-    
-    Args:
-        Number(int):        Number of the Folder or source that is made.
-        TileName(string):   This is the source name of the original source from DES.
-        MAG_AUTO_G(float):  This is the g magnitude of the original source from DES.
-        MAG_AUTO_R(float):  This is the r magnitude of the original source from DES.
-        MAG_AUTO_I (float): This is the i magnitude of the original source from DES.
-    
-    Returns:
-        tab(table):     A table is created and returned.
-    """
-    tab = atpy.Table()
-    tab.add_column(atpy.Column( np.zeros(num), "NUM"))
-    #tab.add_column(atpy.Column( np.zeros(num), "TILENAME"))
-    tab.add_column(atpy.Column( np.zeros(num), "MAG_AUTO_G"))
-    tab.add_column(atpy.Column( np.zeros(num), "MAG_AUTO_R"))
-    tab.add_column(atpy.Column( np.zeros(num), "MAG_AUTO_I"))
-    tab.add_column(atpy.Column( np.zeros(num), "RA"))
-    tab.add_column(atpy.Column( np.zeros(num), "DEC"))
-    return(tab)
-
-def addRowToTable(tab, num, tileName, gmag, rmag, imag, ra, dec):
-    """ 
-    Writes a table that includes the values or the original g, r, i magnitudes of the sources that are made.
-    The reason for this table is to quickly look at the images and to compare magnitudes and to look at a few sources at once from DES. 
-    
-    Args:
-        Number(int):        Number of the Folder or source that is made.
-        TileName(string):   This is the source name of the original source from DES.
-        MAG_AUTO_G(float):  This is the g magnitude of the original source from DES.
-        MAG_AUTO_R(float):  This is the r magnitude of the original source from DES.
-        MAG_AUTO_I (float): This is the i magnitude of the original source from DES.
-    
-    Returns:
-        tab(table):     A table is created and saved as 'DES/DES_Sets.fits'
-    """
-    tab["NUM"][num] = num
-    #tab["TILENAME"][num] = tileName
-    tab["MAG_AUTO_G"][num] = gmag
-    tab["MAG_AUTO_R"][num] = rmag
-    tab["MAG_AUTO_I"][num] = imag
-    tab["RA"][num]  =   ra
-    tab["DEC"][num] =   dec
-    tab.write("DES/DES_Sets.csv", overwrite = True)
 
 def loadDES(num, source, base_dir = 'DES/DES_Original'):
     """
-    Firstly the .fits file was downloaded from DES DR1. This contains the g, r, i magnitudes as well as the RA and DEC, for each source.
-    Then g, r, i .fits files are downloaded for each source from the DES DR1 server.
+    Firstly the .fits file was downloaded from DES DR1. 
+    This contains the g, r, i magnitudes as well as the RA and DEC, for each source.
+    The g, r, i .fits files are downloaded for each source from the DES DR1 server.
     DownLoading the images in a folder, only containg DES original .fits files.
 
     Args:
@@ -79,7 +29,8 @@ def loadDES(num, source, base_dir = 'DES/DES_Original'):
         base_dir(string):   This is the base directory in which the folders are made.
     
     Returns:
-        Downloads the images from DES for g, r, i .fits files of each source. These images are downloaded to 'DES/DES_Original'.
+        Downloads the images from DES for g, r, and i .fits files of each source. 
+        These images are downloaded to 'DES/DES_Original'.
     """
     if not os.path.exists('%s'  % (base_dir)):
         os.mkdir('%s' % (base_dir))
@@ -114,7 +65,23 @@ def loadDES(num, source, base_dir = 'DES/DES_Original'):
         print()
 
 def randomXY(source, base_dir = 'DES/DES_Original'):
-    # This code only ever gets called for the g band, so why not just make it like this:
+    """
+    This gets random x, y coordinates in the original g band of DES images. 
+    Only one band is used to get these coordinates, as the same random coordinates are needed in all bands.
+    This also ensure that images are 100*100 pixels in size, and all pixels are within the images. 
+
+    Args:
+        xMax(int):      The maximum amount of pixels on the x-axis of the DES original image in the g band.
+        yMax(int):      The maximum amount of pixels on the y-axis of the DES original image in the g band.
+        xRandom(int):   The random coordinate of x, that is between 100 and xMax -100, since the images are to be 100 * 100,
+                        its important to ensure that the images wont contain any pixels with no data in it. 
+        yRandom(int):   The random coordinate of y, that is between 100 and xMax -100, since the images are to be 100 * 100,
+                        its important to ensure that the images wont contain any pixels with no data in it.
+
+    Returns:
+        xRandom(int):   The random x coordinate, within the DES Original g band image.
+        yRandom(int):   The random y coordinate, within the DES Original g band image. 
+    """
 
     with fits.open(glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0]) as bandDES:
         inHDUList = bandDES[1].header
@@ -131,6 +98,26 @@ def randomXY(source, base_dir = 'DES/DES_Original'):
         return (xRandom, yRandom)
 
 def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_Original'):
+    """
+    Clipping of the g, r, and i DES Original fits images, to create a 100*100 pixel sized image of noise/sky. 
+    
+    Args:
+        paths(dictionary):      The path names of the original DES images, for each g, r, and i band.
+        madeSky(boolean):       This is a boolean holder, which is set to default False. 
+                                This variable indicate whether or not, sky has been clipped, and made. 
+        clippedSky(dictionary): This is the dictionary containing the the data of the images that have been 
+                                clipped using the random x, y coordinates.  
+        allImagesValid(boolean):This is a boolean, which is set to True. This variable indicates 
+                                that all pixels within the clippedSky image contain data, and is not empty. 
+        bandDES(HDUList):       The opened fits image of the orignal DES images.
+        bandSky(numpy array):   The clipped DES original images that have been clipped using the x, y random 
+                                coordinates, and to the size of 100*100 pixels. 
+        
+    Returns:
+    Saves these randomly clipped 100*100 g, r, and i images to the folder called 'DESSky/', and saves the revelant headers, 
+    for later use or to check these astronomical parameters.   
+    """
+
     paths = {}
     paths['gBandPath'] = glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0]
     paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0]
@@ -176,20 +163,20 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original
     The WCS images, are normalised and saved at ('%s.norm.fits' % (paths[band + 'BandPath']).
 
     Args:
-        paths (dictionary):          The path for the g, r, i .fits files for each source.
-        header (header):             This is tha actual header for these images, and is adjusted to include the magnitudes of g, r, i.
-        RA (float):                  This is the Right Ascension of the source retrieved from the DES_Access table.
-        Dec (float):                 This is the Declination of the source retrieved from the  DEC_Access table.
-        sizeWCS (list):              This is a list of (x,y) size in degrees which is 100*100 pixels.
-        WCS (astWCS.WCS):            This is the WCS coordinates that are retrieved from the g, r, i . fits files.
-        WCSClipped (numpy array):    Clipped image section and updated the astWCS.WCS object for the clipped image section.
-                                     and the coordinates of clipped section that is within the imageData in format {'data', 'wcs', 'clippedSection'}.
-        im (numpy array):            Numpy array of the WCSClipped data.
-        normImage(numpy array):      Normalised numpy array which is calculated as normImage = im/np.std(im) where np.std is the standard deviation.  
+        paths (dictionary):         The path for the g, r, i .fits files for each source.
+        header (header):            This is tha actual header for these images, and is adjusted to include the magnitudes of g, r, i.
+        RA (float):                 This is the Right Ascension of the source retrieved from the DES_Access table.
+        Dec (float):                This is the Declination of the source retrieved from the  DEC_Access table.
+        sizeWCS (list):             This is a list of (x,y) size in degrees which is 100*100 pixels.
+        WCS (astWCS.WCS):           This is the WCS coordinates that are retrieved from the g, r, i . fits files.
+        WCSClipped (numpy array):   Clipped image section and updated the astWCS.WCS object for the clipped image section.
+                                    and the coordinates of clipped section that is within the imageData in format {'data', 'wcs',
+                                    'clippedSection'}.
     
     Returns:
-        WCSClipped (numpy array):    A numpy array of the WCSclipped, with its WCS coordinates.
-        normImages (numpy array):    Images of the normalisation for the WCSClipped images are saved in the PositiveWithDESSky folder.
+        WCSClipped (numpy array):   A numpy array of the WCSclipped, with its WCS coordinates.
+        The g, r, and i WCSClipped images are saved under 'DES/DES_Processed', with the revelant
+        astronomical parameters in the header of these images.
     """
     # Getting the RA and Dec of each source
     sizeWCS = [0.0073125, 0.0073125] # 100*100 pixels in degrees 
@@ -223,6 +210,25 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original
     return(WCSClipped)
 
 def normaliseRGB(num, source, base_dir = 'DES/DES_Processed'):
+    """
+    This is to normalise the g, r, and i WCSClipped images and to make a rgb composite image of the three band together. 
+    
+    Args:
+        paths(dictionary):      The path for the g, r, i .WCSClipped fits files for each source.  
+        rgbDict(dictionary):    Dictionary containing the g,r, and i normalised images, and is to be used to create the rgb image.
+        wcs(instance):          This is the World Coordinate System(WCS), set to a default of None. 
+                                If it is None, then the WCS is retrieved from the header of the WCSClipped fits image. 
+        minCut(integer):        Low value of pixels.
+        maxCut(integer):        High value of pixels.
+        cutLevels(list):        Sets the image scaling, specified manually for the r, g, b as [[r min, rmax], [g min, g max], [b min, b max]].
+        axesLabels(string):     Labels of the axes, specified as None.
+        axesFontSize(float):    Font size of the axes labels.   
+        
+    Returns:
+        Saves normalised images with the wcs as headers. These normalised images are saved under 'DES/DES_Processed/num_source/'.
+        The rgb composite images are created and saved under 'DES/DES_Processed/num_source/'.
+    """
+
     paths = {}
     paths['iBandPath'] = glob.glob('%s/%s_%s/i_WCSClipped.fits' % (base_dir, num,source))[0]
     paths['rBandPath'] = glob.glob('%s/%s_%s/r_WCSClipped.fits' % (base_dir, num,source))[0]   
@@ -270,7 +276,6 @@ lenTabDES = len(tableDES)
 
 numStart = int(sys.argv[1])
 numEnd = int(sys.argv[2])
-#tab = makeInitialTable(numEnd)
 
 for num in range(numStart, numEnd):
     
@@ -285,10 +290,7 @@ for num in range(numStart, numEnd):
     print('Imag: ' + str(imag))
     print('Rmag: ' + str(rmag))
 
-    #addRowToTable(tab, num, tileName, gmag, rmag, imag, ra, dec)
     loadDES(num, tileName) 
     randomSkyClips(num, tileName, ra, dec, gmag, rmag, imag)  
-    clipWCS(tileName, num, gmag, rmag, imag,ra, dec) # takes DES images and clips it with RA, and DEC
+    clipWCS(tileName, num, gmag, rmag, imag,ra, dec)
     normaliseRGB(num, tileName)
-    # path = "DES/DES_Processed/%s_%s" % (num, tileName)
-    # rgbImageNewForNorm(num, path)
