@@ -1,5 +1,10 @@
-# getting postage stamps of DES and cutting them to the same size as the generated model 
-# images as we made in positiveSet.py which is 100*100 pixels.
+"""
+Downloading the original DES images (10000 * 10000 pixels).
+These images are the into 100*100 pixels are cut, using random x, y coordinates, these images are 
+known as background sky/noise. The original images are clipped using the World Coordinate System, 
+and are 100*100 pixels in size around stellar/astronomical objects, and these images will be referred 
+to as negativeDES images. These negativeDES images are normalised, as well as composite RGB images are created.
+"""
 
 import os
 import sys
