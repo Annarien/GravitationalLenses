@@ -107,6 +107,9 @@ def clipWCS(tileName, num, ra, dec, pathProcessed, desTile='', base_dir = 'DES/D
     paths['gBandPath'] = glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, tileName, tileName))[0]
     paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, tileName, tileName))[0]
     paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, tileName, tileName))[0]
+    
+    if not os.path.exists('%s' %(pathProcessed)):
+        os.mkdir('%s' %(pathProcessed))
 
     newPath = '%s/%s_%s' % (pathProcessed, num, tileName)
     if not os.path.exists('%s' % (newPath)):
