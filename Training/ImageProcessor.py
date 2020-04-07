@@ -88,7 +88,6 @@ def plotAndSaveRgbGrid(filepath, rgbImagePaths, imageTitleArray): #You should pr
             img.close()
         rowNum += 1
 
-    filepath3 = "PositiveWithDESSky/PositiveWithDESSky_RGB_ImageGrid.png"
     fig3.savefig(filepath)
     plt.close(fig3)
 
@@ -105,10 +104,7 @@ def getKnownRGBPath(num):
     gBand = glob.glob('KnownLenses/DES2017/%s_*/g_WCSClipped.fits' % (num))[0]
     hdu1 = fits.open(gBand)
     desJ=hdu1[0].header['DESJ']
-    print(desJ)
-
     tilename = hdu1[0].header['TILENAME']
-    print(tilename)
 
     return(rgbKnown, desJ, tilename)
 
@@ -243,10 +239,15 @@ def randomRGBImages(path ):
         if path == 'PositiveWithDESSky':
             rgbRandomArray.append('%s/%s/%s_rgb.png' % (path,randomArrayIndex, randomArrayIndex))
             imageTitleArray.append(randomArrayIndex)
+            print("Positive Simulated")
+
         elif path == 'DES/DES_Processed':
-            rgbRandomArray.append('%s/%s_*/rgb.png'%(path, randomArrayIndex))
+            rgbRandomArray.append(glob.glob('%s/%s_*/rgb.png'%(path, randomArrayIndex))[0])
             imageTitleArray.append(randomArrayIndex)
-    return(randomArray, imageTitleArray)
+            print (" NEGATIVE DES")
+
+
+    return(rgbRandomArray, imageTitleArray)
 
 # ___________________________________________________________________________________________________________________________________________
 # MAIN 
@@ -260,7 +261,7 @@ plotKnownLenses()
 progressNegativePositive(numberIterations)
 
 # Get Random RGB images from PositiveWithDESSky
-path = 'PositiveWithDESSky/'
+path = 'PositiveWithDESSky'
 filepath6 = "PositiveWithDESSky/randomRGB_ImageGrid.png"
 rgbRandom, imageTitleArray = randomRGBImages(path)
 plotAndSaveRgbGrid(filepath6,rgbRandom, imageTitleArray)
