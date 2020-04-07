@@ -1,7 +1,10 @@
 """
-
-Matt's hacked version of the ModelAll.py code
-
+This is to create the positively simulated images. 
+By using the g, r, and i magnitudes from the COSMOS_Ilbert2009.fits, the magnitudes are realistic,
+and are used when creating the simulated lenses. The images have DES background sky added to them, 
+to create a more realistic positively simulated image, whereas without it, the images are too smooth.
+These positive images which are now referred to as PositiveWithDESSky images. 
+These images are normalised and also used to create a RGB composite image. 
 """
 from __init__ import *
 import glob
