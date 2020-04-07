@@ -56,12 +56,69 @@ def getPosWDESSkyNorm(num, base_dir = 'PositiveWithDESSky'):
     return(gPosSkyNorm, rPosSkyNorm, iPosSkyNorm)
 
 def getNumOrRowsForGrid(numOfColsForRgbGrid, arrayRGB): #Give me a description please!!!
+
     lenRGB = len(arrayRGB)
     numOfRowsForRgbGrid = (lenRGB / numOfColsForRgbGrid)
     if lenRGB % numOfColsForRgbGrid != 0:
         numOfRowsForRgbGrid += 1
 
     return numOfRowsForRgbGrid
+
+
+def getDESRGBPath(num):
+    rgbDESPath = glob.glob('DES/DES_Processed/%s_*/rgb.png' % (num))[0]
+    return (rgbDESPath)
+
+def getKnownRGBPath(num):
+    # get path of KnownRGBPath
+    rgbKnown = glob.glob('KnownLenses/DES2017/%s_*/rgb.png' % (num))[0]
+    
+    #get header of g image so that we can get the DESJ tile name
+
+    gBand = glob.glob('KnownLenses/DES2017/%s_*/g_WCSClipped.fits' % (num))[0]
+    hdu1 = fits.open(gBand)
+    desJ=hdu1[0].header['DESJ']
+    tilename = hdu1[0].header['TILENAME']
+
+    return(rgbKnown, desJ, tilename)
+
+def makeRandomRGBArray(path):
+    numCheck = int(raw_input("Enter how many random images are to be checked. "))
+    randomNum = 0
+    randomArray = []
+    randomArrayIndex = 0
+    rgbRandomArray = []
+    imageTitleArray = []
+
+    files = folders = 0
+    for _, dirnames, filenames in os.walk(path):
+    # ^ this idiom means "we won't be using this value"
+        files += len(filenames)
+        folders += len(dirnames)
+
+    print ("{:,} files, {:,} folders".format(files, folders))
+
+    for num in range(0, numCheck):
+        randomNum = random.randint(0, folders - 1)
+        while randomNum in randomArray:
+            randomNum = random.randint(0, folders - 1)
+        randomArray.append(randomNum)
+
+    print ("RANDOM ARRAY: " + str (randomArray))
+    for num in range(0, len(randomArray)):
+        randomArrayIndex = randomArray[num]
+        if path == 'PositiveWithDESSky':
+            rgbRandomArray.append('%s/%s/%s_rgb.png' % (path,randomArrayIndex, randomArrayIndex))
+            imageTitleArray.append(randomArrayIndex)
+            print("Positive Simulated")
+
+        elif path == 'DES/DES_Processed':
+            rgbRandomArray.append(glob.glob('%s/%s_*/rgb.png'%(path, randomArrayIndex))[0])
+            imageTitleArray.append(randomArrayIndex)
+            print (" NEGATIVE DES")
+
+
+    return(rgbRandomArray, imageTitleArray)
 
 def plotAndSaveRgbGrid(filepath, rgbImagePaths, imageTitleArray): #You should probably pass num in here or something like that and save many images
     lenRGB = len(rgbImagePaths)
@@ -91,24 +148,7 @@ def plotAndSaveRgbGrid(filepath, rgbImagePaths, imageTitleArray): #You should pr
     fig3.savefig(filepath)
     plt.close(fig3)
 
-def getDESRGBPath(num):
-    rgbDESPath = glob.glob('DES/DES_Processed/%s_*/rgb.png' % (num))[0]
-    return (rgbDESPath)
-
-def getKnownRGBPath(num):
-    # get path of KnownRGBPath
-    rgbKnown = glob.glob('KnownLenses/DES2017/%s_*/rgb.png' % (num))[0]
-    
-    #get header of g image so that we can get the DESJ tile name
-
-    gBand = glob.glob('KnownLenses/DES2017/%s_*/g_WCSClipped.fits' % (num))[0]
-    hdu1 = fits.open(gBand)
-    desJ=hdu1[0].header['DESJ']
-    tilename = hdu1[0].header['TILENAME']
-
-    return(rgbKnown, desJ, tilename)
-
-def progressNegativePositive(numberIterations):
+def plotprogressNegativePositive(numberIterations):
     #Number of Images creating grids to view.
     numberIterations = int(sys.argv[1])
     rgbPosImagePaths = []
@@ -210,45 +250,7 @@ def plotKnownLenses():
     filepath5 = "KnownLenses/DES2017_RGB_ImageGrid.png"
     # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
     plotAndSaveRgbGrid(filepath5, rgbKnownImagePaths, imageTitleArray)
-
-def randomRGBImages(path ):
-    numCheck = int(raw_input("Enter how many random images are to be checked. "))
-    randomNum = 0
-    randomArray = []
-    randomArrayIndex = 0
-    rgbRandomArray = []
-    imageTitleArray = []
-
-    files = folders = 0
-    for _, dirnames, filenames in os.walk(path):
-    # ^ this idiom means "we won't be using this value"
-        files += len(filenames)
-        folders += len(dirnames)
-
-    print ("{:,} files, {:,} folders".format(files, folders))
-
-    for num in range(0, numCheck):
-        randomNum = random.randint(0, folders - 1)
-        while randomNum in randomArray:
-            randomNum = random.randint(0, folders - 1)
-        randomArray.append(randomNum)
-
-    print ("RANDOM ARRAY: " + str (randomArray))
-    for num in range(0, len(randomArray)):
-        randomArrayIndex = randomArray[num]
-        if path == 'PositiveWithDESSky':
-            rgbRandomArray.append('%s/%s/%s_rgb.png' % (path,randomArrayIndex, randomArrayIndex))
-            imageTitleArray.append(randomArrayIndex)
-            print("Positive Simulated")
-
-        elif path == 'DES/DES_Processed':
-            rgbRandomArray.append(glob.glob('%s/%s_*/rgb.png'%(path, randomArrayIndex))[0])
-            imageTitleArray.append(randomArrayIndex)
-            print (" NEGATIVE DES")
-
-
-    return(rgbRandomArray, imageTitleArray)
-
+    
 # ___________________________________________________________________________________________________________________________________________
 # MAIN 
 #Number of Images creating grids to view.
@@ -258,17 +260,17 @@ numberIterations = int(sys.argv[1])
 plotKnownLenses()
 
 # plot progress and rgb images of negative and positive images 
-progressNegativePositive(numberIterations)
+plotprogressNegativePositive(numberIterations)
 
 # Get Random RGB images from PositiveWithDESSky
 path = 'PositiveWithDESSky'
 filepath6 = "PositiveWithDESSky/randomRGB_ImageGrid.png"
-rgbRandom, imageTitleArray = randomRGBImages(path)
+rgbRandom, imageTitleArray = makeRandomRGBArray(path)
 plotAndSaveRgbGrid(filepath6,rgbRandom, imageTitleArray)
 
 # Get Random RGB images from NegativeDES
 path = 'DES/DES_Processed'
 filepath7 = "DES/randomRGB_ImageGrid.png"
-rgbRandom, imageTitleArray = randomRGBImages(path)
+rgbRandom, imageTitleArray = makeRandomRGBArray(path)
 # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
 plotAndSaveRgbGrid(filepath7, rgbRandom, imageTitleArray)
