@@ -110,13 +110,10 @@ def makeRandomRGBArray(path):
         if path == 'PositiveWithDESSky':
             rgbRandomArray.append('%s/%s/%s_rgb.png' % (path,randomArrayIndex, randomArrayIndex))
             imageTitleArray.append(randomArrayIndex)
-            print("Positive Simulated")
 
         elif path == 'DES/DES_Processed':
             rgbRandomArray.append(glob.glob('%s/%s_*/rgb.png'%(path, randomArrayIndex))[0])
             imageTitleArray.append(randomArrayIndex)
-            print (" NEGATIVE DES")
-
 
     return(rgbRandomArray, imageTitleArray)
 
@@ -132,15 +129,16 @@ def plotAndSaveRgbGrid(filepath, rgbImagePaths, imageTitleArray): #You should pr
         imagesForRow = []
         imageIndex = 0
         while (imageIndex < numOfColsForRgbGrid and currentIndex < lenRGB):
+            print("Image Index: " + str(imageIndex) + " CurrentIndex: " + str(currentIndex))
             imagesForRow.append(rgbImagePaths[currentIndex])
             currentIndex += 1
             imageIndex += 1
-
+            
         for columnNum in range(0, len(imagesForRow)):
             img = Image.open(imagesForRow[columnNum])
             img.thumbnail((100, 100))
             axs[rowNum, columnNum].imshow(img)
-            imageTitle = imageTitleArray[columnNum]
+            imageTitle = imageTitleArray[currentIndex]
             axs[rowNum,columnNum].set_title("%s" % imageTitle, fontdict = None, loc = 'center', color = 'k' )
             img.close()
         rowNum += 1
@@ -250,7 +248,7 @@ def plotKnownLenses():
     filepath5 = "KnownLenses/DES2017_RGB_ImageGrid.png"
     # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
     plotAndSaveRgbGrid(filepath5, rgbKnownImagePaths, imageTitleArray)
-    
+
 # ___________________________________________________________________________________________________________________________________________
 # MAIN 
 #Number of Images creating grids to view.
