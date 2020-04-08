@@ -1,3 +1,11 @@
+"""
+This is used to create image grids, of the various data that is looked at.
+The process of creating the images is formed under the function called : plotprogressNegativePositive().
+The image grid of rgb.png images from the negative and positive data is formed under the function called: plotprogressNegativePositive().
+To get the random rgb.png images from the negative and positive data is formed under the function called: makeRandomRGBArray().
+The plotting of all the image grids is done under the function called: plotAndSaveRgbGrid()
+"""
+
 ## Processing images into a grid, to view all images at the same time, to view the process taken. 
 #IMPORTS
 import glob
@@ -254,9 +262,6 @@ def plotKnownLenses():
 #Number of Images creating grids to view.
 numberIterations = int(sys.argv[1])
 
-# plot KnownLenses rgb images
-plotKnownLenses()
-
 # plot progress and rgb images of negative and positive images 
 plotprogressNegativePositive(numberIterations)
 
@@ -272,3 +277,6 @@ filepath7 = "DES/randomRGB_ImageGrid.png"
 rgbRandom, imageTitleArray = makeRandomRGBArray(path)
 # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
 plotAndSaveRgbGrid(filepath7, rgbRandom, imageTitleArray)
+
+# plot KnownLenses rgb images
+plotKnownLenses()
