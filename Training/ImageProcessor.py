@@ -141,7 +141,20 @@ def getPosWDESSkyNorm(num, base_dir = 'PositiveWithDESSky'):
     iPosSkyNorm = fits.open(glob.glob('%s/%s/%s_i_norm.fits' % (base_dir, num, num))[0])
     return(gPosSkyNorm, rPosSkyNorm, iPosSkyNorm)
 
-def getNumOrRowsForGrid(numOfColsForRgbGrid, arrayRGB): #Give me a description please!!!
+def getNumOrRowsForGrid(numOfColsForRgbGrid, arrayRGB):
+    """
+    This is to get a number of rows using a predetermined number of coloumns. 
+    This is to ensure that the images are to form of a grid. 
+
+    Args:
+        lenRGB(integer):                The length of the array of RGB images that is used.
+        numOfRowsForRgbGrid(integer):   The number of rows that is calculated using the length divided 
+                                        by the number of predetermined coloumns.
+        numOfColsForRgbGrid(integer):   The number of coloumns using that is predetermined. 
+
+    Return:
+        Returns the number of rows for the rgb image grids.
+    """
 
     lenRGB = len(arrayRGB)
     numOfRowsForRgbGrid = (lenRGB / numOfColsForRgbGrid)
@@ -150,12 +163,41 @@ def getNumOrRowsForGrid(numOfColsForRgbGrid, arrayRGB): #Give me a description p
 
     return numOfRowsForRgbGrid
 
-
 def getDESRGBPath(num):
+    """
+    Get the file path of the rgb.png image of the negative DES processed images.
+
+    Args: 
+        rgbDESPath(string):     The path of the rgb.png image of the negative DES processed images.
+
+    Returns:
+        The path of the rgb.png image is returned.
+    """
+
     rgbDESPath = glob.glob('DES/DES_Processed/%s_*/rgb.png' % (num))[0]
     return (rgbDESPath)
 
 def getKnownRGBPath(num):
+    """
+    To get the path of the rgb.png images of the DES2017 known lenses that have been previously 
+    identified in previous studies. The tilename (from DES DR1) and the DESJ2000 name 
+    (from the DES2017 paper) are also retrieved, as this is to get the correct names for each 
+    image when creating the rgb image grids of these known lenses. The tilename and DESJ names 
+    are retrieved from one of bands of the WCSClipped images of that source, here we will just use the g band.
+
+    Args:
+        rgbKnown(string):   This is the path of the rgb.png images of the DES2017 known lenses.
+        gBand(string):      This is the path of the g band of the WCSClipped fits image of the DES2017 known lenses.
+        hdu1(HDUList):      This is the data of the gBand when opened.
+        desJ(string):       This is the DESJ2000 names of the known lenses from DES2017 study.
+        tilename(string):   This is the DES DR1 tilename of the known lenses.
+
+    Returns:
+        rgbKnown(string):   Provides the path name for the known lenses from DES2017 study.
+        desJ(string):       Provides the DESJ2000 name of the known lenses.
+        tilename(string):   Provides the DES DR1 tilename for the known lenses.
+    """
+
     # get path of KnownRGBPath
     rgbKnown = glob.glob('KnownLenses/DES2017/%s_*/rgb.png' % (num))[0]
     
@@ -169,6 +211,27 @@ def getKnownRGBPath(num):
     return(rgbKnown, desJ, tilename)
 
 def makeRandomRGBArray(path):
+    """
+    Makes an random list of the rgb.png images. 
+    This is to create an rgb image grid with randomly chosen sources,
+    to ensure that all data is correct and not just the first hadnful which I have been working with.
+
+    Args:
+        numCheck(integer):          The input that indicates how many random rgb images that are to be 
+                                    used in checked using the random rgb image grid.
+        randomNum(integer):         A random number that is generate in the range from 0 and the 
+                                    amount of folders in either the positive or negative data set.
+        randomArray(list):          The list of the random Numbers that are generated in randomNum.
+        randomArrayIndex(integer):  The number at a certain index in the randomArray, this corresponds 
+                                    to the sources in the data sets.
+        rgbRandomArray(list):       The list of the paths of the rgb.png images of the random sources in
+                                    the randomArray, with the randomArrayIndex as its source.
+        imageTitleArray(list):      The list of the sources that are used in the rgbRandomArray, 
+                                    these are the titles of their respective rgb images in the image grid.
+
+
+    """
+
     numCheck = int(raw_input("Enter how many random images are to be checked. "))
     randomNum = 0
     randomArray = []
@@ -190,7 +253,7 @@ def makeRandomRGBArray(path):
             randomNum = random.randint(0, folders - 1)
         randomArray.append(randomNum)
 
-    print ("RANDOM ARRAY: " + str (randomArray))
+    print ("RANDOM ARRAY: " + str (randomArray) + " TYPE: " +str(type(randomArray)))
     for num in range(0, len(randomArray)):
         randomArrayIndex = randomArray[num]
         if path == 'PositiveWithDESSky':
@@ -224,7 +287,7 @@ def plotAndSaveRgbGrid(filepath, rgbImagePaths, imageTitleArray): #You should pr
             img = Image.open(imagesForRow[columnNum])
             img.thumbnail((100, 100))
             axs[rowNum, columnNum].imshow(img)
-            imageTitle = imageTitleArray[currentIndex]
+            imageTitle = imageTitleArray[currentIndex-1]
             axs[rowNum,columnNum].set_title("%s" % imageTitle, fontdict = None, loc = 'center', color = 'k' )
             img.close()
         rowNum += 1
