@@ -143,14 +143,14 @@ def getPosWDESSkyNorm(num, base_dir = 'PositiveWithDESSky'):
 
 def getNumOrRowsForGrid(numOfColsForRgbGrid, arrayRGB):
     """
-    This is to get a number of rows using a predetermined number of coloumns. 
+    This is to get a number of rows using a predetermined number of columns. 
     This is to ensure that the images are to form of a grid. 
 
     Args:
         lenRGB(integer):                The length of the array of RGB images that is used.
         numOfRowsForRgbGrid(integer):   The number of rows that is calculated using the length divided 
-                                        by the number of predetermined coloumns.
-        numOfColsForRgbGrid(integer):   The number of coloumns using that is predetermined. 
+                                        by the number of predetermined columns.
+        numOfColsForRgbGrid(integer):   The number of columns using that is predetermined. 
 
     Return:
         Returns the number of rows for the rgb image grids.
@@ -228,8 +228,10 @@ def makeRandomRGBArray(path):
                                     the randomArray, with the randomArrayIndex as its source.
         imageTitleArray(list):      The list of the sources that are used in the rgbRandomArray, 
                                     these are the titles of their respective rgb images in the image grid.
-
-
+    Returns:
+        rgbRandomArray(list):       The list of random paths of rgb.png images, corresponding to the 
+                                    randomArrayIndex as its sources.
+        imageTitleArray(list):      The list of the numbers that correspond to the rgb.png images in the rgbRandomArray. 
     """
 
     numCheck = int(raw_input("Enter how many random images are to be checked. "))
@@ -267,11 +269,47 @@ def makeRandomRGBArray(path):
     return(rgbRandomArray, imageTitleArray)
 
 def plotAndSaveRgbGrid(filepath, rgbImagePaths, imageTitleArray): #You should probably pass num in here or something like that and save many images
+    """
+    Using the image arrays (rgbImagePaths()) to make an image grid made of RGB images. 
+    The title for each image is retrieved from the imageTitleArray(). These images are made using subplots.
+
+    Args:
+        filepath(string):               The path where the file is to be saved, this is predetermined, when calling this function.
+        rgbImagePaths(list):            This is the list of the rgb images, that are used when making the rgb image grids. 
+        imageTitle(list):               This is the list of the names or titles of each image that is in the grid. 
+                                        These names will either be the numbers of the sources or the source name, 
+                                        depending on which data is being used. 
+        lenRGB(integer):                This is the length of the rgb images, in an array.
+        numOfColsForRgbGrid(integer):   This where the number of columns are determined, and can be changed to a more 
+                                        desirable number of columns. This is more for the user to get a better view 
+                                        of the image grid, and the user can determine the amount of columns.  
+        numOfRowsForRgbGrid(integer):   This is the number of rows, that are determined using the getNumOrRowsForGrid(), 
+                                        which uses the predetemined number of columns and the length of the array of rgb images.
+        fig(Figure):                    This is the figure made where the rgb images are placed in a grid determined by the 
+                                        numberof rows and columns. This figure is saved at the filepath name retrieved when 
+                                        calling this function.
+        axs(Axes):                      Axes of the individual images in the image grid.
+        rowNum(integer):                The row in the Figure where the individual rgb images are placed, which is less than 
+                                        number of rows in the grid(numOfRowsFORRgbGrid).
+        currentIndex(integer):          The current index, indicating the index (or image) that is being used from the rgbImagePaths. 
+                                        This current index is less than the length of the rgbImagePaths. 
+        imagesForRow(list):             This is the array which contains the rgb images at the indices(currentIndex).
+        imageIndex(integer):            This is the image index, indicating the index that is being used in where the
+                                        images are less than the number of columns for that particular row.
+        columnNum(integer):             This is the indicator of which column is in use, which is in the range from 
+                                        0 to the length of the amount of rgb images.
+        img(Image):                     This is the opened individual images of the rgb image with an index of that column number. 
+                                        This images are set are thumbnails in the Figure, and are set to have a sixe of 100*100 pixels. 
+        
+        Return:
+            This saves the Figure, which is all the indivivual rgb images placed in a grid. 
+            These figures are saved in the path which is retrieved from when this function is called.                           
+    """    
     lenRGB = len(rgbImagePaths)
     numOfColsForRgbGrid = 3
     numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid, rgbImagePaths)
     
-    fig3, axs = plt.subplots(numOfRowsForRgbGrid, numOfColsForRgbGrid)
+    fig, axs = plt.subplots(numOfRowsForRgbGrid, numOfColsForRgbGrid)
     rowNum = 0
     currentIndex = 0
     while (rowNum < numOfRowsForRgbGrid):
@@ -287,13 +325,13 @@ def plotAndSaveRgbGrid(filepath, rgbImagePaths, imageTitleArray): #You should pr
             img = Image.open(imagesForRow[columnNum])
             img.thumbnail((100, 100))
             axs[rowNum, columnNum].imshow(img)
-            imageTitle = imageTitleArray[currentIndex-1]
-            axs[rowNum,columnNum].set_title("%s" % imageTitle, fontdict = None, loc = 'center', color = 'k' )
+            # imageTitle = imageTitleArray[currentIndex-1]
+            # axs[rowNum,columnNum].set_title("%s" % imageTitle, fontdict = None, loc = 'center', color = 'k' )
             img.close()
         rowNum += 1
 
-    fig3.savefig(filepath)
-    plt.close(fig3)
+    fig.savefig(filepath)
+    plt.close(fig)
 
 def plotprogressNegativePositive(numberIterations):
     #Number of Images creating grids to view.
