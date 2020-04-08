@@ -19,9 +19,19 @@ from astLib import astImages
 from PIL import Image
 from os import walk
 
-
 # Open DES Processed WCS .fits files, and assign a variable to the g, r, i images.
 def getDESProcessedWCS(num, base_dir = 'DES/DES_Processed'):
+    """
+    This is to open the files of the negative DES WCSClipped images for the g, r, and i bands.
+
+    Args:
+        gWCS(HDUList):      The data of the opened g band WCSClipped fits image.
+        rWCS(HDUList):      The data of the opened r band WCSClipped fits image.
+        iWCS(HDUList):      The data of the opened i band WCSClipped fits image.
+
+    Returns:
+        The opened gWCS, rWCS and iWCS fits images are returned.
+    """
     gWCS = fits.open(glob.glob('%s/%s_*/g_WCSClipped.fits' % (base_dir, num))[0])
     rWCS = fits.open(glob.glob('%s/%s_*/r_WCSClipped.fits' % (base_dir, num))[0])
     iWCS = fits.open(glob.glob('%s/%s_*/i_WCSClipped.fits' % (base_dir, num))[0])
@@ -29,6 +39,18 @@ def getDESProcessedWCS(num, base_dir = 'DES/DES_Processed'):
 
 # Open DES Processed norm .fits files and assign a variable to the g, r, i images.
 def getDESProcessedNorm(num, base_dir = 'DES/DES_Processed'):
+    """
+    This is to open the normalised files of the negative DES WCSClipped images for the g, r, and i bands.
+
+    Args:
+        gDESNorm(HDUList):      The data of the opened g band normalised fits image.
+        rDESNorm(HDUList):      The data of the opened r band normalised fits image.
+        iDESNorm(HDUList):      The data of the opened i band normalised fits image.
+
+    Returns:
+        The opened gDESNorm, rDESNorm, and iDESNorm normalised fits images are returned.
+    """
+
     gDESNorm = fits.open(glob.glob('%s/%s_*/g_norm.fits' % (base_dir, num))[0])
     rDESNorm = fits.open(glob.glob('%s/%s_*/r_norm.fits' % (base_dir, num))[0])
     iDESNorm = fits.open(glob.glob('%s/%s_*/i_norm.fits' % (base_dir, num))[0])
@@ -37,6 +59,18 @@ def getDESProcessedNorm(num, base_dir = 'DES/DES_Processed'):
 
 # Open DESSky .fits files and assign a variable to the g, r, i images.
 def getDESSky(num, basedir = 'DESSky'):
+    """
+    This is to open files of the background sky of the DES Original images for the g, r, and i bands.
+
+    Args:
+        gDESSky(HDUList):      The data of the opened g band sky fits image.
+        rDESSky(HDUList):      The data of the opened r band sky fits image.
+        iDESSky(HDUList):      The data of the opened i band sky fits image.
+
+    Returns:
+        The opened gDESSky, rDESSky, and iDESSky  background sky fits images are returned.
+
+    """
     gDESSky = fits.open(glob.glob('%s/%s_g_sky.fits' % (basedir, num))[0])
     rDESSky = fits.open(glob.glob('%s/%s_r_sky.fits' % (basedir, num))[0])
     iDESSky = fits.open(glob.glob('%s/%s_i_sky.fits' % (basedir, num))[0])
@@ -44,6 +78,18 @@ def getDESSky(num, basedir = 'DESSky'):
 
 # Open PositiveNoiseless .fits files and assign a variable to the ..._SDSS_g, r, images.
 def getPosNoiseless(num, base_dir = 'PositiveNoiseless'):
+    """
+    This is to open files of the positively simulated images of gravitational lensing for the g, r, and i bands.
+
+    Args:
+        gPos(HDUList):      The data of the opened g band of the positively simulated fits image.
+        rPos(HDUList):      The data of the opened r band of the positively simulated fits image.
+        iPos(HDUList):      The data of the opened i band of the positively simulated fits image.
+
+    Returns:
+        The opened gPos, rPos, and iPos positively simulated fits images are returned.
+    """
+
     gPos = fits.open(glob.glob('%s/%s/%s_image_g_SDSS.fits' % (base_dir, num, num))[0])
     rPos = fits.open(glob.glob('%s/%s/%s_image_r_SDSS.fits' % (base_dir, num, num))[0])
     iPos = fits.open(glob.glob('%s/%s/%s_image_i_SDSS.fits' % (base_dir, num, num))[0])
@@ -51,6 +97,22 @@ def getPosNoiseless(num, base_dir = 'PositiveNoiseless'):
 
 # Open PositiveWithDESSky  .fits files and assign a variable to the ...posSky_g, r, i images.
 def getPosWDESSky(num, base_dir = 'PositiveWithDESSky'):
+    """
+    This is to open files of the positively simulated images of gravitational lensing for the g, r, and 
+    i bands, that have the background sky added to them.
+
+    Args:
+        gPosSky(HDUList):      The data of the opened g band of the positively simulated with the background 
+                               sky added fits images.
+        rPosSky(HDUList):      The data of the opened r band of the positively simulated with the background 
+                               sky added fits images.
+        iPosSky(HDUList):      The data of the opened i band of the positively simulated with the background 
+                               sky added fits images.
+
+    Returns:
+        The opened gPosSky, rPosSky, and iPosSky positively simulated fits images are returned.
+    """
+
     gPosSky = fits.open(glob.glob('%s/%s/%s_posSky_g.fits' % (base_dir, num, num))[0])
     rPosSky = fits.open(glob.glob('%s/%s/%s_posSky_r.fits' % (base_dir, num, num))[0])
     iPosSky = fits.open(glob.glob('%s/%s/%s_posSky_i.fits' % (base_dir, num, num))[0])
@@ -58,6 +120,22 @@ def getPosWDESSky(num, base_dir = 'PositiveWithDESSky'):
 
 # Open PositiveWithDESSky norm. fits images and assign a variable to the ...posSky_g, r, i_norm images.
 def getPosWDESSkyNorm(num, base_dir = 'PositiveWithDESSky'):
+    """
+    This is to open files of the normalised positively simulated images of gravitational lensing for the g, r, and 
+    i bands, that have the background sky added to them.
+
+    Args:
+        gPosSkyNorm(HDUList):      The data of the opened g band of the normalised positively simulated with 
+                                   the background sky added fits images.
+        rPosSkyNorm(HDUList):      The data of the opened r band of the normalised positively simulated with 
+                                   the background sky added fits images.
+        iPosSkyNorm(HDUList):      The data of the opened i band of the normalised positively simulated with 
+                                   the background sky added fits images.
+
+    Returns:
+        The opened gPosSkyNorm, rPosSkyNorm, and iPosSkyNorm, the normalised positively simulated fits images are returned.
+    """
+
     gPosSkyNorm = fits.open(glob.glob('%s/%s/%s_g_norm.fits' % (base_dir, num, num))[0])
     rPosSkyNorm = fits.open(glob.glob('%s/%s/%s_r_norm.fits' % (base_dir, num, num))[0])
     iPosSkyNorm = fits.open(glob.glob('%s/%s/%s_i_norm.fits' % (base_dir, num, num))[0])
