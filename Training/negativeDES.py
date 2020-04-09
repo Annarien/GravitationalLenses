@@ -220,7 +220,6 @@ def normaliseRGB(num, source, base_dir = 'DES/DES_Processed'):
         These normalised images are saved under 'DES/DES_Processed/num_source/'.
         The rgb composite images are created and saved under 'DES/DES_Processed/num_source/'.
     """
-
     paths = {}
     paths['iBandPath'] = glob.glob('%s/%s_%s/i_WCSClipped.fits' % (base_dir, num,source))[0]
     paths['rBandPath'] = glob.glob('%s/%s_%s/r_WCSClipped.fits' % (base_dir, num,source))[0]   

@@ -1,6 +1,12 @@
-# getting postage stamps of DES and cutting them to the same size as the generated model 
-# images as we made in positiveSet.py which is 100*100 pixels.
-
+"""
+This gets the UnknownLenses, that havent been seen before. This follows the same pattern as
+the negativeDES.py code. This simply downloads code DES DR1 images and clips it using WCS, 
+and then normalises it, and creates a rgb image. The amount of images downloaded depends on the
+table requested in the knownLenses code, as Jacobs looks at 84 previously identified lenses, and
+the DES2017 table looks at 47 previously identified lenses. The same amount of known lenses and 
+unknown lenses are needed.
+"""
+# imports
 import os
 import sys
 import random
@@ -16,66 +22,16 @@ from astropy.io import fits
 from astLib import *
 from bs4 import BeautifulSoup
 
-def makeInitialTable(num):
-    """ 
-    Writes a default of all zeroes table for g,r, i bands to include all the parameters that create the lenses and sources.
-    The reason for this table is t quickly look at the images and to compare magnitudes and to look at a few sources at once from DES. 
-    
-    Args:
-        Number(int):        Number of the Folder or source that is made.
-        TileName(string):   This is the source name of the original source from DES.
-        MAG_AUTO_G(float):  This is the g magnitude of the original source from DES.
-        MAG_AUTO_R(float):  This is the r magnitude of the original source from DES.
-        MAG_AUTO_I (float): This is the i magnitude of the original source from DES.
-    
-    Returns:
-        tab(table):     A table is created and returned.
-    """
-    tab = atpy.Table()
-    tab.add_column(atpy.Column( np.zeros(num), "NUM"))
-    #tab.add_column(atpy.Column( np.zeros(num), "TILENAME"))
-    tab.add_column(atpy.Column( np.zeros(num), "MAG_AUTO_G"))
-    tab.add_column(atpy.Column( np.zeros(num), "MAG_AUTO_R"))
-    tab.add_column(atpy.Column( np.zeros(num), "MAG_AUTO_I"))
-    tab.add_column(atpy.Column( np.zeros(num), "RA"))
-    tab.add_column(atpy.Column( np.zeros(num), "DEC"))
-    return(tab)
-
-def addRowToTable(tab, num, tileName, gmag, rmag, imag, ra, dec):
-    """ 
-    Writes a table that includes the values or the original g, r, i magnitudes of the sources that are made.
-    The reason for this table is to quickly look at the images and to compare magnitudes and to look at a few sources at once from DES. 
-    
-    Args:
-        Number(int):        Number of the Folder or source that is made.
-        TileName(string):   This is the source name of the original source from DES.
-        MAG_AUTO_G(float):  This is the g magnitude of the original source from DES.
-        MAG_AUTO_R(float):  This is the r magnitude of the original source from DES.
-        MAG_AUTO_I (float): This is the i magnitude of the original source from DES.
-    
-    Returns:
-        tab(table):     A table is created and saved as 'DES/DES_Sets.fits'
-    """
-    tab["NUM"][num] = num
-    #tab["TILENAME"][num] = tileName
-    tab["MAG_AUTO_G"][num] = gmag
-    tab["MAG_AUTO_R"][num] = rmag
-    tab["MAG_AUTO_I"][num] = imag
-    tab["RA"][num]  =   ra
-    tab["DEC"][num] =   dec
-    tab.write("DES/DES_Sets.csv", overwrite = True)
-
 def loadDES(num, source, base_dir = 'DES/DES_Original'):
     """
-    Firstly the .fits file was downloaded from DES DR1. This contains the g, r, i magnitudes as well as the RA and DEC, for each source.
-    Then g, r, i .fits files are downloaded for each source from the DES DR1 server.
-    DownLoading the images in a folder, only containg DES original .fits files.
+    Firstly the .fits file was downloaded from DES DR1. This contains the g, r, i magnitudes as well
+    as the RA and DEC, for each source. Then g, r, i .fits files are downloaded for each source from
+    the DES DR1 server. DownLoading the images in a folder, only containg DES original .fits files.
 
     Args:
-        url(string):        Url for the DES survey plus each source so that the source is fetched correctly. 
         source(string):     This is the tilename given in the DR1 database, and this is name of each source.
         num(integer):       Number given to identify the order the the sources are processed in.
-        base_dir(string):   This is the base directory in which the folders are made.
+        base_dir(string):   This is the base directory in which the folders are downloaded.
     
     Returns:
         Downloads the images from DES for g, r, i .fits files of each source. These images are downloaded to 'DES/DES_Original'.
@@ -113,6 +69,19 @@ def loadDES(num, source, base_dir = 'DES/DES_Original'):
         print()
 
 def randomXY(source, base_dir = 'DES/DES_Original'):
+    """
+    This gets random x, y coordinates in the original g band of DES images. 
+    Only one band is used to get these coordinates, as the same random 
+    coordinates are needed in all bands. This also ensure that images are 
+    100*100 pixels in size, and all pixels are within the images. 
+
+    Args:
+        source(string):     This is the tilename of the DES DR1 images, used for each object.
+        base_dir(string):   This is the root directory that contains the original DES images.
+    Returns:
+        xRandom(int):       The random x coordinate, within the DES Original g band image.
+        yRandom(int):       The random y coordinate, within the DES Original g band image. 
+    """
     # This code only ever gets called for the g band, so why not just make it like this:
 
     with fits.open(glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0]) as bandDES:
@@ -131,32 +100,22 @@ def randomXY(source, base_dir = 'DES/DES_Original'):
 
 def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_Original'):
     """
-    This is the function which makes a folder containing clipped images for the sources that are used to check the simulation.
-    These clipped images are to be added to the PositiveNoiseless images to create the PositiveWithDESSky images. 
-    This is clipped as (x, y, clipSizePix)=(x, y, 100), where x, y are random coordinates.     
-    The clipped images (bandSky numpy array) are created, then checked to see if there is any zero value.
-    If there is a zero in the clipped image, then a new clipped image is created from the orginal image with new x, y coordinates.
-    This is repeated until a clipped image is created without zero in it. 
-    The 'g' band is used to clip images as there is no need to go through all the bands but only need to check one band,
-    as the possibility of a zero is great in the other bands as well if there is a zero in the 'g' band.
-
+    Clipping of the g, r, and i DES Original fits images, to create a 100*100 pixel sized image of noise/sky. 
+    
     Args:
-        paths (dictionary):       The paths to the original fits DES images.
-        madeSky (boolean):        A boolean value set to 'False', and in the following while loop, clipped images are made if there is no sky.
-        clippedSky (dictionary):  Dictionary of all the clipped images.
-        headers (dictionary):     Dictionary of the headers of the clipped images and the original images.
-        allImagesValid (boolean): A boolean value set as 'True' when there is no madeSky made, 
-                                  and is set to 'False' if the images there is any zeros in the bandSky.
-        bandDES (numpy array):    Numpy array of the original DES images.
-        x (int):                  Interger of a random x coordinate in the original DES image received from the randomXY function.
-        y (int):                  Interger of a random y coordinate in the original DES image received from the randomXY function.
-        bandSky (numpy array):    Clipped image that is set at (x, y) coordinates with a dimension of 100 * 100 pixels.
-
+        num(integer):       Number identifying the particular processed negative folder and files is being used.
+        source(string):     This is the tilename of the clipped sky images.
+        ra(float):          The right ascension of the clipped original image from DES.
+        dec(float):         The declination of the clipped original image from DES.
+        gmag(float):        The magnitude of the g band of the orignal images from DES.
+        rmag(float):        The magnitude of the r band of the orignal images from DES.
+        image(float):       The magnitude of the i band of the orignal images from DES.
+        base_dir(string):   The root directory of the orignal DES images, which are
+                            used to be clipped into the sky images. 
     Returns:
-        clippedSky (dictionary):  The images the are clipped, and this is added as the noise or 
-                                  background sky of the PositiveNoiseless images creating the 
-                                  PositiveWithDESSky images. These clipped images are also saved in the DESSky folder.
-
+        Saves these randomly clipped 100*100 g, r, and i images to the folder called 
+        'DESSky/', and saves the revelant headers, for later use or to check these 
+        astronomical parameters. 
     """
     paths = {}
     paths['gBandPath'] = glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0]
@@ -206,21 +165,21 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original
     The WCS images, are normalised and saved at ('%s.norm.fits' % (paths[band + 'BandPath']).
 
     Args:
-        paths (dictionary):          The path for the g, r, i .fits files for each source.
-        header (header):             This is tha actual header for these images, and is adjusted to include the magnitudes of g, r, i.
-        RA (float):                  This is the Right Ascension of the source retrieved from the DES_Access table.
-        Dec (float):                 This is the Declination of the source retrieved from the  DEC_Access table.
-        sizeWCS (list):              This is a list of (x,y) size in degrees which is 100*100 pixels.
-        WCS (astWCS.WCS):            This is the WCS coordinates that are retrieved from the g, r, i . fits files.
-        WCSClipped (numpy array):    Clipped image section and updated the astWCS.WCS object for the clipped image section.
-                                     and the coordinates of clipped section that is within the imageData in format {'data', 'wcs', 'clippedSection'}.
-        im (numpy array):            Numpy array of the WCSClipped data.
-        normImage(numpy array):      Normalised numpy array which is calculated as normImage = im/np.std(im) where np.std is the standard deviation.  
-    
+        source(string):     This is the tilename of the original images from DES.
+        num(integer):       Number identifying the particular processed negative folder and files is being used.
+        gmag(float):        The magnitude of the g band of the original images from DES.
+        rmag(float):        The magnitude of the r band of the original images from DES.
+        image(float):       The magnitude of the i band of the original images from DES.
+        ra(float):          The right ascension of the orignal images from DES.
+        dec(float):         The declination of the original images from DES.
+        base_dir(string):   The root directory of the orignal DES images. 
+        base_new(string):   The root directory in which the WCSClipped images are saved,
+                            this is defaulted to 'DES/DES_Processed'.
     Returns:
-        WCSClipped (numpy array):    A numpy array of the WCSclipped, with its WCS coordinates.
-        normImages (numpy array):    Images of the normalisation for the WCSClipped images are saved in the PositiveWithDESSky folder.
-    """
+        WCSClipped (numpy array):   A numpy array of the WCSclipped, with its WCS coordinates.
+        The g, r, and i WCSClipped images are saved under 'DES/DES_Processed', with the revelant
+        astronomical parameters in the header of these images.
+    """ 
     # Getting the RA and Dec of each source
     sizeWCS = [0.0073125, 0.0073125] # 100*100 pixels in degrees 
     
@@ -258,6 +217,19 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original
     return(WCSClipped)
 
 def normaliseRGB(num, source, base_dir = 'KnownLenses/Unknown_Processed'):
+    """
+    This is to normalise the g, r, and i WCSClipped images and to make a rgb composite image of the three band together. 
+    
+    Args:
+        num(integer):       Number identifying the particular processed negative folder and files is being used.
+        source(string):     This is the tilename of the original images from DES.
+        base_dir(string):   The root directory in which the normalised images and the rgb compostie images are saved,
+                            this is defaulted to 'DES/DES_Processed'.
+    Returns:
+        Saves normalised images with the wcs as headers. 
+        These normalised images are saved under 'DES/DES_Processed/num_source/'.
+        The rgb composite images are created and saved under 'DES/DES_Processed/num_source/'.
+    """
     paths = {}
     paths['iBandPath'] = glob.glob('%s/%s_%s/i_WCSClipped.fits' % (base_dir, num,source))[0]
     paths['rBandPath'] = glob.glob('%s/%s_%s/r_WCSClipped.fits' % (base_dir, num,source))[0]   
@@ -305,7 +277,7 @@ while knownTable != 'Jacobs' and knownTable != 'DES2017':
         numSources = 84
         break
     elif table == 'DES2017':
-        numSources = 56
+        numSources = 47
         break
 
 
@@ -334,7 +306,6 @@ for num in range(numStart, 92000):
     print('Imag: ' + str(imag))
     print('Rmag: ' + str(rmag))
 
-    #addRowToTable(tab, num, tileName, gmag, rmag, imag, ra, dec)
     loadDES(num, tileName) 
     randomSkyClips(num, tileName, ra, dec, gmag, rmag, imag)  
     clipWCS(tileName, num, gmag, rmag, imag,ra, dec) # takes DES images and clips it with RA, and DEC
