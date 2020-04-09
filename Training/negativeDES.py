@@ -20,7 +20,7 @@ from astLib import astImages
 from astLib import astPlots
 from bs4 import BeautifulSoup
 
-def loadDES(num, source, base_dir = 'DES/DES_Original'):
+def loadDES(source, base_dir = 'DES/DES_Original'):
     """
     Firstly the .fits files are downloaded from DES DR1. 
     This contains the g, r, i magnitudes as well as the RA and DEC, for each source.
@@ -28,11 +28,8 @@ def loadDES(num, source, base_dir = 'DES/DES_Original'):
     DownLoading the images in a folder, only containg DES original .fits files.
 
     Args:
-        url(string):        Url for the DES survey plus each source so that the source is fetched correctly. 
         source(string):     This is the tilename given in the DR1 database, and this is name of each source.
-        num(integer):       Number given to identify the order the the sources are processed in.
         base_dir(string):   This is the base directory in which the folders are made.
-    
     Returns:
         Downloads the images from DES for g, r, and i .fits files of each source. 
         These images are downloaded to 'DES/DES_Original'.
@@ -72,17 +69,13 @@ def loadDES(num, source, base_dir = 'DES/DES_Original'):
 def randomXY(source, base_dir = 'DES/DES_Original'):
     """
     This gets random x, y coordinates in the original g band of DES images. 
-    Only one band is used to get these coordinates, as the same random coordinates are needed in all bands.
-    This also ensure that images are 100*100 pixels in size, and all pixels are within the images. 
+    Only one band is used to get these coordinates, as the same random 
+    coordinates are needed in all bands. This also ensure that images are 
+    100*100 pixels in size, and all pixels are within the images. 
 
     Args:
-        xMax(int):      The maximum amount of pixels on the x-axis of the DES original image in the g band.
-        yMax(int):      The maximum amount of pixels on the y-axis of the DES original image in the g band.
-        xRandom(int):   The random coordinate of x, that is between 100 and xMax -100, since the images are to be 100 * 100,
-                        its important to ensure that the images wont contain any pixels with no data in it. 
-        yRandom(int):   The random coordinate of y, that is between 100 and xMax -100, since the images are to be 100 * 100,
-                        its important to ensure that the images wont contain any pixels with no data in it.
-
+        source(string):     This is the tilename of the DES DR1 images, used for each object.
+        base_dir(string):   This is the root directory that contains the original DES images.
     Returns:
         xRandom(int):   The random x coordinate, within the DES Original g band image.
         yRandom(int):   The random y coordinate, within the DES Original g band image. 
@@ -107,20 +100,19 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_O
     Clipping of the g, r, and i DES Original fits images, to create a 100*100 pixel sized image of noise/sky. 
     
     Args:
-        paths(dictionary):          The path names of the original DES images, for each g, r, and i band.
-        madeSky(boolean):           This is a boolean holder, which is set to default False. 
-                                    This variable indicate whether or not, sky has been clipped, and made. 
-        clippedSky(dictionary):     This is the dictionary containing the the data of the images that have been 
-                                    clipped using the random x, y coordinates.  
-        allImagesValid(boolean):    This is a boolean, which is set to True. This variable indicates 
-                                    that all pixels within the clippedSky image contain data, and is not empty. 
-        bandDES(HDUList):           The opened fits image of the orignal DES images.
-        bandSky(numpy array):       The clipped DES original images that have been clipped using the x, y random 
-                                    coordinates, and to the size of 100*100 pixels. 
-        
+        num(integer):       Number identifying the particular processed negative folder and files is being used.
+        source(string):     This is the tilename of the clipped sky images.
+        ra(float):          The right ascension of the clipped original image from DES.
+        dec(float):         The declination of the clipped original image from DES.
+        gmag(float):        The magnitude of the g band of the orignal images from DES.
+        rmag(float):        The magnitude of the r band of the orignal images from DES.
+        image(float):       The magnitude of the i band of the orignal images from DES.
+        base_dir(string):   The root directory of the orignal DES images, which are
+                            used to be clipped into the sky images. 
     Returns:
-    Saves these randomly clipped 100*100 g, r, and i images to the folder called 'DESSky/', and saves the revelant headers, 
-    for later use or to check these astronomical parameters.   
+    Saves these randomly clipped 100*100 g, r, and i images to the folder called 
+    'DESSky/', and saves the revelant headers, for later use or to check these 
+    astronomical parameters.   
     """
 
     paths = {}
@@ -168,16 +160,16 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original
     The WCS images, are normalised and saved at ('%s.norm.fits' % (paths[band + 'BandPath']).
 
     Args:
-        paths(dictionary):         The path for the g, r, i .fits files for each source.
-        header(header):            This is tha actual header for these images, and is adjusted to include the magnitudes of g, r, i.
-        ra(float):                 This is the Right Ascension of the source retrieved from the DES_Access table.
-        dec(float):                This is the Declination of the source retrieved from the  DEC_Access table.
-        sizeWCS(list):             This is a list of (x,y) size in degrees which is 100*100 pixels.
-        WCS(astWCS.WCS):           This is the WCS coordinates that are retrieved from the g, r, i . fits files.
-        WCSClipped(numpy array):   Clipped image section and updated the astWCS.WCS object for the clipped image section.
-                                   and the coordinates of clipped section that is within the imageData in format {'data', 'wcs',
-                                   'clippedSection'}.
-    
+        source(string):     This is the tilename of the original images from DES.
+        num(integer):       Number identifying the particular processed negative folder and files is being used.
+        gmag(float):        The magnitude of the g band of the original images from DES.
+        rmag(float):        The magnitude of the r band of the original images from DES.
+        image(float):       The magnitude of the i band of the original images from DES.
+        ra(float):          The right ascension of the orignal images from DES.
+        dec(float):         The declination of the original images from DES.
+        base_dir(string):   The root directory of the orignal DES images. 
+        base_new(string):   The root directory in which the WCSClipped images are saved,
+                            this is defaulted to 'DES/DES_Processed'.
     Returns:
         WCSClipped (numpy array):   A numpy array of the WCSclipped, with its WCS coordinates.
         The g, r, and i WCSClipped images are saved under 'DES/DES_Processed', with the revelant
@@ -219,17 +211,10 @@ def normaliseRGB(num, source, base_dir = 'DES/DES_Processed'):
     This is to normalise the g, r, and i WCSClipped images and to make a rgb composite image of the three band together. 
     
     Args:
-        paths(dictionary):      The path for the g, r, i .WCSClipped fits files for each source.  
-        rgbDict(dictionary):    Dictionary containing the g,r, and i normalised images, and is to be used to create the rgb image.
-        wcs(instance):          This is the World Coordinate System(WCS), set to a default of None. 
-                                If it is None, then the WCS is retrieved from the header of the WCSClipped fits image. 
-        normImage(numpy array): Normalised Image Array where the normalisation is calculated as (im - im.mean())/np.std(im)
-        minCut(integer):        Low value of pixels.
-        maxCut(integer):        High value of pixels.
-        cutLevels(list):        Sets the image scaling, specified manually for the r, g, b as [[r min, rmax], [g min, g max], [b min, b max]].
-        axesLabels(string):     Labels of the axes, specified as None.
-        axesFontSize(float):    Font size of the axes labels.   
-        
+        num(integer):       Number identifying the particular processed negative folder and files is being used.
+        source(string):     This is the tilename of the original images from DES.
+        base_dir(string):   The root directory in which the normalised images and the rgb compostie images are saved,
+                            this is defaulted to 'DES/DES_Processed'.
     Returns:
         Saves normalised images with the wcs as headers. These normalised images are saved under 'DES/DES_Processed/num_source/'.
         The rgb composite images are created and saved under 'DES/DES_Processed/num_source/'.
