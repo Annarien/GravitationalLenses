@@ -19,7 +19,6 @@ from astropy.io import fits
 from astLib import *
 from astropy.visualization import make_lupton_rgb
 
-
 cosmos = atpy.Table().read("COSMOS_Ilbert2009.fits")
 # to take out all nans in cosmos
 for key in ['Rmag','Imag','Gmag']:
@@ -27,28 +26,18 @@ for key in ['Rmag','Imag','Gmag']:
 #------------------------------------------------------------------------------------------------------------
 def cutCosmosTable(cosmos):
     """
-    The cosmos table is used in order to get magnitudes,inorder to provide realistic magnitudes for our training set.  
-    The cosmos table is restricted to all r magnitudes below 22 for sources.
-    The cosmos table is restricted to all r magnitudes below 22 for lenses and between i magnitude for 18 and 22.
-    This limits to the sources where the redshift (zpbest) is between 1 and 2.
-    This limits to the sources where the redshift (zpbest) is between 0.1 and 0.3.
-    For checking purposes the maximum and minimum, r and i magnitudes for the sources and lens tables, is printed as the code is run.
+    The cosmos table is used in order to get magnitudes,inorder to provide realistic 
+    magnitudes for our training set. This is used to create tables of magnitudes for 
+    gravitational lenses and for the sources. This ensures that the magnitudes are 
+    realistic in term of the g, r, and i magnitude bands, and those of the sources and lenses.
 
     Args:
         cosmos(table):          The table retrieved from the COSMOS_Ilbert2009.fits. 
-        sourcesTable(table):    The redshift is limited  to between 1, and 2, for sources where the r magnitude is less than 22.
-        lensTable(table):       Using the sourcesTable (rmag < 22), the redshift is limited between 0.1 and 0.3, 
-                                and the i magnitude is between 18 and 22.
-        sourceMaxR(float):      The maximum value in the source table for the r magnitude.
-        sourceMaxI(float):      The maximum value in the source table for the i magnitude.
-        lensMaxR(float):        The maximum value in the lens table for the r magnitude.
-        lensMaxI(float):        The maximum value in the lens table for the i magnitude.
-        sourceMinR(float):      The minimum value in the source table for the r magnitude.
-        sourceMinI(float):      The minimum value in the source table for the i magnitude. 
-        lensMinR(float):        The minimum value in the lens table for the r magnitude.
-        lensMinI(float):        The minimum value in the lens table for the i magnitude.
     Returns: 
-        sourceTable, lensTable(table):     The sourcesTable and lensTable is created and returned.
+        sourceTable(table):     The sourcesTable containing objects with the revelant magnitudes of typical
+                                strong galaxy-galaxy gravitational sources.
+        lensTable(table):       The lensTable containing objects with the revelant magnitudes of typical 
+                                strong galaxy-galaxy gravitational lenses.
     """ 
     tab = cosmos[cosmos['Rmag'] < 22]
     sourcesTable = tab[np.logical_and(tab['zpbest'] > 1, tab['zpbest'] < 2)]
@@ -81,68 +70,26 @@ def cutCosmosTable(cosmos):
     print(lensTable)
     return(sourcesTable,lensTable)
 
-def makeInitialTable(numObjects):
-    """ 
-    Writes a default of all zeroes table for g, r, and i bands to include all the parameters that create the lenses and sources.
-
-    Args:
-        Folder(int):       Folder number of source.
-        ml_g_SDSS(float):  The g band value of the lens magnitude.
-        ml_r_SDSS(float):  The r band value of the lens magnitude.
-        ml_i_SDSS(float):  The i band value of the lens magnitude.
-        ms_g_SDSS(float):  The g band value of the source magnitude.
-        ms_r_SDSS(float):  The r band value of the source magnitude.
-        ms_i_SDSS(float):  The i band value of the source magnitude.
-        rl(float):         Half-light radius of the lens, in arcsec.
-        ql(float):         Flattening of the lens (1 = circular, 0 = line).
-        b(float):          Einsten radius, in arcsec.
-        ms(dictionary):    Apparent magnitude of the source, by band (keys: 'g_SDSS', 'r_SDSS', 'i_SDSS').
-        xs(float):         Horizontal coord of the source relative to the lens centre, in arcsec.
-        ys(float):         Vertical coord of the source relative to the lens centre, in arcsec.
-        qs(float):         Flattening of the source (1 = circular, 0 = line).
-        ps(float):         Position angle of the source (degrees).
-        rs(float):         Half-light radius of the source, in arcsec.
-
-    Returns: 
-        tab (table):        A table of default values of zero.
-    """
-    tab = atpy.Table()
-    tab.add_column(atpy.Column( np.zeros(numObjects), "Folder"))
-    tab.add_column(atpy.Column( np.zeros(numObjects), "ml_g_SDSS"))
-    tab.add_column(atpy.Column( np.zeros(numObjects), "ml_r_SDSS"))
-    tab.add_column(atpy.Column( np.zeros(numObjects), "ml_i_SDSS"))
-    tab.add_column(atpy.Column( np.zeros(numObjects), "ms_g_SDSS"))
-    tab.add_column(atpy.Column( np.zeros(numObjects), "ms_r_SDSS"))
-    tab.add_column(atpy.Column( np.zeros(numObjects), "ms_i_SDSS"))
-    tab.add_column(atpy.Column( np.zeros(numObjects), "rl"))
-    tab.add_column(atpy.Column( np.zeros(numObjects), "ql"))
-    tab.add_column(atpy.Column( np.zeros(numObjects), "b"))
-    tab.add_column(atpy.Column( np.zeros(numObjects), "xs"))
-    tab.add_column(atpy.Column( np.zeros(numObjects), "ys"))
-    tab.add_column(atpy.Column( np.zeros(numObjects), "qs"))
-    tab.add_column(atpy.Column( np.zeros(numObjects), "ps"))
-    tab.add_column(atpy.Column( np.zeros(numObjects), "rs"))
-    return(tab)
-
 def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, survey = "DESc"):
     """ 
-    Writes .fits images in g, r, and i bands for lensed source.
-    
+    Writes .fits images in g, r, and i bands to create the data set of positively simulated data, of strong 
+    galaxy-galaxy gravitational lenses.   
+
     Args:
-        ml(dictionary):  Apparent magnitude of the lens, by band (keys: 'g_SDSS', 'r_SDSS', 'i_SDSS').
-        rl(float):       Half-light radius of the lens, in arcsec.
-        ql(float):       Flattening of the lens (1 = circular, 0 = line).
-        b(float):        Einsten radius, in arcsec.
-        ms(dictionary):  Apparent magnitude of the source, by band (keys: 'g_SDSS', 'r_SDSS', 'i_SDSS').
-        xs(float):       Horizontal coord of the source relative to the lens centre, in arcsec.
-        ys(float):       Vertical coord of the source relative to the lens centre, in arcsec.
-        qs(float):       Flattening of the source (1 = circular, 0 = line).
-        ps(float):       Position angle of the source (degrees).
-        rs(float):       Half-light radius of the source, in arcsec.
-        label(str):      Label for this source (will be used as part of the file name)
-        outDir(str):     Name of directory where images will be saved (format: outDir/label_band_image.fits).
-        survey(str):     Name of survey (as defined by LensPop) - e.g., "DESc" corresponds to 
-                         optimally stacked DES images.
+        ml(dictionary):     Apparent magnitude of the lens, by band (keys: 'g_SDSS', 'r_SDSS', 'i_SDSS').
+        rl(float):          Half-light radius of the lens, in arcsec.
+        ql(float):          Flattening of the lens (1 = circular, 0 = line).
+        b(float):           Einsten radius, in arcsec.
+        ms(dictionary):     Apparent magnitude of the source, by band (keys: 'g_SDSS', 'r_SDSS', 'i_SDSS').
+        xs(float):          Horizontal coord of the source relative to the lens centre, in arcsec.
+        ys(float):          Vertical coord of the source relative to the lens centre, in arcsec.
+        qs(float):          Flattening of the source (1 = circular, 0 = line).
+        ps(float):          Position angle of the source (degrees).
+        rs(float):          Half-light radius of the source, in arcsec.
+        num(integer):       The number of object that is made. This is the source number where working 
+                            with the positive simulated data.
+        survey(str):        Name of survey (as defined by LensPop), and is set to default of DESc. 
+                            "DESc" corresponds to optimally stacked DES images.
     Returns: 
        Saved images and psf images in each band g, r, and i for the source number as well as saving these fits images.
     """
@@ -185,63 +132,18 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, survey = "DESc"):
         fits.PrimaryHDU(img).writeto('%s/%s_image_%s.fits' % (folder, num, band), overwrite = True)  
         fits.PrimaryHDU(psf).writeto('%s/%s_psf_%s.fits' % (folder, num, band), overwrite = True)
 
-def makeTable(tab, g_ml, r_ml, i_ml, g_ms, r_ms, i_ms, rl, ql, b, xs, ys, qs, ps, rs, num):
-    """ 
-    Inserting values into the initial table which now has values instead of zeroes for quick 
-    access to look at the information easily for each source.
-
-    Args:
-        Folder(int):       Folder number of source.
-        ml_g_SDSS(float):  The g band value of the lens magnitude.
-        ml_r_SDSS(float):  The r band value of the lens magnitude.
-        ml_i_SDSS(float):  The i band value of the lens magnitude.
-        ms_g_SDSS(float):  The g band value of the source magnitude.
-        ms_r_SDSS(float):  The r band value of the source magnitude.
-        ms_i_SDSS(float):  The i band value of the source magnitude.
-        rl(float):         Half-light radius of the lens, in arcsec.
-        ql(float):         Flattening of the lens (1 = circular, 0 = line).
-        b(float):          Einsten radius, in arcsec.
-        ms(dictionary):    Apparent magnitude of the source, by band (keys: 'g_SDSS', 'r_SDSS', 'i_SDSS').
-        xs(float):         Horizontal coord of the source relative to the lens centre, in arcsec.
-        ys(float):         Vertical coord of the source relative to the lens centre, in arcsec.
-        qs(float):         Flattening of the source (1 = circular, 0 = line).
-        ps(float):         Position angle of the source (degrees).
-        rs(float):         Half-light radius of the source, in arcsec.
-
-    Returns:
-        tab (table):            A saved table in which the values of the parameters are assigned to for each source.    
-    """
-
-    tab["Folder"][num] = num
-    tab["ml_g_SDSS"][num] = g_ml
-    tab["ml_r_SDSS"][num] = r_ml
-    tab["ml_i_SDSS"][num] = i_ml
-    tab["ms_g_SDSS"][num] = g_ms
-    tab["ms_r_SDSS"][num] = r_ms
-    tab["ms_i_SDSS"][num] = i_ms
-    tab["rl"][num] = rl
-    tab["ql"][num] = ql
-    tab["b"][num] = b
-    tab["xs"][num] = xs
-    tab["ys"][num] = ys
-    tab["qs"][num] = qs
-    tab["ps"][num] = ps
-    tab["rs"][num] = rs
-    tab.write('PositiveNoiseless.csv', overwrite = True)
-
 def addSky(num):
     """
-    Adds the DESSky images to the positive noiseless images made in this python file, to make them more realistic with noise from real DES images. 
+    Adds the DESSky images to the positive noiseless images made in this python file, 
+    to make them more realistic with noise from real DES images. 
     This is saved to 'PositiveWithDESSky/%s/%s_posSky_%s.fits'%(num,num,band).
 
     Args:
-        band_skyImage(string):     The open .fits file for the DESSky for each number and band.
-        band_mockImage(string):    The open .fits file for the simulated images for each number and band.
-        WithSky(array):            The band_skyImage data array is added to the band_mockImage data array.
-    
+        num(integer):   This is the source number of the positively simulated data.   
     Returns:
         Save images under 'PositiveWithDESSky/num/', with the _posSky_band.fits path names.
-        This is to ensure that the simulated images have background noise, so that the positive images are realistic. 
+        This is to ensure that the simulated images have background noise, so that the positive 
+        images are realistic. 
     """
 
     if os.path.exists('PositiveWithDESSky/%i' % (num)) == False:
@@ -255,21 +157,16 @@ def addSky(num):
        
 def normalise(num, base_dir = 'PositiveWithDESSky'):
     """
-    This is to normalise the g, r, and i PositiveWithDESSky images that were made by adding the sky to the noiseless positively simulated images. 
+    This is to normalise the g, r, and i PositiveWithDESSky images that 
+    were made by adding the background sky to the noiseless positively 
+    simulated images. The g, r, and i normalised images are then used to create
+    a RGB composite images. 
     
     Args:
-        paths(dictionary):      The path for the g, r, and i .WCSClipped fits files for each source.  
-        rgbDict(dictionary):    Dictionary containing the g,r, and i normalised images, and is to be used to create the rgb image.
-        wcs(instance):          This is the World Coordinate System(WCS), set to a default of None. 
-        normImage(numpy array): Normalised Image Array where the normalisation is calculated as (im - im.mean())/np.std(im)
-        minCut(integer):        Low value of pixels.
-        maxCut(integer):        High value of pixels.
-        cutLevels(list):        Sets the image scaling, specified manually for the r, g, b as [[r min, rmax], [g min, g max], [b min, b max]].
-        axesLabels(string):     Labels of the axes, specified as None.
-        axesFontSize(float):    Font size of the axes labels.   
-        
+        num(integer):   This is the source number of the positively simulated data.   
     Returns:
-        Saves normalised images with the wcs as headers. These normalised images are saved under 'PositiveWithDESSky/num/'.
+        Saves normalised images with the wcs as headers. 
+        These normalised images are saved under 'PositiveWithDESSky/num/'.
         The rgb composite images are created and saved under 'PositiveWithDESSky/num/'.
     """
     paths = {}
@@ -320,7 +217,6 @@ rs = 0
 numStart = int(sys.argv[1]) # number of objects selected
 numEnd = int(sys.argv[2])
 sourceRandomTable, lensRandomTable = cutCosmosTable(cosmos)
-tab = makeInitialTable(numEnd)
 
 for num in range(numStart, numEnd):
     rndmRow = np.random.randint(0, len(lensRandomTable))
@@ -354,6 +250,5 @@ for num in range(numStart, numEnd):
 
     
     makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num)
-    makeTable(tab, g_ml, r_ml, i_ml, g_ms, r_ms, i_ms, rl, ql, b, xs, ys, qs, ps, rs, num)
     addSky(num)
     normalise(num)
