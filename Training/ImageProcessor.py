@@ -22,15 +22,19 @@ from os import walk
 # Open DES Processed WCS .fits files, and assign a variable to the g, r, i images.
 def getDESProcessedWCS(num, base_dir = 'DES/DES_Processed'):
     """
-    This is to open the files of the negative DES WCSClipped images for the g, r, and i bands.
+    This is to open the files of the negative DES WCSClipped images for the g, r, and i bands,
+    which have been clipped using the World Coordinate Systems (WCS).
 
     Args:
+        num(integer):       This is the number of the source, which corresponds to the g, r, and i .fits 
+                            images of the DES Processed images which have been clipped using the WCS coordinates. 
+                            The file names are in the form 'DES/DES_Processed/num_source/band_WCSClipped.fits'. 
+        base_dir(string):   This is the top directory path of the background sky of the DES Original images. 
+                            This is set to a default of 'DES/DES_Processed'.
+    Returns:
         gWCS(HDUList):      The data of the opened g band WCSClipped fits image.
         rWCS(HDUList):      The data of the opened r band WCSClipped fits image.
         iWCS(HDUList):      The data of the opened i band WCSClipped fits image.
-
-    Returns:
-        The opened gWCS, rWCS and iWCS fits images are returned.
     """
     gWCS = fits.open(glob.glob('%s/%s_*/g_WCSClipped.fits' % (base_dir, num))[0])
     rWCS = fits.open(glob.glob('%s/%s_*/r_WCSClipped.fits' % (base_dir, num))[0])
@@ -43,12 +47,16 @@ def getDESProcessedNorm(num, base_dir = 'DES/DES_Processed'):
     This is to open the normalised files of the negative DES WCSClipped images for the g, r, and i bands.
 
     Args:
-        gDESNorm(HDUList):      The data of the opened g band normalised fits image.
-        rDESNorm(HDUList):      The data of the opened r band normalised fits image.
-        iDESNorm(HDUList):      The data of the opened i band normalised fits image.
-
+        num(integer):       This is the number of the source, which corresponds to the g, r, and i .fits 
+                            images of the DES Processed images which have been normalised. 
+                            The file names are in the form 'DES/DES_Processed/num_source/band_norm.fits'. 
+        base_dir(string):   This is the top directory path of the background sky of the DES Original images. 
+                            This is set to a default of 'DES/DES_Processed'.
     Returns:
-        The opened gDESNorm, rDESNorm, and iDESNorm normalised fits images are returned.
+        The images that are returned is the WCSClipped image normalised.
+        gDESNorm(HDUList):  The data of the opened g band normalised .fits image.
+        rDESNorm(HDUList):  The data of the opened r band normalised .fits image.
+        iDESNorm(HDUList):  The data of the opened i band normalised .fits image.
     """
 
     gDESNorm = fits.open(glob.glob('%s/%s_*/g_norm.fits' % (base_dir, num))[0])
@@ -60,16 +68,18 @@ def getDESProcessedNorm(num, base_dir = 'DES/DES_Processed'):
 # Open DESSky .fits files and assign a variable to the g, r, i images.
 def getDESSky(num, basedir = 'DESSky'):
     """
-    This is to open files of the background sky of the DES Original images for the g, r, and i bands.
+    This uses the num to open files of the background sky of the DES Original images for the g, r, and i bands.
 
     Args:
-        gDESSky(HDUList):      The data of the opened g band sky fits image.
-        rDESSky(HDUList):      The data of the opened r band sky fits image.
-        iDESSky(HDUList):      The data of the opened i band sky fits image.
-
+        num(integer):       This is the number of the source, which corresponds to the g, r, and i .fits 
+                            images of the background sky of the DES Original images.
+                            The file names are in the form 'DESSky/num_band_sky.fits'. 
+        base_dir(string):   This is the top directory path of the background sky of the DES Original images. 
+                            This is set to a default of 'DESSky'.
     Returns:
-        The opened gDESSky, rDESSky, and iDESSky  background sky fits images are returned.
-
+        gDESSky(HDUList):   The data of the opened g band sky fits image.
+        rDESSky(HDUList):   The data of the opened r band sky fits image.
+        iDESSky(HDUList):   The data of the opened i band sky fits image.
     """
     gDESSky = fits.open(glob.glob('%s/%s_g_sky.fits' % (basedir, num))[0])
     rDESSky = fits.open(glob.glob('%s/%s_r_sky.fits' % (basedir, num))[0])
@@ -79,15 +89,18 @@ def getDESSky(num, basedir = 'DESSky'):
 # Open PositiveNoiseless .fits files and assign a variable to the ..._SDSS_g, r, images.
 def getPosNoiseless(num, base_dir = 'PositiveNoiseless'):
     """
-    This is to open files of the positively simulated images of gravitational lensing for the g, r, and i bands.
+    This is to open files of the smoothly positively simulated images of gravitational lensing for the g, r, and i bands.
 
     Args:
+        num(integer):       This is the number of the source, which corresponds to the g, r, and i positively 
+                            simulated .fits.
+                            The file names are in the form 'PositiveNoiseless/num/num_image_band_SDSS.fits'. 
+        base_dir(string):   This is the top directory path of the positively simulated images. 
+                            This is set to a default of 'PositiveNoiseless'.
+    Returns:
         gPos(HDUList):      The data of the opened g band of the positively simulated fits image.
         rPos(HDUList):      The data of the opened r band of the positively simulated fits image.
         iPos(HDUList):      The data of the opened i band of the positively simulated fits image.
-
-    Returns:
-        The opened gPos, rPos, and iPos positively simulated fits images are returned.
     """
 
     gPos = fits.open(glob.glob('%s/%s/%s_image_g_SDSS.fits' % (base_dir, num, num))[0])
@@ -98,19 +111,22 @@ def getPosNoiseless(num, base_dir = 'PositiveNoiseless'):
 # Open PositiveWithDESSky  .fits files and assign a variable to the ...posSky_g, r, i images.
 def getPosWDESSky(num, base_dir = 'PositiveWithDESSky'):
     """
-    This is to open files of the positively simulated images of gravitational lensing for the g, r, and 
-    i bands, that have the background sky added to them.
+    The number is used to open files of the positively simulated images of gravitational lensing for the g, r, and 
+    i bands, that have the background sky added to them. 
 
     Args:
+        num(integer):           This is the number of the source, which corresponds to the g, r, and i positively 
+                                simulated .fits with background sky from the original DES images added to it.
+                                The file names are in the form 'PositiveWithDESSky/num_source/num_posSky_band.fits'.
+        base_dir(string):       This is the top directory path of the positively simulated images with the 
+                                background sky added to it. This is set to a default of 'PositiveWithDESSky'.
+    Returns:
         gPosSky(HDUList):      The data of the opened g band of the positively simulated with the background 
                                sky added fits images.
         rPosSky(HDUList):      The data of the opened r band of the positively simulated with the background 
                                sky added fits images.
         iPosSky(HDUList):      The data of the opened i band of the positively simulated with the background 
                                sky added fits images.
-
-    Returns:
-        The opened gPosSky, rPosSky, and iPosSky positively simulated fits images are returned.
     """
 
     gPosSky = fits.open(glob.glob('%s/%s/%s_posSky_g.fits' % (base_dir, num, num))[0])
@@ -122,18 +138,21 @@ def getPosWDESSky(num, base_dir = 'PositiveWithDESSky'):
 def getPosWDESSkyNorm(num, base_dir = 'PositiveWithDESSky'):
     """
     This is to open files of the normalised positively simulated images of gravitational lensing for the g, r, and 
-    i bands, that have the background sky added to them.
+    i bands, that have the background sky added to them. 
 
     Args:
-        gPosSkyNorm(HDUList):      The data of the opened g band of the normalised positively simulated with 
-                                   the background sky added fits images.
-        rPosSkyNorm(HDUList):      The data of the opened r band of the normalised positively simulated with 
-                                   the background sky added fits images.
-        iPosSkyNorm(HDUList):      The data of the opened i band of the normalised positively simulated with 
-                                   the background sky added fits images.
-
+        num(integer):           This is the number of the source, which corresponds to the g, r, and i norm. fits 
+                                images of the sources. 
+                                The file names are in the form 'PositiveWithDESSky/num_source/num_band_norm.fits'.
+        base_dir(string):       This is the top directory path of the positively simulated images with the 
+                                background sky added to it. This is set to a default of 'PositiveWithDESSky'.                        
     Returns:
-        The opened gPosSkyNorm, rPosSkyNorm, and iPosSkyNorm, the normalised positively simulated fits images are returned.
+       gPosSkyNorm(HDUList):    The data of the opened g band of the normalised positively simulated with 
+                                the background sky added fits images.
+        rPosSkyNorm(HDUList):   The data of the opened r band of the normalised positively simulated with 
+                                the background sky added fits images.
+        iPosSkyNorm(HDUList):   The data of the opened i band of the normalised positively simulated with 
+                                the background sky added fits images.
     """
 
     gPosSkyNorm = fits.open(glob.glob('%s/%s/%s_g_norm.fits' % (base_dir, num, num))[0])
@@ -144,16 +163,14 @@ def getPosWDESSkyNorm(num, base_dir = 'PositiveWithDESSky'):
 def getNumOrRowsForGrid(numOfColsForRgbGrid, arrayRGB):
     """
     This is to get a number of rows using a predetermined number of columns. 
-    This is to ensure that the images are to form of a grid. 
+    This is to ensure that the images form a grid, so that multiple rgb images can be viewed at once. 
 
     Args:
         lenRGB(integer):                The length of the array of RGB images that is used.
-        numOfRowsForRgbGrid(integer):   The number of rows that is calculated using the length divided 
-                                        by the number of predetermined columns.
         numOfColsForRgbGrid(integer):   The number of columns using that is predetermined. 
-
-    Return:
-        Returns the number of rows for the rgb image grids.
+    Returns:
+        numOfRowsForRgbGrid(integer):   The number of rows that is calculated using the length divided 
+                                        by the number of predetermined columns
     """
 
     lenRGB = len(arrayRGB)
@@ -161,17 +178,18 @@ def getNumOrRowsForGrid(numOfColsForRgbGrid, arrayRGB):
     if lenRGB % numOfColsForRgbGrid != 0:
         numOfRowsForRgbGrid += 1
 
-    return numOfRowsForRgbGrid
+    return (numOfRowsForRgbGrid)
 
 def getDESRGBPath(num):
     """
     Get the file path of the rgb.png image of the negative DES processed images.
 
     Args: 
-        rgbDESPath(string):     The path of the rgb.png image of the negative DES processed images.
-
+        num(integer):           The number of the DES Processed source. 
+                                The format of this is 'DES/DES_Processed/num_source/rgb.png
     Returns:
-        The path of the rgb.png image is returned.
+        rgbDESPath(string):     The path of the rgb.png image of the negative DES processed images.                                 The format of this is 'DES/DES_Processed/num_source/rgb.png
+                                The format of this file path is 'DES/DES_Processed/num_source/rgb.png.
     """
 
     rgbDESPath = glob.glob('DES/DES_Processed/%s_*/rgb.png' % (num))[0]
@@ -179,19 +197,16 @@ def getDESRGBPath(num):
 
 def getKnownRGBPath(num):
     """
-    To get the path of the rgb.png images of the DES2017 known lenses that have been previously 
+    The num is used to get the path of the rgb.png images of the DES2017 known lenses that have been previously 
     identified in previous studies. The tilename (from DES DR1) and the DESJ2000 name 
     (from the DES2017 paper) are also retrieved, as this is to get the correct names for each 
     image when creating the rgb image grids of these known lenses. The tilename and DESJ names 
     are retrieved from one of bands of the WCSClipped images of that source, here we will just use the g band.
 
     Args:
-        rgbKnown(string):   This is the path of the rgb.png images of the DES2017 known lenses.
-        gBand(string):      This is the path of the g band of the WCSClipped fits image of the DES2017 known lenses.
-        hdu1(HDUList):      This is the data of the gBand when opened.
-        desJ(string):       This is the DESJ2000 names of the known lenses from DES2017 study.
-        tilename(string):   This is the DES DR1 tilename of the known lenses.
-
+        num(integer):       This is the number that is used to find the rgb.png and the g_WCSClipped.fits files for that source in the DES2017 directory. 
+                            The rgb.png files are in the form: 'KnownLenses/DES2017/num_source/rgb.png'.
+                            The g_WCSClipped.fits files are in the form: 'KnownLenses/DES2017/num_source/g_WCSClipped.fits
     Returns:
         rgbKnown(string):   Provides the path name for the known lenses from DES2017 study.
         desJ(string):       Provides the DESJ2000 name of the known lenses.
@@ -212,22 +227,14 @@ def getKnownRGBPath(num):
 
 def makeRandomRGBArray(path):
     """
+    This takes the root directory of rgb images that will create a list of random rgb images within the directory.
+    An example of the necessary path of the root directory is 'PositiveWithDESSky' or 'DES/DES_Processed'.
+
     Makes an random list of the rgb.png images. 
-    This is to create an rgb image grid with randomly chosen sources,
-    to ensure that all data is correct and not just the first hadnful which I have been working with.
+    This creates a list of random rgb images within the chosen directory. 
 
     Args:
-        numCheck(integer):          The input that indicates how many random rgb images that are to be 
-                                    used in checked using the random rgb image grid.
-        randomNum(integer):         A random number that is generate in the range from 0 and the 
-                                    amount of folders in either the positive or negative data set.
-        randomArray(list):          The list of the random Numbers that are generated in randomNum.
-        randomArrayIndex(integer):  The number at a certain index in the randomArray, this corresponds 
-                                    to the sources in the data sets.
-        rgbRandomArray(list):       The list of the paths of the rgb.png images of the random sources in
-                                    the randomArray, with the randomArrayIndex as its source.
-        imageTitleArray(list):      The list of the sources that are used in the rgbRandomArray, 
-                                    these are the titles of their respective rgb images in the image grid.
+       path(string):                The path name in which the rgb images are found. 
     Returns:
         rgbRandomArray(list):       The list of random paths of rgb.png images, corresponding to the 
                                     randomArrayIndex as its sources.
@@ -271,37 +278,15 @@ def makeRandomRGBArray(path):
 def plotAndSaveRgbGrid(filepath, rgbImagePaths, imageTitleArray): #You should probably pass num in here or something like that and save many images
     """
     Using the image arrays (rgbImagePaths()) to make an image grid made of RGB images. 
-    The title for each image is retrieved from the imageTitleArray(). These images are made using subplots.
+    The title for each image is retrieved from the imageTitleArray(). 
 
     Args:
-        filepath(string):               The path where the file is to be saved, this is predetermined, when calling this function.
+        filepath(string):               The file path name where the Figure of the image grid is to be saved. 
         rgbImagePaths(list):            This is the list of the rgb images, that are used when making the rgb image grids. 
         imageTitle(list):               This is the list of the names or titles of each image that is in the grid. 
                                         These names will either be the numbers of the sources or the source name, 
                                         depending on which data is being used. 
-        lenRGB(integer):                This is the length of the rgb images, in an array.
-        numOfColsForRgbGrid(integer):   This where the number of columns are determined, and can be changed to a more 
-                                        desirable number of columns. This is more for the user to get a better view 
-                                        of the image grid, and the user can determine the amount of columns.  
-        numOfRowsForRgbGrid(integer):   This is the number of rows, that are determined using the getNumOrRowsForGrid(), 
-                                        which uses the predetemined number of columns and the length of the array of rgb images.
-        fig(Figure):                    This is the figure made where the rgb images are placed in a grid determined by the 
-                                        numberof rows and columns. This figure is saved at the filepath name retrieved when 
-                                        calling this function.
-        axs(Axes):                      Axes of the individual images in the image grid.
-        rowNum(integer):                The row in the Figure where the individual rgb images are placed, which is less than 
-                                        number of rows in the grid(numOfRowsFORRgbGrid).
-        currentIndex(integer):          The current index, indicating the index (or image) that is being used from the rgbImagePaths. 
-                                        This current index is less than the length of the rgbImagePaths. 
-        imagesForRow(list):             This is the array which contains the rgb images at the indices(currentIndex).
-        imageIndex(integer):            This is the image index, indicating the index that is being used in where the
-                                        images are less than the number of columns for that particular row.
-        columnNum(integer):             This is the indicator of which column is in use, which is in the range from 
-                                        0 to the length of the amount of rgb images.
-        img(Image):                     This is the opened individual images of the rgb image with an index of that column number. 
-                                        This images are set are thumbnails in the Figure, and are set to have a sixe of 100*100 pixels. 
-        
-        Return:
+        Returns:
             This saves the Figure, which is all the indivivual rgb images placed in a grid. 
             These figures are saved in the path which is retrieved from when this function is called.                           
     """    
@@ -334,8 +319,32 @@ def plotAndSaveRgbGrid(filepath, rgbImagePaths, imageTitleArray): #You should pr
     plt.close(fig)
 
 def plotprogressNegativePositive(numberIterations):
+    """
+    This is the plotting of the progress taken, step by step of the negative and positive 
+    data, placed into a grid for each source. This grid is made for each g, r, and i band, 
+    seen in each column. 
+    This also makes a rgb image grid of the positive image and negative images, following 
+    the amount of images requested in the variable numberIterations
+
+    The grid for the negative data is set where the DES Processed WCSClipped images is seen 
+    in the first row, the DES Processed normalised images are seen in the second row, and 
+    the DES Sky images are seen in the third row.
+    
+    The grid for the positive data is set where the positively noiseless simulated images
+    are in the first row, the positively simulated data with background sky added to it is
+    seen in the second row, the normalised positively simulated images are seen in the third 
+    row.
+
+    Args:
+        numberIterations(integer):     This is the number of sources that will have the progress grids made for them.
+                                       Not all sources are sometimes, since you just want to check the progress, 
+                                       and how the images change overtime. This is also determines how many images from
+                                       the positive and negative data sets to make the rgb image grids for positive and negative data.
+    Returns:
+        The Figure of the progress of the positive and negative data is saved. 
+        The rgb image grids for the positive and negative data is saved as well.
+    """
     #Number of Images creating grids to view.
-    numberIterations = int(sys.argv[1])
     rgbPosImagePaths = []
     rgbDESImagePaths = []
     imageTitleArray = []
@@ -421,6 +430,15 @@ def plotprogressNegativePositive(numberIterations):
     plotAndSaveRgbGrid(filepath4, rgbDESImagePaths, imageTitleArray)
 
 def plotKnownLenses():
+    """
+    This is the plotting of knownlenses. This has the requested amount of known lenses to look at and check. 
+    This function opens the function getKnownRGBPath(), and gets the paths of the rgb images of the known 
+    lenses from DES2017. These rgb images are used to create a rgb grid of the DES2017 known lenses. 
+    This rgb grid is often looked at when checking the images. 
+    Returns:
+        This saves the figure containing the rgb image grids of the knownlenses. 
+    """
+
     numOfKnownCheck = 0
     numOfKnownCheck = raw_input(" Please insert a number to indicate how many images you would like to check from Known Lenses. ")
     rgbKnownImagePaths = []
