@@ -1,7 +1,5 @@
 """
-
 Class that can figure out which DES tile given RA, dec coords are in.
-
 """
 
 import os
@@ -18,22 +16,28 @@ from bs4 import BeautifulSoup
 
 class DESTiler:
     """A class for relating RA, dec coords to DES tiled survey geometry.
-    
     """
     
     def __init__(self, tileInfoCSVPath = "DES_DR1_TILE_INFO.csv"):
+        """
+        This calculates the time it takes to get the WCS set up. 
         
+        Args: 
+            tileInfoCSVPath(string):    This is path of where the DES DR1 tile information is. 
+                                        This is set to "DES_DR1_TILE_INFO.csv".
+        Returns:
+            This outputs the amount of time it took to set up the WCS.
+        """
         self.WCSTabPath=tileInfoCSVPath
         t0=time.time()
         self.setUpWCSDict()
         t1=time.time()
         print("... WCS set-up took %.3f sec ..." % (t1-t0))
     
-    
     def setUpWCSDict(self):
-        """Sets-up WCS info, needed for fetching images. This is slow (~30 sec) if the survey is large,
+        """
+        Sets-up WCS info, needed for fetching images. This is slow (~30 sec) if the survey is large,
         so don't do this lightly.
-        
         """
         
         # Add some extra columns to speed up searching
@@ -68,9 +72,16 @@ class DESTiler:
             row['decMax']=max([dec0, dec1])
         
     def getTileName(self, RADeg, decDeg):
-        """Returns the DES TILENAME in which the given coordinates are found. Returns None if the coords
-        are not in the DES footprint.
-        
+        """
+        Gets the tilename from DES in which the given ra and dec coordinates. 
+
+        Args:
+            RADeg(float):   This is the given right ascension of the object. 
+            decDeg(float):  This is the given declination of the object.
+        Returns:
+            Returns the tilename from DES in which the given ra and dec coordinates are found.
+            If the coordinates arent in the DES footprint (the DES DR1 tile information), then 'None'
+            will be returned.
         """
         raMask=np.logical_and(np.greater_equal(RADeg, self.tileTab['RAMin']), 
                               np.less(RADeg, self.tileTab['RAMax']))
@@ -91,11 +102,19 @@ class DESTiler:
         else:
             return self.tileTab[tileMask]['TILENAME'][0] 
 
+    def fetchTileImages(self, RADeg, decDeg, tileName, base_dir = 'DES/DES_Original'):
+        """
+        If the ra, and dec are found in an DES info table that tile name is retrieved. 
+        The g, r, and i .fits images from the DES DR1, are downloaded according to the tile name.
 
-    def fetchTileImages(self, RADeg, decDeg, num, tileName, base_dir = 'DES/DES_Original', bands = ['g', 'r', 'i'], refetch = False):
-        """Fetches DES FITS images for the tile in which the given coords are found. 
-        Output is stored under outDir.
-                
+        Args:
+            RADeg(float):   This is the given right ascension of the object. 
+            decDeg(float):  This is the given declination of the object.
+            tileName(string):   This is the tile name of the source from the DES info table.
+            base_dir(string):   This is the root directory in which the original DES images are downloaded.
+        Returns:
+            Downloads the images from DES for g, r, and i .fits files of each source which contain the 
+            given ra and dec coordinates. These images are downloaded to 'DES/DES_Original'.
         """
         
         # Inside footprint check
