@@ -34,11 +34,10 @@ def loadDES(num, tileName, base_dir = 'DES/DES_Original'):
     DownLoading the images in a folder, only containg DES original .fits files.
 
     Args:
-        url(string):        Url for the DES survey plus each tileName so that the tileName is fetched correctly. 
-        tileName(string):   This is the tilename given in the DR1 database, and this is name of each tileName.
         num(integer):       Number given to identify the order the the sources are processed in.
-        base_dir(string):   This is the base directory in which the folders are made.
-    
+        tileName(string):   This is the tilename given in the DR1 database, and this is name of each tileName.
+        base_dir(string):   This is the base directory in which the folders are made, and is set to a 
+                            default of 'DES/DE_Original'. 
     Returns:
         Downloads the images from DES for g, r, and i .fits files of each tileName. 
         These images are downloaded to 'DES/DES_Original'.
@@ -77,26 +76,27 @@ def loadDES(num, tileName, base_dir = 'DES/DES_Original'):
 
 def clipWCS(tileName, num, ra, dec, pathProcessed, desTile='', base_dir = 'DES/DES_Original'):
     """
-    Clips the g, r, i original .fits images for each source from DES to have 100*100 pixel size or 0.0073125*0.007315 degrees.
-    The WCS coordinates are used, to maintain the necessary information that may be needed in future.
-    These WCSclipped images are saved at ('%s.WCSclipped.fits' % (paths[band+'BandPath']).
-    The WCS images, are normalised and saved at ('%s.norm.fits' % (paths[band + 'BandPath']).
+    Clips the g, r, i original .fits images for each source from DES to have 100*100 pixel size
+    or 0.0073125*0.007315 degrees. The WCS coordinates are used, to maintain the necessary 
+    information that may be needed in future. These WCSclipped images are saved at 
+    ('%s.WCSclipped.fits' % (paths[band+'BandPath']). The WCS images, are normalised and 
+    saved at ('%s.norm.fits' % (paths[band + 'BandPath']).
 
     Args:
-        paths(dictionary):         The path for the g, r, i .fits files for each source.
-        header(header):            This is tha actual header for these images, and is adjusted to include the magnitudes of g, r, i.
+        tilename(string):          The tilename of the DES image from DES DR1. This is the often referred to as the 
+                                   source name of the image. 
+        num(integer):              This is the number of the source that is to be processed.  
         ra(float):                 This is the Right Ascension of the source retrieved from the DES_Access table.
         dec(float):                This is the Declination of the source retrieved from the  DEC_Access table.
-        sizeWCS(list):             This is a list of (x,y) size in degrees which is 100*100 pixels.
-        WCS(astWCS.WCS):           This is the WCS coordinates that are retrieved from the g, r, i . fits files.
-        WCSClipped(numpy array):   Clipped image section and updated the astWCS.WCS object for the clipped image section.
-                                   and the coordinates of clipped section that is within the imageData in format {'data', 'wcs',
-                                   'clippedSection'}.
-    
+        pathProcessed(string):     This is the path of directory in which the wcsclipped images are to be saved.
+        desTile(string):           This is the DESJ2000 name given for these sources in the DES2017 paper.
+        base_dir(string):          This is the root directory of the DES Original images, for each source 
+                                   which are clipped in this clipWCS function.
     Returns:
         WCSClipped (numpy array):   A numpy array of the WCSclipped, with its WCS coordinates.
-        The g, r, and i WCSClipped images are saved under 'KnownLense/table/num_source/', with the revelant
-        astronomical parameters in the header of these images.
+                                    The g, r, and i WCSClipped images are saved under '
+                                    KnownLense/table/num_source/', with the revelant astronomical
+                                    parameters in the header of these images.
     """
 
     # Getting the RA and Dec of each source
@@ -133,20 +133,13 @@ def normaliseRGB(num, source, pathProcessed):
     This is to normalise the g, r, and i WCSClipped images and to make a rgb composite image of the three band together. 
     
     Args:
-        paths(dictionary):      The path for the g, r, i .WCSClipped fits files for each source.  
-        rgbDict(dictionary):    Dictionary containing the g,r, and i normalised images, and is to be used to create the rgb image.
-        wcs(instance):          This is the World Coordinate System(WCS), set to a default of None. 
-                                If it is None, then the WCS is retrieved from the header of the WCSClipped fits image. 
-        normImage(numpy array): Normalised Image Array where the normalisation is calculated as (im - im.mean())/np.std(im)
-        minCut(integer):        Low value of pixels.
-        maxCut(integer):        High value of pixels.
-        cutLevels(list):        Sets the image scaling, specified manually for the r, g, b as [[r min, rmax], [g min, g max], [b min, b max]].
-        axesLabels(string):     Labels of the axes, specified as None.
-        axesFontSize(float):    Font size of the axes labels.   
-        
+        num(integer):           This is the number of the source that is to be processed.  
+        source(string):         The tilename of the DES image from DES DR1, which is the source name of objects.
+        pathProcessed(string):  This is the root directory in which the WCSClipped images are saved.
     Returns:
-        Saves normalised images with the wcs as headers. These normalised images are saved under 'KnownLenses/table/num_source/'.
-        The rgb composite images are created and saved under 'KnownLense/table/num_source/'.
+        Saves normalised images with the wcs as headers. These normalised images are saved under 
+        'KnownLenses/table/num_source/'. The rgb composite images are created and saved 
+        under 'KnownLense/table/num_source/'.
     """
 
     base_dir = pathProcessed
