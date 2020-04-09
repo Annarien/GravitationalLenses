@@ -77,8 +77,8 @@ def randomXY(source, base_dir = 'DES/DES_Original'):
         source(string):     This is the tilename of the DES DR1 images, used for each object.
         base_dir(string):   This is the root directory that contains the original DES images.
     Returns:
-        xRandom(int):   The random x coordinate, within the DES Original g band image.
-        yRandom(int):   The random y coordinate, within the DES Original g band image. 
+        xRandom(int):       The random x coordinate, within the DES Original g band image.
+        yRandom(int):       The random y coordinate, within the DES Original g band image. 
     """
 
     with fits.open(glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0]) as bandDES:
@@ -110,9 +110,9 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_O
         base_dir(string):   The root directory of the orignal DES images, which are
                             used to be clipped into the sky images. 
     Returns:
-    Saves these randomly clipped 100*100 g, r, and i images to the folder called 
-    'DESSky/', and saves the revelant headers, for later use or to check these 
-    astronomical parameters.   
+        Saves these randomly clipped 100*100 g, r, and i images to the folder called 
+        'DESSky/', and saves the revelant headers, for later use or to check these 
+        astronomical parameters.   
     """
 
     paths = {}
@@ -216,7 +216,8 @@ def normaliseRGB(num, source, base_dir = 'DES/DES_Processed'):
         base_dir(string):   The root directory in which the normalised images and the rgb compostie images are saved,
                             this is defaulted to 'DES/DES_Processed'.
     Returns:
-        Saves normalised images with the wcs as headers. These normalised images are saved under 'DES/DES_Processed/num_source/'.
+        Saves normalised images with the wcs as headers. 
+        These normalised images are saved under 'DES/DES_Processed/num_source/'.
         The rgb composite images are created and saved under 'DES/DES_Processed/num_source/'.
     """
 
