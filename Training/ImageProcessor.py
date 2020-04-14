@@ -225,7 +225,7 @@ def getKnownRGBPath(num):
 
     return(rgbKnown, desJ, tilename)
 
-def makeRandomRGBArray(path):
+def makeRandomRGBArray(path, numberIterations):
     """
     This takes the root directory of rgb images that will create a list of random rgb images within the directory.
     An example of the necessary path of the root directory is 'PositiveWithDESSky' or 'DES/DES_Processed'.
@@ -241,7 +241,6 @@ def makeRandomRGBArray(path):
         imageTitleArray(list):      The list of the numbers that correspond to the rgb.png images in the rgbRandomArray. 
     """
 
-    numCheck = int(raw_input("Enter how many random images are to be checked. "))
     randomNum = 0
     randomArray = []
     randomArrayIndex = 0
@@ -256,7 +255,7 @@ def makeRandomRGBArray(path):
 
     print ("{:,} files, {:,} folders".format(files, folders))
 
-    for num in range(0, numCheck):
+    for num in range(0, numberIterations):
         randomNum = random.randint(0, folders - 1)
         while randomNum in randomArray:
             randomNum = random.randint(0, folders - 1)
@@ -293,28 +292,35 @@ def plotAndSaveRgbGrid(filepath, rgbImagePaths, imageTitleArray): #You should pr
     lenRGB = len(rgbImagePaths)
     numOfColsForRgbGrid = 3
     numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid, rgbImagePaths)
-    
     fig, axs = plt.subplots(numOfRowsForRgbGrid, numOfColsForRgbGrid)
     rowNum = 0
     currentIndex = 0
+    imageTitleNum = 0
     while (rowNum < numOfRowsForRgbGrid):
         imagesForRow = []
         imageIndex = 0
         while (imageIndex < numOfColsForRgbGrid and currentIndex < lenRGB):
-            print("Image Index: " + str(imageIndex) + " CurrentIndex: " + str(currentIndex))
             imagesForRow.append(rgbImagePaths[currentIndex])
             currentIndex += 1
             imageIndex += 1
-            
+
         for columnNum in range(0, len(imagesForRow)):
             img = Image.open(imagesForRow[columnNum])
             img.thumbnail((100, 100))
             axs[rowNum, columnNum].imshow(img)
-            # imageTitle = imageTitleArray[currentIndex-1]
-            # axs[rowNum,columnNum].set_title("%s" % imageTitle, fontdict = None, loc = 'center', color = 'k' )
+            axs[rowNum, columnNum].axis('off')
+            imageTitle = imageTitleArray[imageTitleNum]
+            axs[rowNum, columnNum].set_title("%s" % imageTitle, fontdict = None, loc = 'center', color = 'k' )
+            imageTitleNum += 1 
             img.close()
-        rowNum += 1
 
+        if rowNum == numOfRowsForRgbGrid - 1:
+            numOfEmptyGridsForRow = numOfColsForRgbGrid - len(imagesForRow)
+            for emptyIndex in range(len(imagesForRow), numOfColsForRgbGrid):
+                axs[rowNum, emptyIndex].axis('off')
+
+        rowNum += 1
+    
     fig.savefig(filepath)
     plt.close(fig)
 
@@ -429,7 +435,7 @@ def plotprogressNegativePositive(numberIterations):
     # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
     plotAndSaveRgbGrid(filepath4, rgbDESImagePaths, imageTitleArray)
 
-def plotKnownLenses():
+def plotKnownLenses(numberIterations):
     """
     This is the plotting of knownlenses. This has the requested amount of known lenses to look at and check. 
     This function opens the function getKnownRGBPath(), and gets the paths of the rgb images of the known 
@@ -438,12 +444,9 @@ def plotKnownLenses():
     Returns:
         This saves the figure containing the rgb image grids of the knownlenses. 
     """
-
-    numOfKnownCheck = 0
-    numOfKnownCheck = raw_input(" Please insert a number to indicate how many images you would like to check from Known Lenses. ")
     rgbKnownImagePaths = []
     imageTitleArray = []
-    for num in range(0, int(numOfKnownCheck)):
+    for num in range(0, numberIterations):
         rgbKnown, desJ, tileName = getKnownRGBPath(num)
         rgbKnownImagePaths.append(rgbKnown)
         imageTitle = '%s/%s' % (num,desJ)
@@ -465,15 +468,15 @@ plotprogressNegativePositive(numberIterations)
 # Get Random RGB images from PositiveWithDESSky
 path = 'PositiveWithDESSky'
 filepath6 = "PositiveWithDESSky/randomRGB_ImageGrid.png"
-rgbRandom, imageTitleArray = makeRandomRGBArray(path)
+rgbRandom, imageTitleArray = makeRandomRGBArray(path, numberIterations)
 plotAndSaveRgbGrid(filepath6,rgbRandom, imageTitleArray)
 
 # Get Random RGB images from NegativeDES
 path = 'DES/DES_Processed'
 filepath7 = "DES/randomRGB_ImageGrid.png"
-rgbRandom, imageTitleArray = makeRandomRGBArray(path)
+rgbRandom, imageTitleArray = makeRandomRGBArray(path, numberIterations)
 # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
 plotAndSaveRgbGrid(filepath7, rgbRandom, imageTitleArray)
 
 # plot KnownLenses rgb images
-plotKnownLenses()
+plotKnownLenses(numberIterations)
