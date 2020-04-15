@@ -422,9 +422,8 @@ def plotprogressNegativePositive(numberIterations):
 
         rgbPosImagePaths.append('PositiveWithDESSky/%s/%s_rgb.png' % (num, num))
         rgbDESImagePaths.append(getDESRGBPath(num))
-        imageTitle = '%s' % (num)
-        imageTitleArray.append(imageTitle)
-
+        imageTitlePos = '%s' % (num)
+        imageTitleArray.append(imageTitlePos)
 
     filepath3 = "PositiveWithDESSky/PositiveWithDESSky_RGB_ImageGrid.png"
     # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
@@ -449,7 +448,7 @@ def plotKnownLenses(numberIterations):
     for num in range(0, numberIterations):
         rgbKnown, desJ, tileName = getKnownRGBPath(num)
         rgbKnownImagePaths.append(rgbKnown)
-        imageTitle = '%s/%s' % (num,desJ)
+        imageTitle = '%s_%s' % (num,desJ)
         imageTitleArray.append(imageTitle)
         
     
