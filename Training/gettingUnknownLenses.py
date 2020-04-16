@@ -267,33 +267,35 @@ Its is then clipped using the clipImages function.
 And we write these images to a file in .fits format using writeClippedImagesToFile function.
 """ 
 
-knownTable = ''
-numSources = 0
-while knownTable != 'Jacobs' and knownTable != 'DES2017':
-    table = raw_input("Which table did you use to get the known lenses: Jacobs or DES2017?")
-    print ("You have chosen the table: " + str (table))
+# knownTable = ''
+# numSources = 0
+# while knownTable != 'Jacobs' and knownTable != 'DES2017':
+#     table = raw_input("Which table did you use to get the known lenses: Jacobs or DES2017?")
+#     print ("You have chosen the table: " + str (table))
 
-    if table == 'Jacobs': 
-        numSources = 84
-        break
-    elif table == 'DES2017':
-        numSources = 47
-        break
+#     if table == 'Jacobs': 
+#         numSources = 84
+#         break
+#     elif table == 'DES2017':
+#         numSources = 47
+#         break
 
 
 tableDES = atpy.Table().read("DES/DESGalaxies_18_I_22.fits")
 
 # ensuring there is no none numbers in the gmag, rmag, and imag in the DES table. 
 # ensuring that there is no Gmag with values of 99.
+numSources = int(sys.argv[1])
+
 for key in ['MAG_AUTO_G','MAG_AUTO_R','MAG_AUTO_I']:
     tableDES = tableDES[np.isnan(tableDES[key]) == False] 
 
 tableDES = tableDES[tableDES['MAG_AUTO_G']< 24]
 lenTabDES = len(tableDES)
 
-numStart = 92000 - numSources
+numStart = 99000 - numSources
 
-for num in range(numStart, 92000):
+for num in range(numStart, 99000):
     
     tileName = tableDES['TILENAME'][num]
     print(type(tileName))
