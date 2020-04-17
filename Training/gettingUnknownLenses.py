@@ -30,7 +30,6 @@ def loadDES(source, base_dir = 'DES/DES_Original'):
 
     Args:
         source(string):     This is the tilename given in the DR1 database, and this is name of each source.
-        num(integer):       Number given to identify the order the the sources are processed in.
         base_dir(string):   This is the base directory in which the folders are downloaded.
     
     Returns:
