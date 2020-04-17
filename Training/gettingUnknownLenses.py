@@ -22,7 +22,7 @@ from astropy.io import fits
 from astLib import *
 from bs4 import BeautifulSoup
 
-def loadDES(num, source, base_dir = 'DES/DES_Original'):
+def loadDES(source, base_dir = 'DES/DES_Original'):
     """
     Firstly the .fits file was downloaded from DES DR1. This contains the g, r, i magnitudes as well
     as the RA and DEC, for each source. Then g, r, i .fits files are downloaded for each source from
@@ -308,7 +308,7 @@ for num in range(numStart, 92000):
     print('Imag: ' + str(imag))
     print('Rmag: ' + str(rmag))
 
-    loadDES(num, tileName) 
+    loadDES(tileName) 
     randomSkyClips(num, tileName, ra, dec, gmag, rmag, imag)  
     clipWCS(tileName, num, gmag, rmag, imag,ra, dec) # takes DES images and clips it with RA, and DEC
     normaliseRGB(num, tileName)

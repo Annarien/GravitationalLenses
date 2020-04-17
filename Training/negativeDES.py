@@ -282,7 +282,7 @@ for num in range(numStart, numEnd):
     print('Imag: ' + str(imag))
     print('Rmag: ' + str(rmag))
 
-    loadDES(num, tileName) 
+    loadDES(tileName) 
     randomSkyClips(num, tileName, ra, dec, gmag, rmag, imag)  
     clipWCS(tileName, num, gmag, rmag, imag,ra, dec)
     normaliseRGB(num, tileName)
