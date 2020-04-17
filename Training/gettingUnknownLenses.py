@@ -16,7 +16,6 @@ import random
 import astropy.table as atpy
 import glob
 import numpy as np
-import img_scale
 import pylab as plt
 from astropy.io import fits
 from astLib import *
@@ -125,13 +124,13 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_O
         os.mkdir('DESSky')
     
     madeSky = False
+    clippedSky = {}
     while madeSky == False:
-        clippedSky = {}
         allImagesValid = True
+        x, y = randomXY(source)
         for band in ['g', 'r', 'i']:
             with fits.open(paths[band + 'BandPath']) as bandDES:
-                if band == 'g':
-                    x, y = randomXY(bandDES)
+              
                 bandSky = astImages.clipImageSectionPix(bandDES[1].data, x, y, [100, 100])
                 
                 if np.any(bandSky) == 0:
@@ -152,10 +151,8 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_O
         header['G_MAG'] = gmag
         header['I_MAG'] = imag
         header['R_MAG'] = rmag
-        fits.writeto('DESSky/%i_%s_sky.fits' % (num, band), clippedSky[band],header = header, overwrite = True)
+        fits.writeto('DESSky/%i_%s_sky.fits' % (num, band), clippedSky[band], header = header, overwrite = True)
         
-    return(clippedSky)
-
 def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original', base_new = 'KnownLenses/Unknown_Processed'):
     """
     Clips the g, r, i original .fits images for each source from DES to have 100*100 pixel size or 0.0073125*0.007315 degrees.
@@ -208,11 +205,6 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original
             astImages.saveFITS('%s/%s_WCSClipped.fits' % (newPath, band), WCSClipped['data'], WCS)
             print('Created %s_WCSclipped at %s/%s_WCSClipped.fits' % (band, newPath, band))
 
-            # im = WCSClipped['data']
-            # normImage = (im-im.mean())/np.std(im)
-            
-            # astImages.saveFITS('%s/%s_norm.fits' % (newPath, band), normImage, WCS)
-            # print('Normalised %s clipped images at %s/%s' % (band, newPath, band))
     return(WCSClipped)
 
 def normaliseRGB(num, source, base_dir = 'KnownLenses/Unknown_Processed'):
@@ -234,7 +226,6 @@ def normaliseRGB(num, source, base_dir = 'KnownLenses/Unknown_Processed'):
     paths['rBandPath'] = glob.glob('%s/%s_%s/r_WCSClipped.fits' % (base_dir, num,source))[0]   
     paths['gBandPath'] = glob.glob('%s/%s_%s/g_WCSClipped.fits' % (base_dir, num,source))[0]   
 
-    print (paths)
     rgbDict = {}
     wcs = None
 
@@ -246,7 +237,6 @@ def normaliseRGB(num, source, base_dir = 'KnownLenses/Unknown_Processed'):
                 wcs = astWCS.WCS(image[0].header, mode = 'pyfits')
             astImages.saveFITS('%s/%s_%s/%s_norm.fits' % (base_dir, num, source, band), normImage, wcs)
             rgbDict[band] = normImage
-
     minCut, maxCut = -1, 3
     cutLevels = [[minCut, maxCut], [minCut, maxCut], [minCut, maxCut]]
     plt.figure(figsize = (10, 10))
@@ -292,9 +282,9 @@ for key in ['MAG_AUTO_G','MAG_AUTO_R','MAG_AUTO_I']:
 tableDES = tableDES[tableDES['MAG_AUTO_G']< 24]
 lenTabDES = len(tableDES)
 
-numStart = 92000 - numSources
+numStart = 99000 - numSources
 
-for num in range(numStart, 92000):
+for num in range(numStart, 99000):
     
     tileName = tableDES['TILENAME'][num]
     print(type(tileName))

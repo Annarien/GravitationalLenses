@@ -224,6 +224,7 @@ def normaliseRGB(num, source, base_dir = 'DES/DES_Processed'):
     paths['iBandPath'] = glob.glob('%s/%s_%s/i_WCSClipped.fits' % (base_dir, num,source))[0]
     paths['rBandPath'] = glob.glob('%s/%s_%s/r_WCSClipped.fits' % (base_dir, num,source))[0]   
     paths['gBandPath'] = glob.glob('%s/%s_%s/g_WCSClipped.fits' % (base_dir, num,source))[0]   
+    
     rgbDict = {}
     wcs = None
 
