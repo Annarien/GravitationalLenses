@@ -11,6 +11,7 @@ from astropy.io import fits
 
 # FUNCTIONS
 def getPositiveSimulated(base_dir = 'Training/PositiveWithDESSky'):
+
     folders = {}
     for root, dirs, files in os.walk(base_dir):
         for folder in dirs:
@@ -45,6 +46,32 @@ def getPositiveSimulated(base_dir = 'Training/PositiveWithDESSky'):
         counter += 1
     
     return (DataPos)
+
+def getNegativeDES(base_dir = 'Training/DES/DES_Processed'):
+
+    foldersNeg = []
+    for root, dirs, files in os.walk(base_dir):
+        for folder in dirs:
+            foldersNeg.append(os.path.join(root, folder))
+    nDT = len(foldersNeg)
+    DataNeg = np.zeros([nDT,3,100,100])
+
+    for var in range(len(foldersNeg)):
+
+        g_name = get_pkg_data_filename(foldersNeg[var]+'/g_WCSClipped.fits')
+        r_name = get_pkg_data_filename(foldersNeg[var]+'/r_WCSClipped.fits')
+        i_name = get_pkg_data_filename(foldersNeg[var]+'/i_WCSClipped.fits')    
+
+        # g_name = get_pkg_data_filename(foldersNeg[var]+'/g_norm.fits')
+        # r_name = get_pkg_data_filename(foldersNeg[var]+'/r_norm.fits')
+        # i_name = get_pkg_data_filename(foldersNeg[var]+'/i_norm.fits')    
+
+        g = fits.open(g_name)[0].data[0:100,0:100]
+        r = fits.open(r_name)[0].data[0:100,0:100]
+        i = fits.open(i_name)[0].data[0:100,0:100]    
+        
+        DataNeg[var] = [g, r, i]
+    
 #_____________________________________________________________________________________________________________________________
 # MAIN
 
