@@ -4,9 +4,15 @@ This is a draft of machine learning code, so that we can test how to do the mach
 # IMPORTS
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 
 from astropy.utils.data import get_pkg_data_filename
 from astropy.io import fits
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import accuracy_score
+
 
 
 # FUNCTIONS
@@ -44,6 +50,9 @@ def getPositiveSimulated(base_dir = 'Training/PositiveWithDESSky'):
         
         DataPos[counter] = [g, r, i] 
         counter += 1
+        if counter > 1500:
+            break
+
     dataSetName = 'Data Positively Simulated'
     return (DataPos, dataSetName)
 
@@ -71,6 +80,8 @@ def getNegativeDES(base_dir = 'Training/DES/DES_Processed'):
         i = fits.open(i_name)[0].data[0:100,0:100]    
         
         DataNeg[var] = [g, r, i]
+        if var > 1500:
+            break
     dataSetName = 'Data Negative From DES'
     return (DataNeg)
 
@@ -79,7 +90,29 @@ def checkParameters(dataSetName, arrayToCheck):
     print("Mean of %s : %s" % (dataSetName, arrayToCheck.mean()))
     print("Shape of %s : %s" %s(dataSetName, arrayToCheck.shape))
 
+def loadImage(positiveArray, negativeArray):
+    positiveData = []
+    negativeData = []
+    positiveLabel = []
+    negativeLabel = []
+    image_train = []
+    image_labels = []
 
+    for num in range(0,len(positiveArray)):
+        # positiveData.append(positiveArray[num])
+        image_train.append(positiveArray[num])
+        labelPos = 'Gravitational Lensing'
+        # positiveLabel.append(labelPos)
+        image_labels.append(labelPos)
+    
+    for num in range(0,len(negativeArray)):
+        # negativeData.append(negativeArray[num])
+        image_train.append(negativeArray[num])
+        labelNeg = 'No Gravitational Lensing'
+        # negativeLabel.append(labelNeg)
+        image_labels.append(labelNeg)
+
+    return (np.array(image_train), np.array(image_labels))
 
 #_____________________________________________________________________________________________________________________________
 # MAIN
@@ -92,3 +125,46 @@ negativeArray, negName = getNegativeDES()
 #check parametes
 checkParameters(posName, positiveArray)
 checkParameters(negName, negativeArray)
+
+#load images into an image_train array and image_labels array
+imageTrain, imageLabels = loadImage(positiveArray, negativeArray)
+
+# check imageTrain shape
+checkParameters('ImageTrain' , imageTrain)
+checkParameters('ImageLabels' , imageLabels)
+
+# checking by plotting image
+plt.imshow(imageTrain[10])
+print('Label: ' , imageLabels[10])
+
+# reshape X
+X = imageTrain.reshape(imageTrain.shape[0], imageTrain[1]*imageTrain[2],imageTrain[3]) # batchsize, height*width*3channels
+print("Shape of X: "+str(X.shape))
+
+# Encoding Y now
+encoder = LabelEncoder()
+Y = encoder.fit_transform(imageLabels)
+
+# Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
+x_train, x_test, y_train, y_test = train_test_split(X, Y, shuffle=True, test_size = 0.2)
+
+# check the shapes of  x,y trains and x,y tests
+print("x_train shape: %s , and y_train shape: %s ." % (x_train.shape, y_train.shape))
+print("x_test.shape: %s , and y_test shape: %s ." %(x_test.shape, y_test.shape))
+
+# Trianing the data with MLPClassifier, from scikit learn
+clf_image = MLPClassifier(activation = 'relu',
+                          hidden_layer_sizes = (100, 100, 100), 
+                          solver='adam', 
+                          verbose=True,
+                          max_iter=100)
+
+clf_image.fit(x_train, y_train)
+
+y_pred = clf_image.predict(x_test)
+accuracy_score(y_test, y_pred)
+
+print("Y_pred: " + str(y_pred))
+print("Accuracy_Score: " +str(accuracy_score))
+
+
