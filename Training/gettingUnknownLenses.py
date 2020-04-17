@@ -293,9 +293,9 @@ for key in ['MAG_AUTO_G','MAG_AUTO_R','MAG_AUTO_I']:
 tableDES = tableDES[tableDES['MAG_AUTO_G']< 24]
 lenTabDES = len(tableDES)
 
-numStart = 99000 - numSources
+numStart = 92000 - numSources
 
-for num in range(numStart, 99000):
+for num in range(numStart, 92000):
     
     tileName = tableDES['TILENAME'][num]
     print(type(tileName))
