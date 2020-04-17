@@ -44,8 +44,8 @@ def getPositiveSimulated(base_dir = 'Training/PositiveWithDESSky'):
         
         DataPos[counter] = [g, r, i] 
         counter += 1
-    
-    return (DataPos)
+    dataSetName = 'Data Positively Simulated'
+    return (DataPos, dataSetName)
 
 def getNegativeDES(base_dir = 'Training/DES/DES_Processed'):
 
@@ -71,8 +71,24 @@ def getNegativeDES(base_dir = 'Training/DES/DES_Processed'):
         i = fits.open(i_name)[0].data[0:100,0:100]    
         
         DataNeg[var] = [g, r, i]
-    
+    dataSetName = 'Data Negative From DES'
+    return (DataNeg)
+
+def checkParameters(dataSetName, arrayToCheck):
+    print("Standard deviation of %s : %s " % (dataSetName, arrayToCheck.std()))
+    print("Mean of %s : %s" % (dataSetName, arrayToCheck.mean()))
+    print("Shape of %s : %s" %s(dataSetName, arrayToCheck.shape))
+
+
+
 #_____________________________________________________________________________________________________________________________
 # MAIN
+positiveArray = []
+negativeArray = []
 
-positiveArray = getPositiveSimulated()
+positiveArray, posName = getPositiveSimulated()
+negativeArray, negName = getNegativeDES()
+
+#check parametes
+checkParameters(posName, positiveArray)
+checkParameters(negName, negativeArray)
