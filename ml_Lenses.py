@@ -36,13 +36,13 @@ def getPositiveSimulated(base_dir = 'Training/PositiveWithDESSky'):
     counter = 0
     for key, value in folders.items():
 
-        # g_name = get_pkg_data_filename(value + '/' + str(key) + '_g_norm.fits')
-        # r_name = get_pkg_data_filename(value + '/' + str(key) + '_r_norm.fits')
-        # i_name = get_pkg_data_filename(value + '/' + str(key) + '_i_norm.fits')
+        g_name = get_pkg_data_filename(value + '/' + str(key) + '_g_norm.fits')
+        r_name = get_pkg_data_filename(value + '/' + str(key) + '_r_norm.fits')
+        i_name = get_pkg_data_filename(value + '/' + str(key) + '_i_norm.fits')
 
-        g_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_g.fits')
-        r_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_r.fits')
-        i_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_i.fits')
+        # g_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_g.fits')
+        # r_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_r.fits')
+        # i_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_i.fits')
         
         g = fits.open(g_name)[0].data[0:100,0:100]
         r = fits.open(r_name)[0].data[0:100,0:100]
@@ -50,8 +50,8 @@ def getPositiveSimulated(base_dir = 'Training/PositiveWithDESSky'):
         
         DataPos[counter] = [g, r, i] 
         counter += 1
-        if counter > 1500:
-            break
+        # if counter > 1500:
+        #     break
 
     dataSetName = 'Data Positively Simulated'
     return (DataPos, dataSetName)
@@ -67,28 +67,28 @@ def getNegativeDES(base_dir = 'Training/DES/DES_Processed'):
 
     for var in range(len(foldersNeg)):
 
-        g_name = get_pkg_data_filename(foldersNeg[var]+'/g_WCSClipped.fits')
-        r_name = get_pkg_data_filename(foldersNeg[var]+'/r_WCSClipped.fits')
-        i_name = get_pkg_data_filename(foldersNeg[var]+'/i_WCSClipped.fits')    
+        # g_name = get_pkg_data_filename(foldersNeg[var]+'/g_WCSClipped.fits')
+        # r_name = get_pkg_data_filename(foldersNeg[var]+'/r_WCSClipped.fits')
+        # i_name = get_pkg_data_filename(foldersNeg[var]+'/i_WCSClipped.fits')    
 
-        # g_name = get_pkg_data_filename(foldersNeg[var]+'/g_norm.fits')
-        # r_name = get_pkg_data_filename(foldersNeg[var]+'/r_norm.fits')
-        # i_name = get_pkg_data_filename(foldersNeg[var]+'/i_norm.fits')    
+        g_name = get_pkg_data_filename(foldersNeg[var]+'/g_norm.fits')
+        r_name = get_pkg_data_filename(foldersNeg[var]+'/r_norm.fits')
+        i_name = get_pkg_data_filename(foldersNeg[var]+'/i_norm.fits')    
 
         g = fits.open(g_name)[0].data[0:100,0:100]
         r = fits.open(r_name)[0].data[0:100,0:100]
         i = fits.open(i_name)[0].data[0:100,0:100]    
         
         DataNeg[var] = [g, r, i]
-        if var > 1500:
-            break
+        # if var > 1500:
+        #     break
     dataSetName = 'Data Negative From DES'
-    return (DataNeg)
+    return (DataNeg, dataSetName)
 
 def checkParameters(dataSetName, arrayToCheck):
     print("Standard deviation of %s : %s " % (dataSetName, arrayToCheck.std()))
     print("Mean of %s : %s" % (dataSetName, arrayToCheck.mean()))
-    print("Shape of %s : %s" %s(dataSetName, arrayToCheck.shape))
+    print("Shape of %s : %s" %(dataSetName, arrayToCheck.shape))
 
 def loadImage(positiveArray, negativeArray):
     positiveData = []
@@ -131,7 +131,7 @@ imageTrain, imageLabels = loadImage(positiveArray, negativeArray)
 
 # check imageTrain shape
 checkParameters('ImageTrain' , imageTrain)
-checkParameters('ImageLabels' , imageLabels)
+# checkParameters('ImageLabels' , imageLabels)
 
 # checking by plotting image
 plt.imshow(imageTrain[10])
