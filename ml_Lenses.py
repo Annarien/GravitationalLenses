@@ -131,14 +131,15 @@ imageTrain, imageLabels = loadImage(positiveArray, negativeArray)
 # check imageTrain shape
 checkParameters('ImageTrain' , imageTrain)
 
-# add dimension to imageTrain
-print("10 in ImageTrain: %s" %(imageTrain[10]))
-
 # check shape of ImageLabels:
 print('Shape of ImageLabels: %s' %(imageLabels.shape))
 
+# add dimension to imageTrain
+print("10 in ImageTrain: %s" %(imageTrain[10]))
+a = imageTrain.squeeze()
+print("Shape of A: %s " %(a[10]))
 # checking by plotting image
-plt.imshow(imageTrain[10])
+plt.imshow(a)
 print('Label: ' , imageLabels[10])
 
 # reshape X
