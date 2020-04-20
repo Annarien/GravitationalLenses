@@ -98,26 +98,25 @@ def loadImage(positiveArray, negativeArray):
     image_train = []
     image_labels = []
 
+    print("Length of Positive Array: %s" %(len(positiveArray)))
+    print("Length of Negative Array: %s" %(len(negativeArray)))
+
     for num in range(0,len(positiveArray)):
-        # positiveData.append(positiveArray[num])
         image_train.append(positiveArray[num])
         labelPos = 'Gravitational Lensing'
-        # positiveLabel.append(labelPos)
         image_labels.append(labelPos)
     
     for num in range(0,len(negativeArray)):
-        # negativeData.append(negativeArray[num])
         image_train.append(negativeArray[num])
         labelNeg = 'No Gravitational Lensing'
-        # negativeLabel.append(labelNeg)
         image_labels.append(labelNeg)
 
     return (np.array(image_train), np.array(image_labels))
 
 #_____________________________________________________________________________________________________________________________
 # MAIN
-positiveArray = []
-negativeArray = []
+# positiveArray = []
+# negativeArray = []
 
 positiveArray, posName = getPositiveSimulated()
 negativeArray, negName = getNegativeDES()
@@ -132,12 +131,15 @@ imageTrain, imageLabels = loadImage(positiveArray, negativeArray)
 # check imageTrain shape
 checkParameters('ImageTrain' , imageTrain)
 
+# add dimension to imageTrain
+print("10 in ImageTrain: %s" %(imageTrain[10]))
+
 # check shape of ImageLabels:
 print('Shape of ImageLabels: %s' %(imageLabels.shape))
 
 # checking by plotting image
-plt.imshow(imageTrain[1])
-print('Label: ' , imageLabels[1])
+plt.imshow(imageTrain[10])
+print('Label: ' , imageLabels[10])
 
 # reshape X
 X = imageTrain.reshape(imageTrain.shape[0], imageTrain[1]*imageTrain[2],imageTrain[3]) # batchsize, height*width*3channels
