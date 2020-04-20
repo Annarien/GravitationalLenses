@@ -166,7 +166,7 @@ def getJacobs(base_dir = 'KnownLenses/Jacobs_KnownLenses/'):
         r = fits.open(r_name)[0].data[0:100,0:100]
         i = fits.open(i_name)[0].data[0:100,0:100]    
         
-    DataKnownJacobs[var] = [g, r, i]
+        DataKnownJacobs[var] = [g, r, i]
     dataSetName = 'Known Jacobs Lenses'
     return (DataKnownJacobs, dataSetName)
 
@@ -174,7 +174,7 @@ def getUnknown(base_dir = 'KnownLenses/Unknown_Processed_256/'):
 
 
     foldersUnknown = []
-    for root, dirs, files in os.walk(pathToUnknown):
+    for root, dirs, files in os.walk(base_dir):
         for folder in dirs:
             foldersUnknown.append(os.path.join(root, folder))
 
