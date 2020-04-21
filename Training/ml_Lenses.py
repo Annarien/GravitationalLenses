@@ -165,11 +165,16 @@ def getJacobs(base_dir = 'KnownLenses/Jacobs_KnownLenses/'):
     dataSetName = 'Known Jacobs Lenses'
     return (DataKnownJacobs, dataSetName)
 
-def getUnknown(base_dir = 'KnownLenses/Unknown_Processed_256/'):
-
+def getUnknown(num, base_dir = 'KnownLenses'):
+    if num == 47:
+        pathUnknown = '%s/Unknown_Processed_47' % (base_dir)
+    elif num == 84:
+        pathUnknown = '%s/Unknown_Processed_84' % (base_dir)
+    elif num == 131:
+        pathUnknown = '%s/Unknown_Processed_131' % (base_dir)
 
     foldersUnknown = []
-    for root, dirs, files in os.walk(base_dir):
+    for root, dirs, files in os.walk(pathUnknown):
         for folder in dirs:
             foldersUnknown.append(os.path.join(root, folder))
 
@@ -256,10 +261,12 @@ print("Accuracy_Score: " +str(y_accuracy))
 #______________________________________________________________________________________________________________________
 knownDES2017Array,des2017Name = getDES2017()
 knownJacobsArray, jacobsName = getJacobs()
-unknownArray, unknownName = getUnknown()
 
 checkParameters(des2017Name, knownDES2017Array)
 checkParameters(jacobsName, knownJacobsArray)
+
+num = 47
+unknownArray, unknownName = getUnknown(num)
 checkParameters(unknownName, unknownArray)
 
 imageTest, labelsTest = loadImage(knownDES2017Array, unknownArray)
@@ -270,6 +277,11 @@ print('Shape of Image DES2017 Labels: %s' %(labelsTest.shape))
 imageAccuracy = accuracy_score(imageTest, y_pred)
 print("Image DES2017 Accuracy: " + str(imageAccuracy))
 
+
+num = 84
+unknownArray, unknownName = getUnknown(num)
+checkParameters(unknownName, unknownArray)
+
 imageJacobsTest, labelsJacobsTest = loadImage(knownJacobsArray, unknownArray)
 
 checkParameters('Image Jacobs Test: %s' % ( imageJacobsTest))
@@ -277,6 +289,11 @@ print('Shape of Image Jacobs Labels: %s' % (labelsJacobsTest.shape))
 
 imageJacobsAccuracy = accuracy_score(imageTest, y_pred)
 print("Image DES2017 Accuracy: " + str(imageJacobsAccuracy))
+
+
+num = 131
+unknownArray, unknownName = getUnknown(num)
+checkParameters(unknownName, unknownArray)
 
 allKnownArray, allKnownName = np.vstack(knownDES2017Array, knownJacobsArray)
 checkParameters(allKnownName, allKnownArray)
