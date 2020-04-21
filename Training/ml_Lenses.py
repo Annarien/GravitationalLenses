@@ -49,8 +49,8 @@ def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
         DataPos[counter] = [g, r, i] 
         counter += 1
         # just to run, and use less things
-        # if counter > 1500:
-        #     break
+        if counter > 1500:
+            break
 
     dataSetName = 'Data Positively Simulated'
     return (DataPos, dataSetName)
@@ -80,8 +80,8 @@ def getNegativeDES(base_dir = 'DES/DES_Processed'):
         
         DataNeg[var] = [g, r, i]
         # just to run, and use less things
-        # if var > 1500:
-        #     break
+        if var > 1500:
+            break
     dataSetName = 'Data Negative From DES'
     return (DataNeg, dataSetName)
 
@@ -270,9 +270,10 @@ unknownArray, unknownName = getUnknown(num)
 checkParameters(unknownName, unknownArray)
 
 imageTest, labelsTest = loadImage(knownDES2017Array, unknownArray)
-y_pred = clf_image.predict(imageTest)
 
 checkParameters('Image DES2017 Test' , imageTest)
+y_pred = clf_image.predict(imageTest)
+
 print('Shape of Image DES2017 Labels: %s' %(labelsTest.shape))
 
 imageAccuracy = accuracy_score(imageTest, y_pred)
