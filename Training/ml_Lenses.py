@@ -14,7 +14,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
 
 # FUNCTIONS
-def getPositiveSimulated(base_dir = 'Training/PositiveWithDESSky'):
+def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
 
     folders = {}
     for root, dirs, files in os.walk(base_dir):
@@ -55,7 +55,7 @@ def getPositiveSimulated(base_dir = 'Training/PositiveWithDESSky'):
     dataSetName = 'Data Positively Simulated'
     return (DataPos, dataSetName)
 
-def getNegativeDES(base_dir = 'Training/DES/DES_Processed'):
+def getNegativeDES(base_dir = 'DES/DES_Processed'):
 
     foldersNeg = []
     for root, dirs, files in os.walk(base_dir):
@@ -110,7 +110,7 @@ def loadImage(positiveArray, negativeArray):
 
     return (np.array(image_train), np.array(image_labels))
 
-def getDES2017(base_dir = 'Training/KnownLenses/DES2017/'):
+def getDES2017(base_dir = 'KnownLenses/DES2017/'):
 
     foldersKnownDES2017 = []
     for root, dirs, files in os.walk(base_dir):
@@ -139,7 +139,7 @@ def getDES2017(base_dir = 'Training/KnownLenses/DES2017/'):
     dataSetName = 'Known DES2017 Lenses'
     return (DataKnownDES, dataSetName)
 
-def getJacobs(base_dir = 'Training/KnownLenses/Jacobs_KnownLenses/'):
+def getJacobs(base_dir = 'KnownLenses/Jacobs_KnownLenses/'):
     foldersKnownJacobs = []
     for root, dirs, files in os.walk(base_dir):
         for folder in dirs:
@@ -165,7 +165,7 @@ def getJacobs(base_dir = 'Training/KnownLenses/Jacobs_KnownLenses/'):
     dataSetName = 'Known Jacobs Lenses'
     return (DataKnownJacobs, dataSetName)
 
-def getUnknown(base_dir = 'Training/KnownLenses/Unknown_Processed_256/'):
+def getUnknown(base_dir = 'KnownLenses/Unknown_Processed_256/'):
 
 
     foldersUnknown = []
