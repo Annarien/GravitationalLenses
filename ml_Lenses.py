@@ -13,8 +13,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
 
-
-
 # FUNCTIONS
 def getPositiveSimulated(base_dir = 'Training/PositiveWithDESSky'):
 
@@ -100,9 +98,6 @@ def loadImage(positiveArray, negativeArray):
     image_train = []
     image_labels = []
 
-    print("Length of Positive Array: %s" %(len(positiveArray)))
-    print("Length of Negative Array: %s" %(len(negativeArray)))
-
     for num in range(0,len(positiveArray)):
         image_train.append(positiveArray[num])
         labelPos = 'Gravitational Lensing'
@@ -115,7 +110,7 @@ def loadImage(positiveArray, negativeArray):
 
     return (np.array(image_train), np.array(image_labels))
 
-def getDES2017(base_dir = 'KnownLenses/DES2017/'):
+def getDES2017(base_dir = 'Training/KnownLenses/DES2017/'):
 
     foldersKnownDES2017 = []
     for root, dirs, files in os.walk(base_dir):
@@ -127,13 +122,13 @@ def getDES2017(base_dir = 'KnownLenses/DES2017/'):
 
     for var in range(len(foldersKnownDES2017)):
 
-        g_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/g_WCSClipped.fits')
-        r_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/r_WCSClipped.fits')
-        i_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/i_WCSClipped.fits')    
+        # g_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/g_WCSClipped.fits')
+        # r_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/r_WCSClipped.fits')
+        # i_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/i_WCSClipped.fits')    
 
-        # g_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/g_norm.fits')
-        # r_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/r_norm.fits')
-        # i_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/i_norm.fits')    
+        g_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/g_norm.fits')
+        r_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/r_norm.fits')
+        i_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/i_norm.fits')    
     
         g = fits.open(g_name)[0].data[0:100,0:100]
         r = fits.open(r_name)[0].data[0:100,0:100]
@@ -144,7 +139,7 @@ def getDES2017(base_dir = 'KnownLenses/DES2017/'):
     dataSetName = 'Known DES2017 Lenses'
     return (DataKnownDES, dataSetName)
 
-def getJacobs(base_dir = 'KnownLenses/Jacobs_KnownLenses/'):
+def getJacobs(base_dir = 'Training/KnownLenses/Jacobs_KnownLenses/'):
     foldersKnownJacobs = []
     for root, dirs, files in os.walk(base_dir):
         for folder in dirs:
@@ -170,7 +165,7 @@ def getJacobs(base_dir = 'KnownLenses/Jacobs_KnownLenses/'):
     dataSetName = 'Known Jacobs Lenses'
     return (DataKnownJacobs, dataSetName)
 
-def getUnknown(base_dir = 'KnownLenses/Unknown_Processed_256/'):
+def getUnknown(base_dir = 'Training/KnownLenses/Unknown_Processed_256/'):
 
 
     foldersUnknown = []
@@ -228,12 +223,6 @@ plt.show()
 print('Label: ' , imageLabels[10])
 
 # reshape X
-print("ImageTrain 0 : %s  and TYPE: %s" % (imageTrain.shape[0], str(type(imageTrain.shape[0]))))
-print("ImageTrain 1 : %s  and TYPE: %s" % (imageTrain.shape[1], str(type(imageTrain.shape[1]))))
-print("ImageTrain 2 : %s  and TYPE: %s" % (imageTrain.shape[2], str(type(imageTrain.shape[2]))))
-print("ImageTrain 3 : %s  and TYPE: %s" % (imageTrain.shape[3], str(type(imageTrain.shape[3]))))
-
-
 X = imageTrain.reshape(imageTrain.shape[0], imageTrain.shape[1]*imageTrain.shape[2]*imageTrain.shape[3]) # batchsize, height*width*3channels
 print("Shape of X: "+str(X.shape))
 
