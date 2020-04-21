@@ -264,12 +264,13 @@ knownJacobsArray, jacobsName = getJacobs()
 
 checkParameters(des2017Name, knownDES2017Array)
 checkParameters(jacobsName, knownJacobsArray)
-
+#____________________________________________________________________________
 num = 47
 unknownArray, unknownName = getUnknown(num)
 checkParameters(unknownName, unknownArray)
 
 imageTest, labelsTest = loadImage(knownDES2017Array, unknownArray)
+y_pred = clf_image.predict(imageTest)
 
 checkParameters('Image DES2017 Test' , imageTest)
 print('Shape of Image DES2017 Labels: %s' %(labelsTest.shape))
@@ -277,7 +278,7 @@ print('Shape of Image DES2017 Labels: %s' %(labelsTest.shape))
 imageAccuracy = accuracy_score(imageTest, y_pred)
 print("Image DES2017 Accuracy: " + str(imageAccuracy))
 
-
+#____________________________________________________________________________
 num = 84
 unknownArray, unknownName = getUnknown(num)
 checkParameters(unknownName, unknownArray)
@@ -287,10 +288,12 @@ imageJacobsTest, labelsJacobsTest = loadImage(knownJacobsArray, unknownArray)
 checkParameters('Image Jacobs Test: %s' % ( imageJacobsTest))
 print('Shape of Image Jacobs Labels: %s' % (labelsJacobsTest.shape))
 
-imageJacobsAccuracy = accuracy_score(imageTest, y_pred)
+y_pred = clf_image.predict(imageJacobsTest)
+
+imageJacobsAccuracy = accuracy_score(imageJacobsTest, y_pred)
 print("Image DES2017 Accuracy: " + str(imageJacobsAccuracy))
 
-
+#____________________________________________________________________________
 num = 131
 unknownArray, unknownName = getUnknown(num)
 checkParameters(unknownName, unknownArray)
@@ -301,6 +304,8 @@ checkParameters(allKnownName, allKnownArray)
 imageKnownTest, labelsKnownTest = loadImage(allKnownArray, unknownArray)
 checkParameters('Image All Known Test: %s' % ( imageKnownTest))
 print('Shape of Image All Known Labels: %s' % (labelsKnownTest.shape))
+
+y_pred = clf_image.predict(imageKnownTest)
 
 imageAllKnownAccuracy = accuracy_score(imageKnownTest, y_pred)
 print("Image DES2017 Accuracy: " + str(imageAllKnownAccuracy))
