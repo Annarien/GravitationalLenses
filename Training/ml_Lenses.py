@@ -205,7 +205,6 @@ def testDES2017():
 
     num = 47
     unknownArray, unknownName = getUnknown(num)
-    checkParameters(unknownName, unknownArray)
 
     imageTest, labelsTest = loadImage(knownDES2017Array, unknownArray)
     x_ImageTest = imageTest.reshape(imageTest.shape[0], imageTest.shape[1]*imageTest.shape[2]*imageTest.shape[3]) # batchsize, height*width*3channels
@@ -225,13 +224,9 @@ def testJacobs():
 
     num = 84
     unknownArray, unknownName = getUnknown(num)
-    checkParameters(unknownName, unknownArray)
 
     imageJacobsTest, labelsJacobsTest = loadImage(knownJacobsArray, unknownArray)
     x_ImageTest = imageJacobsTest.reshape(imageJacobsTest.shape[0], imageJacobsTest.shape[1]*imageJacobsTest.shape[2]*imageJacobsTest.shape[3]) # batchsize, height*width*3channels
-
-    checkParameters('Image Jacobs Test' , x_ImageTest)
-    print('Shape of Image Jacobs Labels: %s' %(labelsJacobsTest.shape))
 
     encoder = LabelEncoder()
     y_ImageLabels = encoder.fit_transform(labelsJacobsTest)
@@ -245,17 +240,12 @@ def testJacobs():
 def testDES2017AndJacobs(knownDES2017Array, des2017Name, knownJacobsArray, jacobsName):
     num = 131
     unknownArray, unknownName = getUnknown(num)
-    checkParameters(unknownName, unknownArray)
 
     allKnownArray, allKnownName = np.vstack((knownDES2017Array, knownJacobsArray))
     checkParameters(allKnownName, allKnownArray)
 
-
     imageKnownTest, labelsKnownTest = loadImage(allKnownArray, unknownArray)
     x_ImageTest = imageKnownTest.reshape(imageKnownTest.shape[0], imageKnownTest.shape[1]*imageKnownTest.shape[2]*imageKnownTest.shape[3]) # batchsize, height*width*3channels
-
-    checkParameters('Image Jacobs Test' , x_ImageTest)
-    print('Shape of Image Jacobs Labels: %s' %(labelsKnownTest.shape))
 
     encoder = LabelEncoder()
     y_ImageLabels = encoder.fit_transform(labelsKnownTest)
