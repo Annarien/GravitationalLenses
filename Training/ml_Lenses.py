@@ -205,6 +205,7 @@ def testDES2017():
 
     num = 47
     unknownArray, unknownName = getUnknown(num)
+    checkParameters(unknownName, unknownArray)
 
     imageTest, labelsTest = loadImage(knownDES2017Array, unknownArray)
     x_ImageTest = imageTest.reshape(imageTest.shape[0], imageTest.shape[1]*imageTest.shape[2]*imageTest.shape[3]) # batchsize, height*width*3channels
@@ -224,6 +225,7 @@ def testJacobs():
 
     num = 84
     unknownArray, unknownName = getUnknown(num)
+    checkParameters(unknownName, unknownArray)
 
     imageJacobsTest, labelsJacobsTest = loadImage(knownJacobsArray, unknownArray)
     x_ImageTest = imageJacobsTest.reshape(imageJacobsTest.shape[0], imageJacobsTest.shape[1]*imageJacobsTest.shape[2]*imageJacobsTest.shape[3]) # batchsize, height*width*3channels
@@ -238,11 +240,13 @@ def testJacobs():
     return(knownJacobsArray, jacobsName)
 
 def testDES2017AndJacobs(knownDES2017Array, des2017Name, knownJacobsArray, jacobsName):
-    num = 131
-    unknownArray, unknownName = getUnknown(num)
-
+    
     allKnownArray, allKnownName = np.vstack((knownDES2017Array, knownJacobsArray))
     checkParameters(allKnownName, allKnownArray)
+
+    num = 131
+    unknownArray, unknownName = getUnknown(num)
+    checkParameters(unknownName, unknownArray)
 
     imageKnownTest, labelsKnownTest = loadImage(allKnownArray, unknownArray)
     x_ImageTest = imageKnownTest.reshape(imageKnownTest.shape[0], imageKnownTest.shape[1]*imageKnownTest.shape[2]*imageKnownTest.shape[3]) # batchsize, height*width*3channels
@@ -305,8 +309,6 @@ clf_image.fit(x_train, y_train)
 
 y_pred = clf_image.predict(x_test)
 y_accuracy = accuracy_score(y_test, y_pred)
-
-print("Y_pred: " + str(y_pred))
 print("Accuracy_Score: " +str(y_accuracy))
 
 #______________________________________________________________________________________________________________________
