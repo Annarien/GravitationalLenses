@@ -315,6 +315,3 @@ print("Accuracy_Score: " +str(y_accuracy))
 knownDES2017, des2017Name = testDES2017()
 knownJacobs, jacobsName = testJacobs()
 testDES2017AndJacobs(knownDES2017, des2017Name, knownJacobs, jacobsName)
-
-
-
