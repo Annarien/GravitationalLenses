@@ -219,7 +219,7 @@ def testDES2017():
     imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
     print("Image DES2017 Accuracy: " + str(imageAccuracy))
 
-    return(knownDES2017Array)
+    return(knownDES2017Array, des2017Name)
 
 def testJacobs():
     knownJacobsArray, jacobsName = getJacobs()
@@ -241,14 +241,14 @@ def testJacobs():
     imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
     print("Image Jacobs Accuracy: " + str(imageAccuracy))
 
-    return(knownJacobsArray)
+    return(knownJacobsArray, jacobsName)
 
-def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray):
+def testDES2017AndJacobs(knownDES2017Array, des2017Name, knownJacobsArray, jacobsName):
     num = 131
     unknownArray, unknownName = getUnknown(num)
     checkParameters(unknownName, unknownArray)
 
-    allKnownArray, allKnownName = np.vstack(knownDES2017Array, knownJacobsArray)
+    allKnownArray, allKnownName = np.vstack((knownDES2017Array, knownJacobsArray))
     checkParameters(allKnownName, allKnownArray)
 
 
@@ -324,9 +324,9 @@ print("Y_pred: " + str(y_pred))
 print("Accuracy_Score: " +str(y_accuracy))
 
 #______________________________________________________________________________________________________________________
-knownDES2017 = testDES2017()
-knownJacobs = testJacobs()
-testDES2017AndJacobs(knownDES2017, knownJacobs)
+knownDES2017, des2017Name = testDES2017()
+knownJacobs, jacobsName = testJacobs()
+testDES2017AndJacobs(knownDES2017, des2017Name, knownJacobs, jacobsName)
 
 
 
