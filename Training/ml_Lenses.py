@@ -15,6 +15,18 @@ from sklearn.metrics import accuracy_score
 
 # FUNCTIONS
 def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
+    """
+    This gets the 10 000 positively simulated images from the PositiveWithDESSky, as well as returning the 
+    positively simulate array and a name to refer to it. 
+
+    Args:
+        base_dir (string):      This the root file path name of the positively simulated images.  
+    
+    Returns:
+        DataPos(numpy array):   This is the array of positively simulated images.
+        dataSetName(string):    The name explaining the positively simulated array.
+
+    """
 
     folders = {}
     for root, dirs, files in os.walk(base_dir):
@@ -56,7 +68,17 @@ def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
     return (DataPos, dataSetName)
 
 def getNegativeDES(base_dir = 'DES/DES_Processed'):
+    """
+    This gets the 10 000 negative images from the DES/DES_Processedfolder, as well as returning the 
+    negative array and a name to refer to it. 
 
+    Args:
+        base_dir (string):      This the root file path name of the negative images.  
+    
+    Returns:
+        DataNeg(numpy array):   This is the array of negative images.
+        dataSetName(string):    The name explaining the negative array.
+    """
     foldersNeg = []
     for root, dirs, files in os.walk(base_dir):
         for folder in dirs:
@@ -86,6 +108,13 @@ def getNegativeDES(base_dir = 'DES/DES_Processed'):
     return (DataNeg, dataSetName)
 
 def checkParameters(dataSetName, arrayToCheck):
+    """
+    This function checks the standard deviation, mean and shape of array. 
+
+    Args:
+        dataSetName (string):   
+    """
+
     print("Standard deviation of %s : %s " % (dataSetName, arrayToCheck.std()))
     print("Mean of %s : %s" % (dataSetName, arrayToCheck.mean()))
     print("Shape of %s : %s" %(dataSetName, arrayToCheck.shape))
