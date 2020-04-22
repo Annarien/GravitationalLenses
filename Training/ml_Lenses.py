@@ -182,13 +182,13 @@ def getUnknown(num, base_dir = 'KnownLenses'):
     DataUnknown = np.zeros([nDT,3,100,100])
 
     for var in range(len(foldersUnknown)):
-        g_name = get_pkg_data_filename(foldersUnknown[var]+'/g_WCSClipped.fits')
-        r_name = get_pkg_data_filename(foldersUnknown[var]+'/r_WCSClipped.fits')
-        i_name = get_pkg_data_filename(foldersUnknown[var]+'/i_WCSClipped.fits')    
+        # g_name = get_pkg_data_filename(foldersUnknown[var]+'/g_WCSClipped.fits')
+        # r_name = get_pkg_data_filename(foldersUnknown[var]+'/r_WCSClipped.fits')
+        # i_name = get_pkg_data_filename(foldersUnknown[var]+'/i_WCSClipped.fits')    
 
-        # g_name = get_pkg_data_filename(foldersUnknown[var]+'/g_norm.fits')
-        # r_name = get_pkg_data_filename(foldersUnknown[var]+'/r_norm.fits')
-        # i_name = get_pkg_data_filename(foldersUnknown[var]+'/i_norm.fits')    
+        g_name = get_pkg_data_filename(foldersUnknown[var]+'/g_norm.fits')
+        r_name = get_pkg_data_filename(foldersUnknown[var]+'/r_norm.fits')
+        i_name = get_pkg_data_filename(foldersUnknown[var]+'/i_norm.fits')    
 
         g = fits.open(g_name)[0].data[0:100,0:100]
         r = fits.open(r_name)[0].data[0:100,0:100]
@@ -241,7 +241,8 @@ def testJacobs():
 
 def testDES2017AndJacobs(knownDES2017Array, des2017Name, knownJacobsArray, jacobsName):
     
-    allKnownArray, allKnownName = np.vstack((knownDES2017Array, knownJacobsArray))
+    allKnownArray = np.vstack((knownDES2017Array, knownJacobsArray))
+    allKnownName = np.vstack((des2017Name, jacobsName))
     checkParameters(allKnownName, allKnownArray)
 
     num = 131
@@ -300,7 +301,7 @@ x_train, x_test, y_train, y_test = makeTrainTest(positiveArray, negativeArray)
 
 # Trianing the data with MLPClassifier, from scikit learn
 clf_image = MLPClassifier(activation = 'relu',
-                          hidden_layer_sizes = (100, 100, 100), 
+                          hidden_layer_sizes = (100, 100, 100), # 3 layers of 100 neurons each
                           solver='adam', 
                           verbose=True,
                           max_iter=100)
