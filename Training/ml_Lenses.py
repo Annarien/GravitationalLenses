@@ -210,9 +210,7 @@ def testDES2017():
     imageTest, labelsTest = loadImage(knownDES2017Array, unknownArray)
     x_ImageTest = imageTest.reshape(imageTest.shape[0], imageTest.shape[1]*imageTest.shape[2]*imageTest.shape[3]) # batchsize, height*width*3channels
 
-    checkParameters('Image DES2017 Test' , x_ImageTest)
-    print('Shape of Image DES2017 Labels: %s' %(labelsTest.shape))
-
+    encoder = LabelEncoder()
     y_ImageLabels = encoder.fit_transform(labelsTest)
 
     y_pred = clf_image.predict(x_ImageTest)
@@ -235,6 +233,7 @@ def testJacobs():
     checkParameters('Image Jacobs Test' , x_ImageTest)
     print('Shape of Image Jacobs Labels: %s' %(labelsJacobsTest.shape))
 
+    encoder = LabelEncoder()
     y_ImageLabels = encoder.fit_transform(labelsJacobsTest)
 
     y_pred = clf_image.predict(x_ImageTest)
@@ -258,15 +257,41 @@ def testDES2017AndJacobs(knownDES2017Array, des2017Name, knownJacobsArray, jacob
     checkParameters('Image Jacobs Test' , x_ImageTest)
     print('Shape of Image Jacobs Labels: %s' %(labelsKnownTest.shape))
 
+    encoder = LabelEncoder()
     y_ImageLabels = encoder.fit_transform(labelsKnownTest)
 
     y_pred = clf_image.predict(x_ImageTest)
     imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
     print("Image Jacobs Accuracy: " + str(imageAccuracy))
 
-def makeTrain(positiveArray, negativeArray):
+def makeTrainTest(positiveArray, negativeArray):
+    imageTrain, imageLabels = loadImage(positiveArray, negativeArray)
 
+    # check imageTrain shape
+    checkParameters('ImageTrain' , imageTrain)
 
+    # check shape of ImageLabels:
+    print('Shape of ImageLabels: %s' %(imageLabels.shape))
+
+    im2disp = imageTrain[10].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
+    plt.imshow(im2disp)
+    plt.show()
+    print('Label: ' , imageLabels[10])
+
+    # reshape X
+    X = imageTrain.reshape(imageTrain.shape[0], imageTrain.shape[1]*imageTrain.shape[2]*imageTrain.shape[3]) # batchsize, height*width*3channels
+
+    # Encoding Y now
+    encoder = LabelEncoder()
+    Y = encoder.fit_transform(imageLabels)
+
+    # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
+    x_train, x_test, y_train, y_test = train_test_split(X, Y, shuffle=True, test_size = 0.2)
+
+    # check the shapes of  x,y trains and x,y tests
+    print("x_train shape: %s , and y_train shape: %s ." % (x_train.shape, y_train.shape))
+    print("x_test.shape: %s , and y_test shape: %s ." %(x_test.shape, y_test.shape))
+    return(x_train, x_test, y_train, y_test)
 #_____________________________________________________________________________________________________________________________
 # MAIN
 
@@ -277,39 +302,7 @@ negativeArray, negName = getNegativeDES()
 checkParameters(posName, positiveArray)
 checkParameters(negName, negativeArray)
 
-#load images into an image_train array and image_labels array
-imageTrain, imageLabels = loadImage(positiveArray, negativeArray)
-
-# check imageTrain shape
-checkParameters('ImageTrain' , imageTrain)
-
-# check shape of ImageLabels:
-print('Shape of ImageLabels: %s' %(imageLabels.shape))
-
-# add dimension to imageTrain
-# print("10 in ImageTrain: %s" %(imageTrain[10]))
-
-# checking by plotting image
-# plt.imshow(imageTrain[10])
-im2disp = imageTrain[10].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
-plt.imshow(im2disp)
-plt.show()
-print('Label: ' , imageLabels[10])
-
-# reshape X
-X = imageTrain.reshape(imageTrain.shape[0], imageTrain.shape[1]*imageTrain.shape[2]*imageTrain.shape[3]) # batchsize, height*width*3channels
-print("Shape of X: "+str(X.shape))
-
-# Encoding Y now
-encoder = LabelEncoder()
-Y = encoder.fit_transform(imageLabels)
-
-# Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
-x_train, x_test, y_train, y_test = train_test_split(X, Y, shuffle=True, test_size = 0.2)
-
-# check the shapes of  x,y trains and x,y tests
-print("x_train shape: %s , and y_train shape: %s ." % (x_train.shape, y_train.shape))
-print("x_test.shape: %s , and y_test shape: %s ." %(x_test.shape, y_test.shape))
+x_train, x_test, y_train, y_test = makeTrainTest(positiveArray, negativeArray)
 
 # Trianing the data with MLPClassifier, from scikit learn
 clf_image = MLPClassifier(activation = 'relu',
@@ -323,7 +316,6 @@ clf_image.fit(x_train, y_train)
 y_pred = clf_image.predict(x_test)
 y_accuracy = accuracy_score(y_test, y_pred)
 
-print("clf_image: "+str(clf_image))
 print("Y_pred: " + str(y_pred))
 print("Accuracy_Score: " +str(y_accuracy))
 
