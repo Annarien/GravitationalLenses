@@ -263,6 +263,10 @@ def testDES2017AndJacobs(knownDES2017Array, des2017Name, knownJacobsArray, jacob
     y_pred = clf_image.predict(x_ImageTest)
     imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
     print("Image Jacobs Accuracy: " + str(imageAccuracy))
+
+def makeTrain(positiveArray, negativeArray):
+
+
 #_____________________________________________________________________________________________________________________________
 # MAIN
 
