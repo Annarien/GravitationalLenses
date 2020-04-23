@@ -16,12 +16,12 @@ from sklearn.metrics import accuracy_score
 # FUNCTIONS
 def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
     """
-    This gets the 10 000 positively simulated images from the PositiveWithDESSky, as well as returning the 
-    positively simulate array and a name to refer to it. 
+    This gets the g, r, and i of the 10 000 positively simulated images from the 
+    PositiveWithDESSky, as well as returning the positively simulate array and 
+    a name to refer to it. 
 
     Args:
         base_dir (string):      This the root file path name of the positively simulated images.  
-    
     Returns:
         DataPos(numpy array):   This is the array of positively simulated images.
         dataSetName(string):    The name explaining the positively simulated array.
@@ -69,15 +69,15 @@ def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
 
 def getNegativeDES(base_dir = 'DES/DES_Processed'):
     """
-    This gets the 10 000 negative images from the DES/DES_Processedfolder, as well as returning the 
+    This gets the g, r, and i  10 000 negative images from the 
+    DES/DES_Processedfolder, as well as returning the 
     negative array and a name to refer to it. 
 
     Args:
         base_dir (string):      This the root file path name of the negative images.  
-    
     Returns:
-        DataNeg(numpy array):   This is the array of negative images.
-        dataSetName(string):    The name explaining the negative array.
+        DataNeg (numpy array):  This is the array of negative images.
+        dataSetName (string):   The name explaining the negative array.
     """
     foldersNeg = []
     for root, dirs, files in os.walk(base_dir):
@@ -112,7 +112,12 @@ def checkParameters(dataSetName, arrayToCheck):
     This function checks the standard deviation, mean and shape of array. 
 
     Args:
-        dataSetName (string):   
+        dataSetName (string):       The explanatory name of tha array, this is given in the 
+                                    getPositveSimulated and getNegativeDES functions.
+        arrayToCheck (numpy array): This is the array whose standard deviation, mean and shape 
+                                    is to be checked.
+    Returns:
+        This prints the standard deviation, the mean and the shape of the selected array. 
     """
 
     print("Standard deviation of %s : %s " % (dataSetName, arrayToCheck.std()))
@@ -120,6 +125,22 @@ def checkParameters(dataSetName, arrayToCheck):
     print("Shape of %s : %s" %(dataSetName, arrayToCheck.shape))
 
 def loadImage(positiveArray, negativeArray):
+    """
+    This loads the positive and negative arrays, and makes an image dataset 
+    numpy array that is made through adding the images of the positive and 
+    negative arrays. This also makes a label dataset, by adding the appropriate
+    labels for the positive and negative arrays.
+
+    Args:
+        positiveArray (numpy array):    This is the positively simulated array of gravitational lenses.
+        negativeArray (numpy array):    This is the negative array of from DES. 
+    Returns:
+        image_train (numpy array):      This is the numpy array of the positive and negative arrays added
+                                        together to make a single array.
+        image_labels (numpy array):     This is the numpy array of the labels for the positive and negative 
+                                        arrays added together to make a single array.
+    """
+
     positiveData = []
     negativeData = []
     positiveLabel = []
@@ -140,6 +161,15 @@ def loadImage(positiveArray, negativeArray):
     return (np.array(image_train), np.array(image_labels))
 
 def getDES2017(base_dir = 'KnownLenses/DES2017/'):
+    """
+    This is used to get g, r, and i images of the DES2017 dataset, as well as its explanationary name. 
+
+    Args:
+        base_dir (string):  This is the root directory of the DES2017 folder. 
+    Returns:
+        DataKnownDES (numpy array): This is the numpy array of the the DES2017 dataset.
+        dataSetName (string):       This is the name to explain the DES2017 dataset.
+    """
 
     foldersKnownDES2017 = []
     for root, dirs, files in os.walk(base_dir):
@@ -169,6 +199,16 @@ def getDES2017(base_dir = 'KnownLenses/DES2017/'):
     return (DataKnownDES, dataSetName)
 
 def getJacobs(base_dir = 'KnownLenses/Jacobs_KnownLenses/'):
+    """
+    This is used to get g, r, and i images of the known Jacobs dataset, as well as its explanationary name. 
+
+    Args:
+        base_dir (string):  This is the root directory of the DES2017 folder. 
+    Returns:
+        DataKnownDES (numpy array): This is the numpy array of the the DES2017 dataset.
+        dataSetName (string):       This is the name to explain the DES2017 dataset.
+    """
+
     foldersKnownJacobs = []
     for root, dirs, files in os.walk(base_dir):
         for folder in dirs:
@@ -195,6 +235,20 @@ def getJacobs(base_dir = 'KnownLenses/Jacobs_KnownLenses/'):
     return (DataKnownJacobs, dataSetName)
 
 def getUnknown(num, base_dir = 'KnownLenses'):
+    """
+    This gets the unseen g, r, and i unknown/negative images, according to the number specified. 
+    This is so that the correct number of unknown images, is retrieved, according to the 
+    unseen known lenses. 
+
+    Args:
+        num (integer):  This is the number specified, which equates to how many unseen known gravitational lenses. 
+                        This indicates how many unseen negative images is to be retrieved. 
+        base_dir (string):  This is the root directory file name of where the unknown lenses are situated in. 
+    Returns:
+        DataUnknown (numpy array):  This is the numpy array of the unknown dataset.
+        dataSetName (string):   This is the explanatory name of the unknown dataset.
+    """
+
     if num == 47:
         pathUnknown = '%s/Unknown_Processed_47' % (base_dir)
     elif num == 84:
@@ -229,6 +283,18 @@ def getUnknown(num, base_dir = 'KnownLenses'):
     return (DataUnknown, dataSetName)
 
 def testDES2017():
+    """
+    This tests the unseen DES2017 images and unknown 47 images, to get the accuracy rate 
+    of these unseen images that aren't used in training. 
+
+    Returns:
+        Prints the accuracy rate of the unseen DES2017 images and unknown 47 images, where 
+        the training has been done with the 10 000 positive and negative images. 
+
+        knownDES2017Array (numpy array):    This is the numpy array of the known DES2017 images.
+        des2017Name (string):               This is the explanatory name of the known DES2017 images
+    """
+
     knownDES2017Array,des2017Name = getDES2017()
     checkParameters(des2017Name, knownDES2017Array)
 
@@ -249,6 +315,18 @@ def testDES2017():
     return(knownDES2017Array, des2017Name)
 
 def testJacobs():
+    """
+    This tests the unseen Jacobs images and unknown 84 images, to get the accuracy rate 
+    of these unseen images that aren't used in training. 
+
+    Returns:
+        Prints the accuracy rate of the unseen Jacobs images and unknown 84 images, where 
+        the training has been done with the 10 000 positive and negative images. 
+
+        knownJacobsArray (numpy array):    This is the numpy array of the known Jacobs images.
+        jacobsName (string):               This is the explanatory name of the known Jacobs images
+    """
+
     knownJacobsArray, jacobsName = getJacobs()
     checkParameters(jacobsName, knownJacobsArray)
 
@@ -269,6 +347,19 @@ def testJacobs():
     return(knownJacobsArray, jacobsName)
 
 def testDES2017AndJacobs(knownDES2017Array, des2017Name, knownJacobsArray, jacobsName):
+    """
+    This tests the unseen DES2017 and Jacobs images together with the unknown 131 images, to get the accuracy rate 
+    of these unseen images that aren't used in training. 
+
+    Args:
+        knownDES2017Array (numpy array):    This is the dataset of the unseen known DES2017 images.
+        des2017Name (string):               This is the explanatory name of the unseen known DES2017 images.
+        knownJacobsArray (numpy array):     This is the dataset of the unseen known Jacobs images.
+        jacobsName (string):                This is the explanatory name of the unseen known Jacobs images.
+    Returns:
+        Prints the accuracy rate of the unseen DES2017 and Jacobs images together and the unknown 131 images, where 
+        the training has been done with the 10 000 positive and negative images.
+    """
     
     allKnownArray = np.vstack((knownDES2017Array, knownJacobsArray))
     allKnownName = np.vstack((des2017Name, jacobsName))
@@ -286,9 +377,29 @@ def testDES2017AndJacobs(knownDES2017Array, des2017Name, knownJacobsArray, jacob
 
     y_pred = clf_image.predict(x_ImageTest)
     imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
-    print("Image Jacobs Accuracy: " + str(imageAccuracy))
+    print("All Known Lenses Image Accuracy: " + str(imageAccuracy))
 
 def makeTrainTest(positiveArray, negativeArray):
+    """
+    This makes the training and testing data sets that are to be made. This creates 
+    a training image data set with the positive and negative images together. This 
+    also creates a training label data set with the positive and negative images together.
+
+    Args:  
+        positiveArray (numpy array):    This is the positively simulated dataset images.
+        negativeArray (numpy array):    This is the negative DES images.
+    Returns:
+        x_train (numpy array):  This is the array of the training set of the training images , 
+                                which is 80% of the image training set. 
+        x_test (numpy array):   This is the array of the testing set of the training images, which 
+                                is the 20% of the training images. 
+        y_train (numpy array):  This is the array of the labels of the training labels, which is 80% 
+                                of the training labels.
+        y_test (numpy array):   This is the array of the labels of the testing labels, which is 20% 
+                                of the training labels.
+        
+    """
+
     imageTrain, imageLabels = loadImage(positiveArray, negativeArray)
 
     # check imageTrain shape
@@ -330,10 +441,10 @@ x_train, x_test, y_train, y_test = makeTrainTest(positiveArray, negativeArray)
 
 # Trianing the data with MLPClassifier, from scikit learn
 clf_image = MLPClassifier(activation = 'relu',
-                          hidden_layer_sizes = (1000, 100, 100), # 3 layers of 100 neurons each
-                          solver='adam', 
-                          verbose=True,
-                          max_iter=100)
+                          hidden_layer_sizes = (1000, 100), # 3 layers of 100 neurons each
+                          solver = 'adam', 
+                          verbose = True,
+                          max_iter = 100)
 
 clf_image.fit(x_train, y_train)
 
