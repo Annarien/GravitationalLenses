@@ -165,7 +165,7 @@ def getDES2017(base_dir = 'KnownLenses/DES2017/'):
     This is used to get g, r, and i images of the DES2017 dataset, as well as its explanationary name. 
 
     Args:
-        base_dir (string):  This is the root directory of the DES2017 folder. 
+        base_dir (string):          This is the root directory of the DES2017 folder. 
     Returns:
         DataKnownDES (numpy array): This is the numpy array of the the DES2017 dataset.
         dataSetName (string):       This is the name to explain the DES2017 dataset.
@@ -203,7 +203,7 @@ def getJacobs(base_dir = 'KnownLenses/Jacobs_KnownLenses/'):
     This is used to get g, r, and i images of the known Jacobs dataset, as well as its explanationary name. 
 
     Args:
-        base_dir (string):  This is the root directory of the DES2017 folder. 
+        base_dir (string):          This is the root directory of the DES2017 folder. 
     Returns:
         DataKnownDES (numpy array): This is the numpy array of the the DES2017 dataset.
         dataSetName (string):       This is the name to explain the DES2017 dataset.
@@ -241,12 +241,13 @@ def getUnknown(num, base_dir = 'KnownLenses'):
     unseen known lenses. 
 
     Args:
-        num (integer):  This is the number specified, which equates to how many unseen known gravitational lenses. 
-                        This indicates how many unseen negative images is to be retrieved. 
-        base_dir (string):  This is the root directory file name of where the unknown lenses are situated in. 
+        num (integer):              This is the number specified, which equates to how many unseen known 
+                                    gravitational lenses. 
+                                    This indicates how many unseen negative images is to be retrieved. 
+        base_dir (string):          This is the root directory file name of where the unknown lenses are situated in. 
     Returns:
         DataUnknown (numpy array):  This is the numpy array of the unknown dataset.
-        dataSetName (string):   This is the explanatory name of the unknown dataset.
+        dataSetName (string):       This is the explanatory name of the unknown dataset.
     """
 
     if num == 47:
@@ -389,14 +390,14 @@ def makeTrainTest(positiveArray, negativeArray):
         positiveArray (numpy array):    This is the positively simulated dataset images.
         negativeArray (numpy array):    This is the negative DES images.
     Returns:
-        x_train (numpy array):  This is the array of the training set of the training images , 
-                                which is 80% of the image training set. 
-        x_test (numpy array):   This is the array of the testing set of the training images, which 
-                                is the 20% of the training images. 
-        y_train (numpy array):  This is the array of the labels of the training labels, which is 80% 
-                                of the training labels.
-        y_test (numpy array):   This is the array of the labels of the testing labels, which is 20% 
-                                of the training labels.
+        x_train (numpy array):          This is the array of the training set of the training images, 
+                                        which is 80% of the image training set. 
+        x_test (numpy array):           This is the array of the testing set of the training images, which 
+                                        is the 20% of the training images. 
+        y_train (numpy array):          This is the array of the labels of the training labels, which is 80% 
+                                        of the training labels.
+        y_test (numpy array):           This is the array of the labels of the testing labels, which is 20% 
+                                        of the training labels.
         
     """
 
