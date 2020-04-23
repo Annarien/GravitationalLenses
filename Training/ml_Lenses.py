@@ -330,7 +330,7 @@ x_train, x_test, y_train, y_test = makeTrainTest(positiveArray, negativeArray)
 
 # Trianing the data with MLPClassifier, from scikit learn
 clf_image = MLPClassifier(activation = 'relu',
-                          hidden_layer_sizes = (100, 100, 100), # 3 layers of 100 neurons each
+                          hidden_layer_sizes = (1000, 100, 100), # 3 layers of 100 neurons each
                           solver='adam', 
                           verbose=True,
                           max_iter=100)
