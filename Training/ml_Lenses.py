@@ -313,10 +313,10 @@ def testDES2017():
     imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
     print("Image DES2017 Accuracy: " + str(imageAccuracy))
 
-    im2disp = x_ImageTest[20].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
-    plt.imshow(im2disp)
-    plt.show()
-    print('Label: ' , y_ImageLabels[20])
+    # im2disp = x_ImageTest[20].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
+    # plt.imshow(im2disp)
+    # plt.show()
+    # print('Label: ' , y_ImageLabels[20])
 
     return(knownDES2017Array, des2017Name)
 
@@ -350,10 +350,10 @@ def testJacobs():
     imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
     print("Image Jacobs Accuracy: " + str(imageAccuracy))
 
-    im2disp = x_ImageTest[20].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
-    plt.imshow(im2disp)
-    plt.show()
-    print('Label: ' , y_ImageLabels[20])
+    # im2disp = x_ImageTest[20].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
+    # plt.imshow(im2disp)
+    # plt.show()
+    # print('Label: ' , y_ImageLabels[20])
 
     return(knownJacobsArray, jacobsName)
 
