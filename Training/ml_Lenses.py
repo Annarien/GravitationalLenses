@@ -390,10 +390,10 @@ def testDES2017AndJacobs(knownDES2017Array, des2017Name, knownJacobsArray, jacob
     imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
     print("All Known Lenses Image Accuracy: " + str(imageAccuracy))
     
-    im2disp = x_ImageTest[20].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
-    plt.imshow(im2disp)
-    plt.show()
-    print('Label: ' , y_ImageLabels[20])
+    # im2disp = x_ImageTest[20].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
+    # plt.imshow(im2disp)
+    # plt.show()
+    # print('Label: ' , y_ImageLabels[20])
 
 def makeTrainTest(positiveArray, negativeArray):
     """
