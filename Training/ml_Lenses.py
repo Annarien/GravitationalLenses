@@ -12,6 +12,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
+from sklearn import model_selection
 
 # FUNCTIONS
 def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
@@ -309,9 +310,11 @@ def testDES2017():
     encoder = LabelEncoder()
     y_ImageLabels = encoder.fit_transform(labelsTest)
 
-    y_pred = clf_image.predict(x_ImageTest)
-    imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
-    print("Image DES2017 Accuracy: " + str(imageAccuracy))
+    # y_pred = clf_image.predict(x_ImageTest)
+    # imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
+    # print("Image DES2017 Accuracy: " + str(imageAccuracy))
+    results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
+    print('DES2017 Kfold: %s'%(results.mean()*100.0))
 
     # im2disp = x_ImageTest[20].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
     # plt.imshow(im2disp)
@@ -346,9 +349,12 @@ def testJacobs():
     encoder = LabelEncoder()
     y_ImageLabels = encoder.fit_transform(labelsJacobsTest)
 
-    y_pred = clf_image.predict(x_ImageTest)
-    imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
-    print("Image Jacobs Accuracy: " + str(imageAccuracy))
+    # y_pred = clf_image.predict(x_ImageTest)
+    # imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
+    # print("Image Jacobs Accuracy: " + str(imageAccuracy))
+
+    results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
+    print('Jacobs Kfold: %s'%(results.mean()*100.0))
 
     # im2disp = x_ImageTest[20].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
     # plt.imshow(im2disp)
@@ -386,9 +392,12 @@ def testDES2017AndJacobs(knownDES2017Array, des2017Name, knownJacobsArray, jacob
     encoder = LabelEncoder()
     y_ImageLabels = encoder.fit_transform(labelsKnownTest)
 
-    y_pred = clf_image.predict(x_ImageTest)
-    imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
-    print("All Known Lenses Image Accuracy: " + str(imageAccuracy))
+    # y_pred = clf_image.predict(x_ImageTest)
+    # imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
+    # print("All Known Lenses Image Accuracy: " + str(imageAccuracy))
+
+    results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
+    print('All Known Kfold: %s'%(results.mean()*100.0))
     
     # im2disp = x_ImageTest[20].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
     # plt.imshow(im2disp)
@@ -457,9 +466,10 @@ x_train, x_test, y_train, y_test = makeTrainTest(positiveArray, negativeArray)
 
 # Trianing the data with MLPClassifier, from scikit learn
 clf_image = MLPClassifier(activation = 'relu',
-                          hidden_layer_sizes = (1000), # 3 layers of 100 neurons each
+                          hidden_layer_sizes = (1000, 100, 100), # 3 layers of 100 neurons each
                           solver = 'adam', 
                           verbose = True,
+                          random_state = 1,
                           max_iter = 100)
 
 clf_image.fit(x_train, y_train)
@@ -467,6 +477,23 @@ clf_image.fit(x_train, y_train)
 y_pred = clf_image.predict(x_test)
 y_accuracy = accuracy_score(y_test, y_pred)
 print("Accuracy_Score: " +str(y_accuracy))
+
+# Cross Validation
+kfold = model_selection.KFold(n_splits = 10, random_state = 100) 
+results = model_selection.cross_val_score(clf_image, x_test, y_test, cv = kfold)
+print("Accuracy after K fold: %s " % (results.mean()*100.0))
+
+# history  = (clf_image.fit(x_train, y_train))
+# loss_train = history.history['loss']
+# loss_val = history.history['val_loss']
+
+# epochs = range(1,35)
+# plt.plot(loss_train, label = 'Training Loss')
+# plt.plot(loss_val, label = 'Validation Loss')
+# plt.xlabel('Epochs')
+# plt.ylabel('Loss')
+# plt.legend()
+# plt.show()
 
 #______________________________________________________________________________________________________________________
 knownDES2017, des2017Name = testDES2017()
