@@ -466,7 +466,7 @@ x_train, x_test, y_train, y_test = makeTrainTest(positiveArray, negativeArray)
 
 # Trianing the data with MLPClassifier, from scikit learn
 clf_image = MLPClassifier(activation = 'relu',
-                          hidden_layer_sizes = (1000, 100, 100), # 3 layers of 100 neurons each
+                          hidden_layer_sizes = (100, 100, 100), # 3 layers of 100 neurons each
                           solver = 'adam', 
                           verbose = True,
                           random_state = 1,
@@ -482,6 +482,8 @@ print("Accuracy_Score: " +str(y_accuracy))
 kfold = model_selection.KFold(n_splits = 10, random_state = 100) 
 results = model_selection.cross_val_score(clf_image, x_test, y_test, cv = kfold)
 print("Accuracy after K fold: %s " % (results.mean()*100.0))
+
+#write and add parameters to excel spreadsheet.
 
 # history  = (clf_image.fit(x_train, y_train))
 # loss_train = history.history['loss']
