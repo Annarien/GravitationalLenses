@@ -5,6 +5,7 @@ This is a draft of machine learning code, so that we can test how to do the mach
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import makeExcelTable
 
 from astropy.utils.data import get_pkg_data_filename
 from astropy.io import fits
@@ -107,23 +108,6 @@ def getNegativeDES(base_dir = 'DES/DES_Processed'):
         #     break
     dataSetName = 'Data Negative From DES'
     return (DataNeg, dataSetName)
-
-def checkParameters(dataSetName, arrayToCheck):
-    """
-    This function checks the standard deviation, mean and shape of array. 
-
-    Args:
-        dataSetName (string):       The explanatory name of tha array, this is given in the 
-                                    getPositveSimulated and getNegativeDES functions.
-        arrayToCheck (numpy array): This is the array whose standard deviation, mean and shape 
-                                    is to be checked.
-    Returns:
-        This prints the standard deviation, the mean and the shape of the selected array. 
-    """
-
-    print("Standard deviation of %s : %s " % (dataSetName, arrayToCheck.std()))
-    print("Mean of %s : %s" % (dataSetName, arrayToCheck.mean()))
-    print("Shape of %s : %s" %(dataSetName, arrayToCheck.shape))
 
 def loadImage(positiveArray, negativeArray):
     """
@@ -298,11 +282,9 @@ def testDES2017():
     """
 
     knownDES2017Array,des2017Name = getDES2017()
-    checkParameters(des2017Name, knownDES2017Array)
 
     num = 47
     unknownArray, unknownName = getUnknown(num)
-    checkParameters(unknownName, unknownArray)
 
     imageTest, labelsTest = loadImage(knownDES2017Array, unknownArray)
     x_ImageTest = imageTest.reshape(imageTest.shape[0], imageTest.shape[1]*imageTest.shape[2]*imageTest.shape[3]) # batchsize, height*width*3channels
@@ -310,18 +292,13 @@ def testDES2017():
     encoder = LabelEncoder()
     y_ImageLabels = encoder.fit_transform(labelsTest)
 
-    # y_pred = clf_image.predict(x_ImageTest)
-    # imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
-    # print("Image DES2017 Accuracy: " + str(imageAccuracy))
+    y_pred = clf_image.predict(x_ImageTest)
+    AccuracyScore_47 = (accuracy_score(y_test, y_pred))*100
+
     results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
-    print('DES2017 Kfold: %s'%(results.mean()*100.0))
+    KFoldAccuracy_47 = (results.mean())*100
 
-    # im2disp = x_ImageTest[20].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
-    # plt.imshow(im2disp)
-    # plt.show()
-    # print('Label: ' , y_ImageLabels[20])
-
-    return(knownDES2017Array, des2017Name)
+    return(knownDES2017Array, des2017Name, AccuracyScore_47, KFoldAccuracy_47)
 
 def testJacobs():
     """
@@ -337,11 +314,9 @@ def testJacobs():
     """
 
     knownJacobsArray, jacobsName = getJacobs()
-    checkParameters(jacobsName, knownJacobsArray)
 
     num = 84
     unknownArray, unknownName = getUnknown(num)
-    checkParameters(unknownName, unknownArray)
 
     imageJacobsTest, labelsJacobsTest = loadImage(knownJacobsArray, unknownArray)
     x_ImageTest = imageJacobsTest.reshape(imageJacobsTest.shape[0], imageJacobsTest.shape[1]*imageJacobsTest.shape[2]*imageJacobsTest.shape[3]) # batchsize, height*width*3channels
@@ -349,19 +324,13 @@ def testJacobs():
     encoder = LabelEncoder()
     y_ImageLabels = encoder.fit_transform(labelsJacobsTest)
 
-    # y_pred = clf_image.predict(x_ImageTest)
-    # imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
-    # print("Image Jacobs Accuracy: " + str(imageAccuracy))
+    y_pred = clf_image.predict(x_ImageTest)
+    AccuracyScore_84 = (accuracy_score(y_test, y_pred))*100
 
     results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
-    print('Jacobs Kfold: %s'%(results.mean()*100.0))
+    KFoldAccuracy_84 = (results.mean())*100
 
-    # im2disp = x_ImageTest[20].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
-    # plt.imshow(im2disp)
-    # plt.show()
-    # print('Label: ' , y_ImageLabels[20])
-
-    return(knownJacobsArray, jacobsName)
+    return(knownJacobsArray, jacobsName, AccuracyScore_84, KFoldAccuracy_84)
 
 def testDES2017AndJacobs(knownDES2017Array, des2017Name, knownJacobsArray, jacobsName):
     """
@@ -380,11 +349,9 @@ def testDES2017AndJacobs(knownDES2017Array, des2017Name, knownJacobsArray, jacob
     
     allKnownArray = np.vstack((knownDES2017Array, knownJacobsArray))
     allKnownName = np.vstack((des2017Name, jacobsName))
-    checkParameters(allKnownName, allKnownArray)
 
     num = 131
     unknownArray, unknownName = getUnknown(num)
-    checkParameters(unknownName, unknownArray)
 
     imageKnownTest, labelsKnownTest = loadImage(allKnownArray, unknownArray)
     x_ImageTest = imageKnownTest.reshape(imageKnownTest.shape[0], imageKnownTest.shape[1]*imageKnownTest.shape[2]*imageKnownTest.shape[3]) # batchsize, height*width*3channels
@@ -392,17 +359,13 @@ def testDES2017AndJacobs(knownDES2017Array, des2017Name, knownJacobsArray, jacob
     encoder = LabelEncoder()
     y_ImageLabels = encoder.fit_transform(labelsKnownTest)
 
-    # y_pred = clf_image.predict(x_ImageTest)
-    # imageAccuracy = accuracy_score(y_ImageLabels, y_pred)
-    # print("All Known Lenses Image Accuracy: " + str(imageAccuracy))
+    y_pred = clf_image.predict(x_ImageTest)
+    AccuracyScore_131 = (accuracy_score(y_test, y_pred))*100
 
     results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
-    print('All Known Kfold: %s'%(results.mean()*100.0))
-    
-    # im2disp = x_ImageTest[20].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
-    # plt.imshow(im2disp)
-    # plt.show()
-    # print('Label: ' , y_ImageLabels[20])
+    KFoldAccuracy_131 = (results.mean())*100
+
+    return(AccuracyScore_131, KFoldAccuracy_131)
 
 def makeTrainTest(positiveArray, negativeArray):
     """
@@ -426,13 +389,11 @@ def makeTrainTest(positiveArray, negativeArray):
     """
 
     imageTrain, imageLabels = loadImage(positiveArray, negativeArray)
-
-    # check imageTrain shape
-    checkParameters('ImageTrain' , imageTrain)
-
-    # check shape of ImageLabels:
-    print('Shape of ImageLabels: %s' %(imageLabels.shape))
-
+    imageTrain_std = imageTrain.std()
+    imageTrain_mean = imageTrain.mean()
+    imageTrain_shape = imageTrain.shape
+    imageLabels_shape = imageLabels.shape
+    
     im2disp = imageTrain[10].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
     plt.imshow(im2disp)
     plt.show()
@@ -446,23 +407,26 @@ def makeTrainTest(positiveArray, negativeArray):
     Y = encoder.fit_transform(imageLabels)
 
     # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
-    x_train, x_test, y_train, y_test = train_test_split(X, Y, shuffle=True, test_size = 0.2)
+    test_percent = 0.2
+    x_train, x_test, y_train, y_test = train_test_split(X, Y, shuffle=True, test_size =test_percent)
+    xTrain_shape = x_train.shape
+    xTest_shape = x_test.shape
+    yTrain_shape = y_train.shape
+    yTest_shape = y_test.shape
 
-    # check the shapes of  x,y trains and x,y tests
-    print("x_train shape: %s , and y_train shape: %s ." % (x_train.shape, y_train.shape))
-    print("x_test.shape: %s , and y_test shape: %s ." %(x_test.shape, y_test.shape))
-    return(x_train, x_test, y_train, y_test)
+
+    train_percent = (1 - test_percent)
+
+    return(x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape)
 #_____________________________________________________________________________________________________________________________
 # MAIN
 
 positiveArray, posName = getPositiveSimulated()
 negativeArray, negName = getNegativeDES()
 
-#check parametes
-checkParameters(posName, positiveArray)
-checkParameters(negName, negativeArray)
+dataSet = len(np.vstack((positiveArray, negativeArray)))
 
-x_train, x_test, y_train, y_test = makeTrainTest(positiveArray, negativeArray)
+x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape = makeTrainTest(positiveArray, negativeArray)
 
 # Trianing the data with MLPClassifier, from scikit learn
 clf_image = MLPClassifier(activation = 'relu',
@@ -471,20 +435,19 @@ clf_image = MLPClassifier(activation = 'relu',
                           verbose = True,
                           random_state = 1,
                           max_iter = 100)
+description = str(clf_image)
 
 clf_image.fit(x_train, y_train)
 
 y_pred = clf_image.predict(x_test)
-y_accuracy = accuracy_score(y_test, y_pred)
-print("Accuracy_Score: " +str(y_accuracy))
+AccuracyScore = (accuracy_score(y_test, y_pred))*100
 
 # Cross Validation
-kfold = model_selection.KFold(n_splits = 10, random_state = 100) 
+n_splits = 10
+random_state = 100
+kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
 results = model_selection.cross_val_score(clf_image, x_test, y_test, cv = kfold)
-print("Accuracy after K fold: %s " % (results.mean()*100.0))
-
-#write and add parameters to excel spreadsheet.
-
+KFoldAccuracy = (results.mean())*100
 # history  = (clf_image.fit(x_train, y_train))
 # loss_train = history.history['loss']
 # loss_val = history.history['val_loss']
@@ -498,6 +461,9 @@ print("Accuracy after K fold: %s " % (results.mean()*100.0))
 # plt.show()
 
 #______________________________________________________________________________________________________________________
-knownDES2017, des2017Name = testDES2017()
-knownJacobs, jacobsName = testJacobs()
-testDES2017AndJacobs(knownDES2017, des2017Name, knownJacobs, jacobsName)
+knownDES2017, des2017Name, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()
+knownJacobs, jacobsName, AccuracyScore_84, KFoldAccuracy_84= testJacobs()
+AccuracyScore_131, KFoldAccuracy_131 =testDES2017AndJacobs(knownDES2017, des2017Name, knownJacobs, jacobsName)
+
+# write to ml_Lenses_results.xlsx
+makeExcelTable.addRowToTable(description, dataSet, train_percent, test_percent, n_splits, random_state,  imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape,  xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131)
