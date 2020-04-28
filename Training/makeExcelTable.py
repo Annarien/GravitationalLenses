@@ -9,7 +9,6 @@ from csv import writer
 def makeInitialTable():
     
     tab = atpy.Table()
-    tab.add_column(atpy.Column(np.zeros(1),"Test"))
     tab.add_column(atpy.Column(np.zeros(1), "Description"))
     tab.add_column(atpy.Column(np.zeros(1), "imageTrain_std"))
     tab.add_column(atpy.Column(np.zeros(1), "imageTrain_mean"))
