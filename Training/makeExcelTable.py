@@ -31,7 +31,7 @@ def makeInitialTable():
     tab.add_column(atpy.Column(np.zeros(1), "KFoldAccuracy_84"))
     tab.add_column(atpy.Column(np.zeros(1), "AccuracyScore_131"))
     tab.add_column(atpy.Column(np.zeros(1), "KFoldAccuracy_131"))
-    tab.write('../Results/ml_Lenses_results.csv', overwrite = True)
+    tab.write('../Results/ml_Lenses_results.csv', overwrite = True )
     return (tab)
 
 def getRowNum():
@@ -47,7 +47,7 @@ def getRowNum():
 
     return (currentRow)
 
-def addRowToTable(description, train_percent, test_percent, n_splits, random_state, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131):
+def addRowToTable(tab, description, train_percent, test_percent, n_splits, random_state, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131):
     currentRow = getRowNum()
 
     tab["Test"][currentRow] = currentRow
@@ -72,7 +72,6 @@ def addRowToTable(description, train_percent, test_percent, n_splits, random_sta
     tab["KFoldAccuracy_84"][currentRow] = KFoldAccuracy_84
     tab["AccuracyScore_131"][currentRow] = AccuracyScore_131
     tab["KFoldAccuracy_131"][currentRow] = KFoldAccuracy_131
-
     tab.write('../Results/ml_Lenses_results.csv', overwrite = True)
 
 #_______________________________________________________________________________________________________

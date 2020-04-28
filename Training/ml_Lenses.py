@@ -464,4 +464,5 @@ knownJacobs, AccuracyScore_84, KFoldAccuracy_84= testJacobs()
 AccuracyScore_131, KFoldAccuracy_131 =testDES2017AndJacobs(knownDES2017, knownJacobs)
 
 # write to ml_Lenses_results.xlsx
-makeExcelTable.addRowToTable(description, train_percent, test_percent, n_splits, random_state,  imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape,  xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131)
+tab = makeExcelTable.makeInitialTable()
+makeExcelTable.addRowToTable(tab, description, train_percent, test_percent, n_splits, random_state,  imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape,  xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131)
