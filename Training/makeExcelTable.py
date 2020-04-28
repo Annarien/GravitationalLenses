@@ -3,13 +3,13 @@ This makes an excel spreadsheet to make the the results from ml_Lenses more read
 """
 import astropy.table  as atpy
 import numpy as np
-from openpyxl import Workbook
-from openpyxl.reader.excel import load_workbook
+import csv
+from csv import writer
 
 def makeInitialTable():
     
     tab = atpy.Table()
-    tab.add_column(atpy.Column(np.zeros(1), "Test"))
+    tab.add_column(atpy.Column(np.zeros(1),"Test"))
     tab.add_column(atpy.Column(np.zeros(1), "Description"))
     tab.add_column(atpy.Column(np.zeros(1), "imageTrain_std"))
     tab.add_column(atpy.Column(np.zeros(1), "imageTrain_mean"))
@@ -34,45 +34,67 @@ def makeInitialTable():
     tab.write('../Results/ml_Lenses_results.csv', overwrite = True)
     return (tab)
 
-def getRowNum():
-    # find out how many rows in table
+# def addRowToTable(tab, description, train_percent, test_percent, n_splits, random_state, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131):
 
-    wb = load_workbook('../Results/ml_Lenses_results.csv')
-    sheet = wb.worksheets[0]
+#     tab["Test"][currentRow] = currentRow
+#     tab["Description"][currentRow] = description
+#     tab["imageTrain_std"][currentRow] = imageTrain_std
+#     tab["imageTrain_mean"][currentRow] = imageTrain_mean
+#     tab["imageTrain_shape"][currentRow] = imageTrain_shape
+#     tab["imageLabels_shape"][currentRow] = imageLabels_shape
+#     tab["train_percent"][currentRow] = train_percent
+#     tab["test_percent"][currentRow] = test_percent
+#     tab["xTrain_shape"][currentRow] = xTrain_shape
+#     tab["xTest_shape"][currentRow] = xTest_shape
+#     tab["yTrain_shape"][currentRow] = yTrain_shape
+#     tab["yTest_shape"][currentRow] = yTest_shape
+#     tab["n_splits"][currentRow] = n_splits
+#     tab["random_state"][currentRow] = random_state
+#     tab["AccuracyScore"][currentRow] = AccuracyScore
+#     tab["KFoldAccuracy"][currentRow] = KFoldAccuracy
+#     tab["AccuracyScore_47"][currentRow] = AccuracyScore_47
+#     tab["KFoldAccuracy_47"][currentRow] = KFoldAccuracy_47
+#     tab["AccuracyScore_84"][currentRow] = AccuracyScore_84
+#     tab["KFoldAccuracy_84"][currentRow] = KFoldAccuracy_84
+#     tab["AccuracyScore_131"][currentRow] = AccuracyScore_131
+#     tab["KFoldAccuracy_131"][currentRow] = KFoldAccuracy_131
+#     tab.write('../Results/ml_Lenses_results.csv', overwrite = True)
 
-    row_count = sheet.max_row
-    column_count = sheet.max_column
+def appendRowAsList(filename, elementList):
+    with open(filename, 'a+') as writeObj:
+        csvWriter = writer(writeObj)
+        csvWriter.writerow(elementList)
 
-    currentRow = row_count + 1
-
-    return (currentRow)
-
-def addRowToTable(tab, description, train_percent, test_percent, n_splits, random_state, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131):
-    currentRow = getRowNum()
-
-    tab["Test"][currentRow] = currentRow
-    tab["Description"][currentRow] = description
-    tab["imageTrain_std"][currentRow] = imageTrain_std
-    tab["imageTrain_mean"][currentRow] = imageTrain_mean
-    tab["imageTrain_shape"][currentRow] = imageTrain_shape
-    tab["imageLabels_shape"][currentRow] = imageLabels_shape
-    tab["train_percent"][currentRow] = train_percent
-    tab["test_percent"][currentRow] = test_percent
-    tab["xTrain_shape"][currentRow] = xTrain_shape
-    tab["xTest_shape"][currentRow] = xTest_shape
-    tab["yTrain_shape"][currentRow] = yTrain_shape
-    tab["yTest_shape"][currentRow] = yTest_shape
-    tab["n_splits"][currentRow] = n_splits
-    tab["random_state"][currentRow] = random_state
-    tab["AccuracyScore"][currentRow] = AccuracyScore
-    tab["KFoldAccuracy"][currentRow] = KFoldAccuracy
-    tab["AccuracyScore_47"][currentRow] = AccuracyScore_47
-    tab["KFoldAccuracy_47"][currentRow] = KFoldAccuracy_47
-    tab["AccuracyScore_84"][currentRow] = AccuracyScore_84
-    tab["KFoldAccuracy_84"][currentRow] = KFoldAccuracy_84
-    tab["AccuracyScore_131"][currentRow] = AccuracyScore_131
-    tab["KFoldAccuracy_131"][currentRow] = KFoldAccuracy_131
-    tab.write('../Results/ml_Lenses_results.csv', overwrite = True)
-
+def getElementList(description, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, train_percent, test_percent, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, n_splits, random_state, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131):
+    elementList = [description, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, train_percent, test_percent, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, n_splits, random_state, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131]
+    return (elementList)
 #_______________________________________________________________________________________________________
+
 makeInitialTable()
+# random variables to test
+
+# description = ' This is just a description'
+# train_percent = 0.8
+# test_percent = 0.2
+# n_splits = 10
+# random_state = 100 
+# imageTrain_std = 0.99
+# imageTrain_mean = 0.005
+# imageTrain_shape = 20000, 3, 100, 100 
+# imageLabels_shape = 20000
+# xTrain_shape = 16000, 30000
+# xTest_shape = 4000, 30000
+# yTrain_shape = 16000
+# yTest_shape = 4000
+# AccuracyScore = 0.973
+# KFoldAccuracy = 0.96 
+# AccuracyScore_47 = 0.62
+# KFoldAccuracy_47 = 0.72
+# AccuracyScore_84 = 0.54
+# KFoldAccuracy_84 = 0.65
+# AccuracyScore_131 = 0.5
+# KFoldAccuracy_131 = 0.6
+
+# # elementList = getElementList(description, train_percent, test_percent, n_splits, random_state, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131)
+# filename = '../Results/ml_Lenses_results.csv'
+# appendRowAsList(filename, elementList)

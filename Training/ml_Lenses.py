@@ -445,6 +445,7 @@ random_state = 100
 kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
 results = model_selection.cross_val_score(clf_image, x_test, y_test, cv = kfold)
 KFoldAccuracy = (results.mean())*100
+KFoldAccuracy_std = results.std()
 
 # history  = (clf_image.fit(x_train, y_train))
 # loss_train = history.history['loss']
@@ -465,4 +466,6 @@ AccuracyScore_131, KFoldAccuracy_131 =testDES2017AndJacobs(knownDES2017, knownJa
 
 # write to ml_Lenses_results.xlsx
 tab = makeExcelTable.makeInitialTable()
-makeExcelTable.addRowToTable(tab, description, train_percent, test_percent, n_splits, random_state,  imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape,  xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131)
+elementList = makeExcelTable.getElementList(description, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, train_percent, test_percent, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, n_splits, random_state, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131)
+filename = '../Results/ml_Lenses_results.csv'
+makeExcelTable.appendRowAsList(filename, elementList)
