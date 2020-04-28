@@ -31,13 +31,13 @@ def makeInitialTable():
     tab.add_column(atpy.Column(np.zeros(1), "KFoldAccuracy_84"))
     tab.add_column(atpy.Column(np.zeros(1), "AccuracyScore_131"))
     tab.add_column(atpy.Column(np.zeros(1), "KFoldAccuracy_131"))
-    tab.write('../Results/ml_Lenses_results.csv', overwrite = True )
+    tab.write('../Results/ml_Lenses_results.csv', overwrite = True)
     return (tab)
 
 def getRowNum():
     # find out how many rows in table
 
-    wb = load_workbook('ml_Lenses_results.xlsx', use_iterators=True)
+    wb = load_workbook('../Results/ml_Lenses_results.csv')
     sheet = wb.worksheets[0]
 
     row_count = sheet.max_row
