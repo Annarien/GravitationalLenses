@@ -146,7 +146,7 @@ def getDES2017(base_dir = 'KnownLenses/DES2017/'):
     Returns:
         DataKnownDES (numpy array): This is the numpy array of the the DES2017 dataset.
     """
-    
+
     foldersKnownDES2017 = []
     for root, dirs, files in os.walk(base_dir):
         for folder in dirs:
@@ -315,7 +315,7 @@ def testJacobs():
     y_ImageLabels = encoder.fit_transform(labelsJacobsTest)
 
     y_pred = clf_image.predict(x_ImageTest)
-    AccuracyScore_84 = (accuracy_score(y_test, y_pred))*100
+    AccuracyScore_84 = (accuracy_score(y_ImageLabels, y_pred))*100
 
     results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
     KFoldAccuracy_84 = (results.mean())*100
@@ -350,7 +350,7 @@ def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray):
     y_ImageLabels = encoder.fit_transform(labelsKnownTest)
 
     y_pred = clf_image.predict(x_ImageTest)
-    AccuracyScore_131 = (accuracy_score(y_test, y_pred))*100
+    AccuracyScore_131 = (accuracy_score(y_ImageLabels, y_pred))*100
 
     results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
     KFoldAccuracy_131 = (results.mean())*100
@@ -435,6 +435,7 @@ description = str(clf_image)
 
 clf_image.fit(x_train, y_train)
 
+# Accuracy Testing
 y_pred = clf_image.predict(x_test)
 AccuracyScore = (accuracy_score(y_test, y_pred))*100
 
@@ -444,6 +445,7 @@ random_state = 100
 kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
 results = model_selection.cross_val_score(clf_image, x_test, y_test, cv = kfold)
 KFoldAccuracy = (results.mean())*100
+
 # history  = (clf_image.fit(x_train, y_train))
 # loss_train = history.history['loss']
 # loss_val = history.history['val_loss']
