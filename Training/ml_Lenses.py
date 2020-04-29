@@ -442,7 +442,7 @@ AccuracyScore = (accuracy_score(y_test, y_pred))*100
 # plotting Accuracy of the Predicted vs Actual
 plt.figure(figsize = (20,10))
 plt.plot(y_pred, label='Predicted')
-plt.plot(y_test.values, label='Actual')
+plt.plot(y_test, label='Actual')
 plt.ylabel('change in weight')
 plt.legend()
 plt.show()
@@ -457,8 +457,8 @@ KFoldAccuracy_std = results.std()
 
 # plotting Kfold Accuracy of the Predicted vs Actual.
 plt.figure(figsize = (20,10))
-plt.plot(results.values, label='results')
-plt.plot(y_test.values, label='Actual')
+plt.plot(results, label='results')
+plt.plot(y_test, label='Actual')
 plt.ylabel('change in weight')
 plt.legend()
 plt.show()
