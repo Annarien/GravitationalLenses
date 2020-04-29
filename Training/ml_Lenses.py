@@ -283,8 +283,8 @@ def testDES2017():
     y_pred = clf_image.predict(x_ImageTest)
     AccuracyScore_47 = (accuracy_score(y_ImageLabels, y_pred))*100
 
-    # results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
-    # KFoldAccuracy_47 = (results.mean())*100
+    results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
+    KFoldAccuracy_47 = (results.mean())*100
 
     return(knownDES2017Array, AccuracyScore_47, KFoldAccuracy_47)
 
@@ -317,8 +317,8 @@ def testJacobs():
     y_pred = clf_image.predict(x_ImageTest)
     AccuracyScore_84 = (accuracy_score(y_ImageLabels, y_pred))*100
 
-    # results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
-    # KFoldAccuracy_84 = (results.mean())*100
+    results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
+    KFoldAccuracy_84 = (results.mean())*100
 
     return(knownJacobsArray, AccuracyScore_84, KFoldAccuracy_84)
 
@@ -352,8 +352,8 @@ def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray):
     y_pred = clf_image.predict(x_ImageTest)
     AccuracyScore_131 = (accuracy_score(y_ImageLabels, y_pred))*100
 
-    # results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
-    # KFoldAccuracy_131 = (results.mean())*100
+    results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
+    KFoldAccuracy_131 = (results.mean())*100
 
     return(AccuracyScore_131, KFoldAccuracy_131)
 
@@ -406,7 +406,7 @@ def makeTrainTest(positiveArray, negativeArray):
     Y = encoder.fit_transform(imageLabels)
 
     # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
-    test_percent = 0.2
+    test_percent = 0.05
     x_train, x_test, y_train, y_test = train_test_split(X, Y, shuffle=True, test_size =test_percent)
     xTrain_shape = x_train.shape
     xTest_shape = x_test.shape
@@ -430,7 +430,7 @@ clf_image = MLPClassifier(activation = 'relu',
                           solver = 'adam', 
                           verbose = True,
                           random_state = 1,
-                          max_iter = 100)
+                          max_iter = 10)
 description = str(clf_image)
 
 clf_image.fit(x_train, y_train)
@@ -448,7 +448,7 @@ plt.legend()
 plt.show()
 
 # Cross Validation
-n_splits = 10
+n_splits = 5
 random_state = 100
 kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
 results = model_selection.cross_val_score(clf_image, x_test, y_test, cv = kfold)
@@ -477,12 +477,12 @@ plt.show()
 # plt.show()
 
 #______________________________________________________________________________________________________________________
-# knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()
-# knownJacobs, AccuracyScore_84, KFoldAccuracy_84= testJacobs()
-# AccuracyScore_131, KFoldAccuracy_131 =testDES2017AndJacobs(knownDES2017, knownJacobs)
+knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()
+knownJacobs, AccuracyScore_84, KFoldAccuracy_84= testJacobs()
+AccuracyScore_131, KFoldAccuracy_131 =testDES2017AndJacobs(knownDES2017, knownJacobs)
 
 # write to ml_Lenses_results.xlsx
-# tab = makeExcelTable.makeInitialTable()
-# elementList = makeExcelTable.getElementList(description, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, train_percent, test_percent, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, n_splits, random_state, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131)
-# filename = '../Results/ml_Lenses_results.csv'
-# makeExcelTable.appendRowAsList(filename, elementList)
+tab = makeExcelTable.makeInitialTable()
+elementList = makeExcelTable.getElementList(description, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, train_percent, test_percent, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, n_splits, random_state, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131)
+filename = '../Results/ml_Lenses_results.csv'
+makeExcelTable.appendRowAsList(filename, elementList)
