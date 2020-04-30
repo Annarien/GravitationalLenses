@@ -430,7 +430,7 @@ clf_image = MLPClassifier(activation = 'relu',
                           solver = 'adam', 
                           verbose = True,
                           random_state = 1,
-                          max_iter = 10)
+                          max_iter = 5)
 description = str(clf_image)
 
 clf_image.fit(x_train, y_train)
