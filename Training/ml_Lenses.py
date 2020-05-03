@@ -406,7 +406,7 @@ def makeTrainTest(positiveArray, negativeArray):
     Y = encoder.fit_transform(imageLabels)
 
     # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
-    test_percent = 0.05
+    test_percent = 0.2
     x_train, x_test, y_train, y_test = train_test_split(X, Y, shuffle=True, test_size =test_percent)
     xTrain_shape = x_train.shape
     xTest_shape = x_test.shape
@@ -430,24 +430,31 @@ clf_image = MLPClassifier(activation = 'relu',
                           solver = 'adam', 
                           verbose = True,
                           random_state = 1,
-                          max_iter = 5)
+                          max_iter = 100)
+
 description = str(clf_image)
 
+# Getting training loss
 clf_image.fit(x_train, y_train)
+loss_train = clf_image.loss_curve_
 
 # Accuracy Testing
 y_pred = clf_image.predict(x_test)
 AccuracyScore = (accuracy_score(y_test, y_pred))*100
 
-# plotting Accuracy of the Predicted vs Actual
-plt.figure(figsize = (20,10))
-plt.plot(y_pred, label='Predicted')
-plt.plot(y_test, label='Actual')
-plt.ylabel('change in weight')
+# Getting validation loss
+clf_image.fit(x_test,y_test)
+loss_val = clf_image.loss_curve_
+
+epochs = range(1,50)
+plt.plot(loss_train, label = 'Training Loss')
+plt.plot(loss_val, label = 'Validation Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
 plt.legend()
 plt.show()
 
-# Cross Validation
+# # Cross Validation
 n_splits = 5
 random_state = 100
 kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
@@ -455,34 +462,12 @@ results = model_selection.cross_val_score(clf_image, x_test, y_test, cv = kfold)
 KFoldAccuracy = (results.mean())*100
 KFoldAccuracy_std = results.std()
 
-# plotting Kfold Accuracy of the Predicted vs Actual.
-plt.figure(figsize = (20,10))
-plt.plot(results, label='results')
-plt.plot(y_test, label='Actual')
-plt.ylabel('change in weight')
-plt.legend()
-plt.show()
-
-
-# history  = (clf_image.fit(x_train, y_train))
-# loss_train = history.history['loss']
-# loss_val = history.history['val_loss']
-
-# epochs = range(1,35)
-# plt.plot(loss_train, label = 'Training Loss')
-# plt.plot(loss_val, label = 'Validation Loss')
-# plt.xlabel('Epochs')
-# plt.ylabel('Loss')
-# plt.legend()
-# plt.show()
-
 #______________________________________________________________________________________________________________________
 knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()
 knownJacobs, AccuracyScore_84, KFoldAccuracy_84= testJacobs()
 AccuracyScore_131, KFoldAccuracy_131 =testDES2017AndJacobs(knownDES2017, knownJacobs)
 
 # write to ml_Lenses_results.xlsx
-tab = makeExcelTable.makeInitialTable()
 elementList = makeExcelTable.getElementList(description, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, train_percent, test_percent, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, n_splits, random_state, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131)
 filename = '../Results/ml_Lenses_results.csv'
 makeExcelTable.appendRowAsList(filename, elementList)
