@@ -454,7 +454,7 @@ plt.ylabel('Loss')
 plt.legend()
 plt.savefig('../Results/TrainingvsValidationLoss.png')
 
-# # Cross Validation
+# Cross Validation
 n_splits = 5
 random_state = 100
 kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
