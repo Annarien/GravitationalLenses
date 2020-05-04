@@ -9,11 +9,16 @@ import makeExcelTable
 
 from astropy.utils.data import get_pkg_data_filename
 from astropy.io import fits
+
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
-from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import accuracy_score
-from sklearn import model_selection
+# from sklearn.neural_network import MLPClassifier
+# from sklearn.metrics import accuracy_score
+# from sklearn import model_selection
+
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D
+from tensorflow.keras.layers import Activation, Flatten, Dense, Dropout
 
 # FUNCTIONS
 def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
@@ -392,14 +397,6 @@ def makeTrainTest(positiveArray, negativeArray):
     imageTrain_mean = imageTrain.mean()
     imageTrain_shape = imageTrain.shape
     imageLabels_shape = imageLabels.shape
-    
-    # im2disp = imageTrain[10].transpose((1,2,0)) # changed 0,1,2,3 array to 0,1,2 for images(this is now from 10000,3, 100, 100, to 3,100,10000 )
-    # plt.imshow(im2disp)
-    # plt.show()
-    # print('Label: ' , imageLabels[10])
-
-    # reshape X
-    X = imageTrain.reshape(imageTrain.shape[0], imageTrain.shape[1]*imageTrain.shape[2]*imageTrain.shape[3]) # batchsize, height*width*3channels
 
     # Encoding Y now
     encoder = LabelEncoder()
@@ -407,11 +404,16 @@ def makeTrainTest(positiveArray, negativeArray):
 
     # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
     test_percent = 0.2
-    x_train, x_test, y_train, y_test = train_test_split(X, Y, shuffle=True, test_size =test_percent)
+    x_train, x_test, y_train, y_test = train_test_split(imageTrain, Y, shuffle=True, test_size =test_percent)
     xTrain_shape = x_train.shape
     xTest_shape = x_test.shape
     yTrain_shape = y_train.shape
     yTest_shape = y_test.shape
+
+    print("x_train: " +str(xTrain_shape))
+    print("y_train: "+str(yTrain_shape))
+    print("x_test shape: "+str(xTest_shape))
+    print("y_test shape: "+str(yTest_shape))
 
     train_percent = (1 - test_percent)
 
@@ -424,50 +426,61 @@ negativeArray = getNegativeDES()
 
 x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape = makeTrainTest(positiveArray, negativeArray)
 
-# Trianing the data with MLPClassifier, from scikit learn
-clf_image = MLPClassifier(activation = 'relu',
-                          hidden_layer_sizes = (100, 100, 100), # 3 layers of 100 neurons each
-                          solver = 'adam', 
-                          verbose = True,
-                          random_state = 1,
-                          max_iter = 100)
+from keras import backend as K 
 
-description = str(clf_image)
+model = Sequential()
+model.add(Conv2D(64, kernel_size = (3, 3), activation='relu', input_shape=(3, 100, 100)))
+model.add(MaxPooling2D(pool_size=(2,2), padding = 'same'))
+model.add(Flatten())
+model.add(Dense(128))
+model.add(Activation('relu'))
+model.add(Dense(1))
+model.add(Activation('sigmoid'))
+model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+seqModel = model.fit(x_train, y_train, epochs=50, batch_size=200, validation_data=(x_test, y_test))
 
-# Getting training loss
-clf_image.fit(x_train, y_train)
-loss_train = clf_image.loss_curve_
+description = str(model)
 
 # Accuracy Testing
-y_pred = clf_image.predict(x_test)
-AccuracyScore = (accuracy_score(y_test, y_pred))*100
+y_pred = model.predict(x_test)
+_, acc = model.evaluate(x_test, y_test, verbose=0)
+accuracyscore =  acc * 100.0
+AccuracyScore = accuracyscore
+print("Accuracy Score: " +str(AccuracyScore))
 
-# Getting validation loss
-clf_image.fit(x_test,y_test)
-loss_val = clf_image.loss_curve_
+# getting model loss images for training
+# acc = model.history['accuracy']
+# val_acc = model.history['val_accuracy']
+from keras.callbacks import History 
+history = History()
 
-epochs = range(1,50)
+print(seqModel.history['loss'])
+loss_train = seqModel.history['loss']
+print(seqModel.history['val_loss'])
+loss_val = seqModel.history['val_loss']
+
+# epochs = range(1,50)
 plt.plot(loss_train, label = 'Training Loss')
 plt.plot(loss_val, label = 'Validation Loss')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
-plt.savefig('../Results/TrainingvsValidationLoss.png')
+plt.savefig('../Results/TrainingvsValidationLoss_Keras.png')
 
-# Cross Validation
-n_splits = 5
-random_state = 100
-kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
-results = model_selection.cross_val_score(clf_image, x_test, y_test, cv = kfold)
-KFoldAccuracy = (results.mean())*100
-KFoldAccuracy_std = results.std()
+# # Cross Validation
+# n_splits = 5
+# random_state = 100
+# kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
+# results = model_selection.cross_val_score(clf_image, x_test, y_test, cv = kfold)
+# KFoldAccuracy = (results.mean())*100
+# KFoldAccuracy_std = results.std()
 
 #______________________________________________________________________________________________________________________
-knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()
-knownJacobs, AccuracyScore_84, KFoldAccuracy_84= testJacobs()
-AccuracyScore_131, KFoldAccuracy_131 =testDES2017AndJacobs(knownDES2017, knownJacobs)
+# knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()
+# knownJacobs, AccuracyScore_84, KFoldAccuracy_84= testJacobs()
+# AccuracyScore_131, KFoldAccuracy_131 =testDES2017AndJacobs(knownDES2017, knownJacobs)
 
-# write to ml_Lenses_results.xlsx
-elementList = makeExcelTable.getElementList(description, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, train_percent, test_percent, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, n_splits, random_state, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131)
-filename = '../Results/ml_Lenses_results.csv'
-makeExcelTable.appendRowAsList(filename, elementList)
+# # write to ml_Lenses_results.xlsx
+# elementList = makeExcelTable.getElementList(description, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, train_percent, test_percent, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, n_splits, random_state, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131)
+# filename = '../Results/ml_Lenses_results.csv'
+# makeExcelTable.appendRowAsList(filename, elementList)
