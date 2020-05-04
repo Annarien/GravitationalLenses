@@ -435,9 +435,8 @@ model.add(Flatten())
 model.add(Dense(128))
 model.add(Activation('relu'))
 model.add(Dense(1))
-model.add(Activation('sigmoid'))
 model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
-seqModel = model.fit(x_train, y_train, epochs=50, batch_size=200, validation_data=(x_test, y_test))
+seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test))
 
 description = str(model)
 
