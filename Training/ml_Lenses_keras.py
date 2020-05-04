@@ -429,7 +429,7 @@ x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, i
 from keras import backend as K 
 
 model = Sequential()
-model.add(Conv2D(64, kernel_size = (3, 3), activation='relu', input_shape=(3, 100, 100)))
+model.add(Conv2D(8, kernel_size = (3, 3), activation='relu', input_shape=(3, 100, 100)))
 model.add(MaxPooling2D(pool_size=(2,2), padding = 'same'))
 model.add(Flatten())
 model.add(Dense(128))
