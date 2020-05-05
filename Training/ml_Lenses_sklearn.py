@@ -441,7 +441,7 @@ AccuracyScore = (accuracy_score(y_test, y_pred))*100
 clf_image.fit(x_test,y_test)
 loss_val = clf_image.loss_curve_
 
-epochs = range(1,50)
+epochs = range(1,30)
 plt.plot(loss_train, label = 'Training Loss')
 plt.plot(loss_val, label = 'Validation Loss')
 plt.xlabel('Epochs')
