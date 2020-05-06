@@ -425,7 +425,8 @@ clf_image = MLPClassifier(activation = 'relu',
                           solver = 'adam', 
                           verbose = True,
                           random_state = 1,
-                          max_iter = 100)
+                          max_iter = 100,
+                          early_stopping=True)
 
 description = str(clf_image)
 
