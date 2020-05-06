@@ -19,6 +19,12 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D
 from tensorflow.keras.layers import Activation, Flatten, Dense, Dropout
+from keras import backend as K 
+from keras.callbacks import History 
+from sklearn.model_selection import StratifiedKFold
+
+
+
 
 # FUNCTIONS
 def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
@@ -404,7 +410,7 @@ def makeTrainTest(positiveArray, negativeArray):
 
     # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
     test_percent = 0.2
-    x_train, x_test, y_train, y_test = train_test_split(imageTrain, Y, shuffle=True, test_size =test_percent)
+    x_train, x_test, y_train, y_test = train_test_split(imageTrain, Y, shuffle=True, test_size =test_percent, random_state = 1 )
     xTrain_shape = x_train.shape
     xTest_shape = x_test.shape
     yTrain_shape = y_train.shape
@@ -418,6 +424,30 @@ def makeTrainTest(positiveArray, negativeArray):
     train_percent = (1 - test_percent)
 
     return(x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape)
+
+def makeKerasModel():
+    # mlp classifeir without cnn
+    model = Sequential()
+    model.add(Dense(100, activation = 'relu', input_shape = (3, 100, 100)))
+    model.add(Dense(100, activation = 'relu'))
+    model.add(Dense(100, activation = 'relu'))
+    model.add(Flatten())
+    # model.add(Dense(100))
+    # model.add(Activation('relu'))
+    model.add(Dense(1))
+    # model.add(Activation('sigmoid'))
+    model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+
+    # model = Sequential()
+    # model.add(Conv2D(4, kernel_size = (3, 3), activation='relu', input_shape=(3, 100, 100)))
+    # model.add(MaxPooling2D(pool_size=(2,2), padding = 'same'))
+    # model.add(Flatten())
+    # model.add(Dense(128))
+    # model.add(Activation('relu'))
+    # model.add(Dense(1))
+    # model.add(Activation('sigmoid'))
+    # model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+    return (model)
 #_____________________________________________________________________________________________________________________________
 # MAIN
 
@@ -426,16 +456,7 @@ negativeArray = getNegativeDES()
 
 x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape = makeTrainTest(positiveArray, negativeArray)
 
-from keras import backend as K 
-
-model = Sequential()
-model.add(Conv2D(4, kernel_size = (3, 3), activation='relu', input_shape=(3, 100, 100)))
-model.add(MaxPooling2D(pool_size=(2,2), padding = 'same'))
-model.add(Flatten())
-model.add(Dense(128))
-model.add(Activation('relu'))
-model.add(Dense(1))
-model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+model = makeKerasModel()
 seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test))
 
 description = str(model)
@@ -448,14 +469,10 @@ AccuracyScore = accuracyscore
 print("Accuracy Score: " +str(AccuracyScore))
 
 # getting model loss images for training
-# acc = model.history['accuracy']
-# val_acc = model.history['val_accuracy']
-from keras.callbacks import History 
 history = History()
-
-print(seqModel.history['loss'])
+# print(seqModel.history['loss'])
 loss_train = seqModel.history['loss']
-print(seqModel.history['val_loss'])
+# print(seqModel.history['val_loss'])
 loss_val = seqModel.history['val_loss']
 
 # epochs = range(1,50)
@@ -466,13 +483,23 @@ plt.ylabel('Loss')
 plt.legend()
 plt.savefig('../Results/TrainingvsValidationLoss_Keras.png')
 
-# # Cross Validation
-# n_splits = 5
-# random_state = 100
-# kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
-# results = model_selection.cross_val_score(clf_image, x_test, y_test, cv = kfold)
-# KFoldAccuracy = (results.mean())*100
-# KFoldAccuracy_std = results.std()
+# Stratified K fold Cross Validation
+n_folds = 10
+skf = StratifiedKFold(n_splits = n_folds, shuffle = True)
+cv_scores, model_history = list(), list()
+
+for trainIndex, testIndex in range(n_folds):
+    # split data
+    x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape = makeTrainTest(positiveArray, negativeArray)
+    # evaluate model
+    xTrain, xTest = x_train[trainIndex], x_test[testIndex]
+    yTrain, yTest = y_train[trainIndex], y_test[testIndex]
+
+    model = makeKerasModel()
+    seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test))
+    
+
+# 
 
 #______________________________________________________________________________________________________________________
 # knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()

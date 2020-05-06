@@ -450,7 +450,7 @@ plt.legend()
 plt.savefig('../Results/TrainingvsValidationLoss.png')
 
 # Cross Validation
-n_splits = 5
+n_splits = 10
 random_state = 100
 kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
 results = model_selection.cross_val_score(clf_image, x_test, y_test, cv = kfold)
