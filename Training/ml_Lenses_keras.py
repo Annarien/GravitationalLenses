@@ -22,6 +22,8 @@ from tensorflow.keras.layers import Activation, Flatten, Dense, Dropout
 from keras import backend as K 
 from keras.callbacks import History 
 from sklearn.model_selection import StratifiedKFold
+from keras.callbacks import EarlyStopping
+
 
 
 
@@ -455,9 +457,10 @@ positiveArray = getPositiveSimulated()
 negativeArray = getNegativeDES()
 
 x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape = makeTrainTest(positiveArray, negativeArray)
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1)
 
 model = makeKerasModel()
-seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test))
+seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test), callbacks = [es])
 
 description = str(model)
 
@@ -470,9 +473,7 @@ print("Accuracy Score: " +str(AccuracyScore))
 
 # getting model loss images for training
 history = History()
-# print(seqModel.history['loss'])
 loss_train = seqModel.history['loss']
-# print(seqModel.history['val_loss'])
 loss_val = seqModel.history['val_loss']
 
 # epochs = range(1,50)
@@ -483,20 +484,20 @@ plt.ylabel('Loss')
 plt.legend()
 plt.savefig('../Results/TrainingvsValidationLoss_Keras.png')
 
-# Stratified K fold Cross Validation
-n_folds = 10
-skf = StratifiedKFold(n_splits = n_folds, shuffle = True)
-cv_scores, model_history = list(), list()
+# # Stratified K fold Cross Validation
+# n_folds = 10
+# skf = StratifiedKFold(n_splits = n_folds, shuffle = True)
+# cv_scores, model_history = list(), list()
 
-for trainIndex, testIndex in range(n_folds):
-    # split data
-    x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape = makeTrainTest(positiveArray, negativeArray)
-    # evaluate model
-    xTrain, xTest = x_train[trainIndex], x_test[testIndex]
-    yTrain, yTest = y_train[trainIndex], y_test[testIndex]
+# for trainIndex, testIndex in range(n_folds):
+#     # split data
+#     x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape = makeTrainTest(positiveArray, negativeArray)
+#     # evaluate model
+#     xTrain, xTest = x_train[trainIndex], x_test[testIndex]
+#     yTrain, yTest = y_train[trainIndex], y_test[testIndex]
 
-    model = makeKerasModel()
-    seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test))
+#     model = makeKerasModel()
+#     seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test))
     
 
 # 
