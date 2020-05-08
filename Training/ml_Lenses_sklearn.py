@@ -426,7 +426,7 @@ clf_image = MLPClassifier(activation = 'relu',
                           verbose = True,
                           random_state = 1,
                           max_iter = 100,
-                          early_stopping=True)
+                          early_stopping=True) # batchsize = 200 default
 
 description = str(clf_image)
 

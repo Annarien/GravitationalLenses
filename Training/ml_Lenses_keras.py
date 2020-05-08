@@ -141,12 +141,14 @@ def loadImage(positiveArray, negativeArray):
 
     for num in range(0,len(positiveArray)):
         image_train.append(positiveArray[num])
-        labelPos = 'Gravitational Lensing'
+        # labelPos = 'Gravitational Lensing'
+        labelPos = 1 # assign 1 for gravitational lensing
         image_labels.append(labelPos)
     
     for num in range(0,len(negativeArray)):
         image_train.append(negativeArray[num])
-        labelNeg = 'No Gravitational Lensing'
+        # labelNeg = 'No Gravitational Lensing'
+        labelNeg = 0 # assign 0  for non gravitational lenses 
         image_labels.append(labelNeg)
 
     return (np.array(image_train), np.array(image_labels))
@@ -418,10 +420,14 @@ def makeTrainTest(positiveArray, negativeArray):
     yTrain_shape = y_train.shape
     yTest_shape = y_test.shape
 
+    # yTrain_shape = y_train.reshape(-1).shape
+    # y_train=y_train.reshape(-1)
+    # yTest_shape = y_test.reshape(-1).shape
+    # y_test = y_test.reshape(-1)
     print("x_train: " +str(xTrain_shape))
-    print("y_train: "+str(yTrain_shape))
+    print("y_train: "+str(y_train.shape))
     print("x_test shape: "+str(xTest_shape))
-    print("y_test shape: "+str(yTest_shape))
+    print("y_test shape: "+str(y_train.shape))
 
     train_percent = (1 - test_percent)
 
@@ -430,15 +436,15 @@ def makeTrainTest(positiveArray, negativeArray):
 def makeKerasModel():
     # mlp classifeir without cnn
     model = Sequential()
-    model.add(Dense(100, activation = 'relu', input_shape = (3, 100, 100)))
+    model.add(Dense(1000, activation = 'relu', input_shape = (3, 100, 100)))
     model.add(Dense(100, activation = 'relu'))
-    model.add(Dense(100, activation = 'relu'))
+    # model.add(Dense(100, activation = 'relu'))
     model.add(Flatten())
     # model.add(Dense(100))
     # model.add(Activation('relu'))
     model.add(Dense(1))
-    # model.add(Activation('sigmoid'))
-    model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+    model.add(Activation('sigmoid')) # THE KERAS WITHOUT ES PNG IMAGE, HAS SIGMOID
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     # model = Sequential()
     # model.add(Conv2D(4, kernel_size = (3, 3), activation='relu', input_shape=(3, 100, 100)))
@@ -457,7 +463,7 @@ positiveArray = getPositiveSimulated()
 negativeArray = getNegativeDES()
 
 x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape = makeTrainTest(positiveArray, negativeArray)
-es = EarlyStopping(monitor='val_loss', mode='min', verbose=1)
+es = EarlyStopping(monitor='val_loss', verbose=1, patience = 3)
 
 model = makeKerasModel()
 seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test), callbacks = [es])
@@ -499,9 +505,6 @@ plt.savefig('../Results/TrainingvsValidationLoss_Keras.png')
 #     model = makeKerasModel()
 #     seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test))
     
-
-# 
-
 #______________________________________________________________________________________________________________________
 # knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()
 # knownJacobs, AccuracyScore_84, KFoldAccuracy_84= testJacobs()
