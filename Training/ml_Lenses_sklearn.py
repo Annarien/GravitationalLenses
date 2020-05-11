@@ -422,9 +422,8 @@ x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, i
 # Trianing the data with MLPClassifier, from scikit learn
 clf_image = MLPClassifier(activation = 'relu',
                           hidden_layer_sizes = (100, 100, 100), # 3 layers of 100 neurons each
-                          solver = 'adam', 
+                          solver = 'sgd', 
                           verbose = True,
-                          random_state = 1,
                           max_iter = 100,
                           early_stopping=True) # batchsize = 200 default
 
