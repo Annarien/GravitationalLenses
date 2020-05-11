@@ -424,7 +424,6 @@ clf_image = MLPClassifier(activation = 'relu',
                           hidden_layer_sizes = (100, 100, 100), # 3 layers of 100 neurons each
                           solver = 'adam', 
                           verbose = True,
-                          random_state = 1,
                           max_iter = 100,
                           early_stopping=True) # batchsize = 200 default
 
@@ -439,7 +438,7 @@ y_pred = clf_image.predict(x_test)
 AccuracyScore = (accuracy_score(y_test, y_pred))*100
 
 # Getting validation loss
-clf_image.fit(x_test,y_test)
+clf_image.fit(x_test, y_test)
 loss_val = clf_image.loss_curve_
 
 epochs = range(1,30)
