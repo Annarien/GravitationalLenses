@@ -6,25 +6,23 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import makeExcelTable
-
 from astropy.utils.data import get_pkg_data_filename
 from astropy.io import fits
-
 from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-# from sklearn.neural_network import MLPClassifier
-# from sklearn.metrics import accuracy_score
-# from sklearn import model_selection
-
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D
-from tensorflow.keras.layers import Activation, Flatten, Dense, Dropout
 from keras import backend as K 
 from keras.callbacks import History 
-from sklearn.model_selection import StratifiedKFold
-from keras.callbacks import EarlyStopping
+import pandas as pd
+import math
+import cv2
+from sklearn.model_selection import train_test_split, StratifiedKFold
+import keras
+from keras.models import Sequential, Model
+from keras.layers import Input, Flatten, Dense, Dropout, Convolution2D, Conv2D, MaxPooling2D, Lambda, GlobalMaxPooling2D, GlobalAveragePooling2D, BatchNormalization, Activation, AveragePooling2D, Concatenate
+from keras.preprocessing.image import ImageDataGenerator
+from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+from keras.utils import np_utils
 
-
+keras.backend.set_image_data_format('channels_last')
 
 
 
@@ -456,6 +454,29 @@ def makeKerasModel():
     # model.add(Activation('sigmoid'))
     # model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
     return (model)
+
+def load_data_kfold(x_train, y_train, x_test, y_test):
+    k = 10
+    folds = list(StratifiedKFold(n_splits=k, shuffle=True, random_state=1).split(x_train, y_train))
+    print("Folds: " +str(len(folds)))
+    print("x_train shape: " + str(x_train.shape))
+    print("x_test shape: " + str(x_test.shape))
+    print("y_train shape: " +str(y_train.shape))
+    print("y_test shape: " + str(y_test.shape))
+    # print("enumerate(folds): " +str(enumerate(folds)))
+
+    for k, (train_idx, val_idx) in enumerate(folds):
+    
+        print('\nFold ',k)
+        # print(train)
+        X_train_cv, x_test_cv = x_train[train_idx], x_test[val_idx]
+        y_train_cv, y_test_cv = y_train[train_idx], y_test[val_idx]
+        model = makeKerasModel()
+        seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test_cv, y_test_cv), callbacks = [es])
+        print(seqModel.evaluate(x_test_cv, y_test_cv))
+
+
+
 #_____________________________________________________________________________________________________________________________
 # MAIN
 
@@ -489,6 +510,8 @@ plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
 plt.savefig('../Results/TrainingvsValidationLoss_Keras.png')
+
+load_data_kfold(x_train, y_train, x_test, y_test)
 
 # # Stratified K fold Cross Validation
 # n_folds = 10
