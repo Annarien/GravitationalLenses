@@ -21,6 +21,7 @@ from keras.layers import Input, Flatten, Dense, Dropout, Convolution2D, Conv2D, 
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from keras.utils import np_utils
+from sklearn import model_selection
 
 keras.backend.set_image_data_format('channels_last')
 
@@ -455,28 +456,6 @@ def makeKerasModel():
     # model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
     return (model)
 
-def load_data_kfold(x_train, y_train, x_test, y_test):
-    k = 10
-    folds = list(StratifiedKFold(n_splits=k, shuffle=True, random_state=1).split(x_train, y_train))
-    print("Folds: " +str(len(folds)))
-    print("x_train shape: " + str(x_train.shape))
-    print("x_test shape: " + str(x_test.shape))
-    print("y_train shape: " +str(y_train.shape))
-    print("y_test shape: " + str(y_test.shape))
-    # print("enumerate(folds): " +str(enumerate(folds)))
-
-    for k, (train_idx, val_idx) in enumerate(folds):
-    
-        print('\nFold ',k)
-        # print(train)
-        X_train_cv, x_test_cv = x_train[train_idx], x_test[val_idx]
-        y_train_cv, y_test_cv = y_train[train_idx], y_test[val_idx]
-        model = makeKerasModel()
-        seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test_cv, y_test_cv), callbacks = [es])
-        print(seqModel.evaluate(x_test_cv, y_test_cv))
-
-
-
 #_____________________________________________________________________________________________________________________________
 # MAIN
 
@@ -492,8 +471,8 @@ seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_dat
 description = str(model)
 
 # Accuracy Testing
-y_pred = model.predict(x_test)
-_, acc = model.evaluate(x_test, y_test, verbose=0)
+y_pred = seqModel.predict(x_test)
+_, acc = seqModel.evaluate(x_test, y_test, verbose=0)
 accuracyscore =  acc * 100.0
 AccuracyScore = accuracyscore
 print("Accuracy Score: " +str(AccuracyScore))
@@ -511,22 +490,14 @@ plt.ylabel('Loss')
 plt.legend()
 plt.savefig('../Results/TrainingvsValidationLoss_Keras.png')
 
-load_data_kfold(x_train, y_train, x_test, y_test)
 
 # # Stratified K fold Cross Validation
-# n_folds = 10
-# skf = StratifiedKFold(n_splits = n_folds, shuffle = True)
-# cv_scores, model_history = list(), list()
-
-# for trainIndex, testIndex in range(n_folds):
-#     # split data
-#     x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape = makeTrainTest(positiveArray, negativeArray)
-#     # evaluate model
-#     xTrain, xTest = x_train[trainIndex], x_test[testIndex]
-#     yTrain, yTest = y_train[trainIndex], y_test[testIndex]
-
-#     model = makeKerasModel()
-#     seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test))
+n_splits = 10
+random_state = 100
+kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
+results = model_selection.cross_val_score(seqModel, x_test, y_test, cv = kfold)
+KFoldAccuracy = (results.mean())*100
+KFoldAccuracy_std = results.std()
     
 #______________________________________________________________________________________________________________________
 # knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()
