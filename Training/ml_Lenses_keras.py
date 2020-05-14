@@ -17,10 +17,6 @@ from keras.callbacks import EarlyStopping
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.datasets import make_classification
 
-# keras.backend.set_image_data_format('channels_last')
-
-
-
 # FUNCTIONS
 def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
     """
@@ -486,7 +482,6 @@ plt.savefig('../Results/TrainingvsValidationLoss_Keras.png')
 
 # # Stratified K fold Cross Validation
 neural_network = KerasClassifier(build_fn=makeKerasModel, # I am calling a def, then why is it not makeKerasModel()?
-
                                  epochs=10, 
                                  batch_size=100, 
                                  verbose=0)
