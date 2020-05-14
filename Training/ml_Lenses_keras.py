@@ -471,8 +471,8 @@ seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_dat
 description = str(model)
 
 # Accuracy Testing
-y_pred = seqModel.predict(x_test)
-_, acc = seqModel.evaluate(x_test, y_test, verbose=0)
+y_pred = model.predict(x_test)
+_, acc = model.evaluate(x_test, y_test, verbose=0)
 accuracyscore =  acc * 100.0
 AccuracyScore = accuracyscore
 print("Accuracy Score: " +str(AccuracyScore))
@@ -490,14 +490,17 @@ plt.ylabel('Loss')
 plt.legend()
 plt.savefig('../Results/TrainingvsValidationLoss_Keras.png')
 
-
 # # Stratified K fold Cross Validation
 n_splits = 10
 random_state = 100
 kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
-results = model_selection.cross_val_score(seqModel, x_test, y_test, cv = kfold)
+results = model_selection.cross_val_score(model, x_test, y_test, cv = kfold)
 KFoldAccuracy = (results.mean())*100
 KFoldAccuracy_std = results.std()
+
+plt.plot(results, label = 'Results')
+plt.legend()
+plt.savefig('../Results/SklearnKFold.png')
     
 #______________________________________________________________________________________________________________________
 # knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()

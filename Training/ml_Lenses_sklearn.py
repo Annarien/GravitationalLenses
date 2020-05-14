@@ -457,6 +457,10 @@ results = model_selection.cross_val_score(clf_image, x_test, y_test, cv = kfold)
 KFoldAccuracy = (results.mean())*100
 KFoldAccuracy_std = results.std()
 
+plt.plot(results, label = 'Results')
+plt.legend()
+plt.savefig('../Results/SklearnKFold.png')
+
 #______________________________________________________________________________________________________________________
 knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()
 knownJacobs, AccuracyScore_84, KFoldAccuracy_84= testJacobs()
