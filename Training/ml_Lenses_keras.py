@@ -9,21 +9,15 @@ import makeExcelTable
 from astropy.utils.data import get_pkg_data_filename
 from astropy.io import fits
 from sklearn.preprocessing import LabelEncoder
-from keras import backend as K 
 from keras.callbacks import History 
-import pandas as pd
-import math
-import cv2
-from sklearn.model_selection import train_test_split, StratifiedKFold
-import keras
-from keras.models import Sequential, Model
+from sklearn.model_selection import train_test_split, cross_val_score
+from keras.models import Sequential
 from keras.layers import Input, Flatten, Dense, Dropout, Convolution2D, Conv2D, MaxPooling2D, Lambda, GlobalMaxPooling2D, GlobalAveragePooling2D, BatchNormalization, Activation, AveragePooling2D, Concatenate
-from keras.preprocessing.image import ImageDataGenerator
-from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
-from keras.utils import np_utils
-from sklearn import model_selection
+from keras.callbacks import EarlyStopping
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.datasets import make_classification
 
-keras.backend.set_image_data_format('channels_last')
+# keras.backend.set_image_data_format('channels_last')
 
 
 
@@ -491,16 +485,19 @@ plt.legend()
 plt.savefig('../Results/TrainingvsValidationLoss_Keras.png')
 
 # # Stratified K fold Cross Validation
-n_splits = 10
-random_state = 100
-kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
-results = model_selection.cross_val_score(model, x_test, y_test, cv = kfold)
+neural_network = KerasClassifier(build_fn=makeKerasModel, # I am calling a def, then why is it not makeKerasModel()?
+
+                                 epochs=10, 
+                                 batch_size=100, 
+                                 verbose=0)
+
+results = cross_val_score(neural_network, x_test, y_test, cv=10)
 KFoldAccuracy = (results.mean())*100
 KFoldAccuracy_std = results.std()
 
 plt.plot(results, label = 'Results')
 plt.legend()
-plt.savefig('../Results/SklearnKFold.png')
+plt.savefig('../Results/KerasKFold.png')
     
 #______________________________________________________________________________________________________________________
 # knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()
