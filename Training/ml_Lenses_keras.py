@@ -511,6 +511,12 @@ def getKerasKFold(x_train, x_test, y_train, y_test):
     plt.legend()
     fig3.savefig('../Results/KerasKFold.png')
     # fig3.close()
+
+    fig4 = plt.figure()
+    plt.plot(KFoldAccuracy, label = 'Scores Mean')
+    plt.plot(KFoldAccuracy_std, label = 'Scores Standard Deviation')
+    plt.legend()
+    fig4.savefig('../Results/KerasKFoldScores.png')
     #_____________________________________________________________________________________________________________________________
 
 # MAIN
