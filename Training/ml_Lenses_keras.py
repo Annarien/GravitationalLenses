@@ -349,6 +349,7 @@ def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray):
 
     imageKnownTest, labelsKnownTest = loadImage(allKnownArray, unknownArray)
     x_ImageTest = imageKnownTest.reshape(imageKnownTest.shape[0], imageKnownTest.shape[1]*imageKnownTest.shape[2]*imageKnownTest.shape[3]) # batchsize, height*width*3channels
+    print(" x ImageTest: " + str(x_ImageTest.shape))
 
     encoder = LabelEncoder()
     y_ImageLabels = encoder.fit_transform(labelsKnownTest)
@@ -395,11 +396,16 @@ def makeTrainTest(positiveArray, negativeArray):
     imageTrain_std = imageTrain.std()
     imageTrain_mean = imageTrain.mean()
     imageTrain_shape = imageTrain.shape
+
+    # X = imageTrain.reshape(imageTrain.shape[0], imageTrain.shape[1]*imageTrain.shape[2]*imageTrain.shape[3])
+    # print("X shape: " + str(X.shape))
+
     imageLabels_shape = imageLabels.shape
 
     # Encoding Y now
     encoder = LabelEncoder()
     Y = encoder.fit_transform(imageLabels)
+    print("Y shape: " +str(Y.shape))
 
     # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
     test_percent = 0.2
@@ -446,53 +452,74 @@ def makeKerasModel():
     # model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
     return (model)
 
-#_____________________________________________________________________________________________________________________________
+def useKerasModel(positiveArray, negativeArray):
+    x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape = makeTrainTest(positiveArray, negativeArray)
+    es = EarlyStopping(monitor='val_loss', verbose=1, patience = 3)
+
+    model = makeKerasModel()
+    seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test), callbacks = [es])
+
+    description = str(model)
+    # Accuracy Testing
+    y_pred = model.predict(x_test)
+    _, acc = model.evaluate(x_test, y_test, verbose=0)
+    accuracyscore =  acc * 100.0
+    AccuracyScore = accuracyscore
+    print("Accuracy Score: " +str(AccuracyScore))
+
+    # plot training vs validation loss. 
+    history = History()
+    train_loss = seqModel.history['loss']
+    val_loss = seqModel.history['val_loss']
+    accuracy = seqModel.history['accuracy']
+    accuracy_loss = seqModel.history['val_accuracy']
+
+    # epochs = range(1,50)
+    fig1 = plt.figure()
+    plt.plot(train_loss, label = 'Training Loss')
+    plt.plot(val_loss, label = 'Validation Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    fig1.savefig('../Results/TrainingvsValidationLoss_Keras.png')
+    # fig1.close()
+
+    fig2 = plt.figure()
+    plt.plot(accuracy, label = 'Accuracy')
+    plt.plot(accuracy_loss, label = 'Accuracy Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    fig2.savefig('../Results/AccuracyVsAccuracyLoss_Keras.png')
+    # fig2.close()
+
+    return(x_train, x_test, y_train, y_test)
+    
+def getKerasKFold(x_train, x_test, y_train, y_test):
+    # Stratified K fold Cross Validation
+    neural_network = KerasClassifier(build_fn=makeKerasModel,
+                                    epochs=10, 
+                                    batch_size=100, 
+                                    verbose=0)
+
+    scores = cross_val_score(neural_network, x_test, y_test, cv=10)
+    KFoldAccuracy = (scores.mean())*100
+    KFoldAccuracy_std = scores.std()
+
+    fig3 = plt.figure()
+    plt.plot(scores, label = 'Scores')
+    plt.legend()
+    fig3.savefig('../Results/KerasKFold.png')
+    # fig3.close()
+    #_____________________________________________________________________________________________________________________________
+
 # MAIN
 
 positiveArray = getPositiveSimulated()
 negativeArray = getNegativeDES()
+x_train, x_test, y_train, y_test = useKerasModel(positiveArray, negativeArray)
+getKerasKFold(x_train, x_test, y_train, y_test)
 
-x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape = makeTrainTest(positiveArray, negativeArray)
-es = EarlyStopping(monitor='val_loss', verbose=1, patience = 3)
-
-model = makeKerasModel()
-seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test), callbacks = [es])
-
-description = str(model)
-
-# Accuracy Testing
-y_pred = model.predict(x_test)
-_, acc = model.evaluate(x_test, y_test, verbose=0)
-accuracyscore =  acc * 100.0
-AccuracyScore = accuracyscore
-print("Accuracy Score: " +str(AccuracyScore))
-
-# getting model loss images for training
-history = History()
-loss_train = seqModel.history['loss']
-loss_val = seqModel.history['val_loss']
-
-# epochs = range(1,50)
-plt.plot(loss_train, label = 'Training Loss')
-plt.plot(loss_val, label = 'Validation Loss')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.legend()
-plt.savefig('../Results/TrainingvsValidationLoss_Keras.png')
-
-# # Stratified K fold Cross Validation
-neural_network = KerasClassifier(build_fn=makeKerasModel, # I am calling a def, then why is it not makeKerasModel()?
-                                 epochs=10, 
-                                 batch_size=100, 
-                                 verbose=0)
-
-results = cross_val_score(neural_network, x_test, y_test, cv=10)
-KFoldAccuracy = (results.mean())*100
-KFoldAccuracy_std = results.std()
-
-plt.plot(results, label = 'Results')
-plt.legend()
-plt.savefig('../Results/KerasKFold.png')
     
 #______________________________________________________________________________________________________________________
 # knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()

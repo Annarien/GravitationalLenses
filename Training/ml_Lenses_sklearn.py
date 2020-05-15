@@ -391,14 +391,17 @@ def makeTrainTest(positiveArray, negativeArray):
     imageTrain_std = imageTrain.std()
     imageTrain_mean = imageTrain.mean()
     imageTrain_shape = imageTrain.shape
+    print("imageTrain shape: " +str(imageTrain_shape))
     imageLabels_shape = imageLabels.shape
 
     # reshape X
     X = imageTrain.reshape(imageTrain.shape[0], imageTrain.shape[1]*imageTrain.shape[2]*imageTrain.shape[3]) # batchsize, height*width*3channels
+    print ("X shape: " + str(X.shape))
 
     # Encoding Y now
     encoder = LabelEncoder()
     Y = encoder.fit_transform(imageLabels)
+    print (" Y shape: " +str(Y.shape))
 
     # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
     test_percent = 0.2
@@ -407,6 +410,11 @@ def makeTrainTest(positiveArray, negativeArray):
     xTest_shape = x_test.shape
     yTrain_shape = y_train.shape
     yTest_shape = y_test.shape
+    print("x_train: " +str(xTrain_shape))
+    print("y_train: "+str(y_train.shape))
+    print("x_test shape: "+str(xTest_shape))
+    print("y_test shape: "+str(y_train.shape))
+
 
     train_percent = (1 - test_percent)
 
