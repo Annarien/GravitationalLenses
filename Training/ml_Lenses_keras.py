@@ -86,7 +86,8 @@ def getNegativeDES(base_dir = 'DES/DES_Processed'):
     DataNeg = np.zeros([nDT,3,100,100])
 
     for var in range(len(foldersNeg)):
-
+        # if var > 1500:
+        # break
         # g_name = get_pkg_data_filename(foldersNeg[var]+'/g_WCSClipped.fits')
         # r_name = get_pkg_data_filename(foldersNeg[var]+'/r_WCSClipped.fits')
         # i_name = get_pkg_data_filename(foldersNeg[var]+'/i_WCSClipped.fits')    
@@ -458,7 +459,7 @@ def useKerasModel(positiveArray, negativeArray):
     es = EarlyStopping(monitor='val_loss', verbose=1, patience = 3)
 
     model = makeKerasModel()
-    seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test), callbacks = [es])
+    seqModel = model.fit(x_train, y_train, epochs=10, batch_size=500, validation_data=(x_test, y_test), callbacks = [es])
 
     description = str(model)
     # Accuracy Testing
@@ -496,16 +497,20 @@ def useKerasModel(positiveArray, negativeArray):
 
     return(x_train, x_test, y_train, y_test, model)
 
-def getKerasKFold(x_train, x_test, y_train, y_test):
+def getKerasKFold(x_train, x_test, y_train, y_test, model):
     # Stratified K fold Cross Validation
     neural_network = KerasClassifier(build_fn=makeKerasModel,
-                                    epochs=30, 
-                                    batch_size=200, 
+                                    epochs=10, 
+                                    batch_size=500, 
                                     verbose=0)
-
+    print("DONE 2")
     scores = cross_val_score(neural_network, x_test, y_test, cv=10)
+    print("DONE 3")
     scoresMean = (scores.mean())*100
+    print("Score Mean: " +str(scoresMean))
     scoresStd = scores.std()
+    print("Scores Std: " +str(scoresStd))
+    print("DONE 4")
 
     fig3 = plt.figure()
     plt.plot(scores, label = 'Scores')
@@ -528,7 +533,7 @@ positiveArray = getPositiveSimulated()
 negativeArray = getNegativeDES()
 x_train, x_test, y_train, y_test, model = useKerasModel(positiveArray, negativeArray)
 print("DONE 1")
-getKerasKFold(x_train, x_test, y_train, y_test)
+getKerasKFold(x_train, x_test, y_train, y_test, model)
     
 #______________________________________________________________________________________________________________________
 # knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()

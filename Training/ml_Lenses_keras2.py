@@ -4,16 +4,19 @@ This is a draft of machine learning code, so that we can test how to do the mach
 # IMPORTS
 import os
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import makeExcelTable
-
 from astropy.utils.data import get_pkg_data_filename
 from astropy.io import fits
 from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import accuracy_score
-from sklearn import model_selection
+from keras.callbacks import History 
+from sklearn.model_selection import train_test_split, cross_val_score, learning_curve
+from keras.models import Sequential
+from keras.layers import Input, Flatten, Dense, Dropout, Convolution2D, Conv2D, MaxPooling2D, Lambda, GlobalMaxPooling2D, GlobalAveragePooling2D, BatchNormalization, Activation, AveragePooling2D, Concatenate
+from keras.callbacks import EarlyStopping
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.datasets import make_classification
 
 # FUNCTIONS
 def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
@@ -83,7 +86,8 @@ def getNegativeDES(base_dir = 'DES/DES_Processed'):
     DataNeg = np.zeros([nDT,3,100,100])
 
     for var in range(len(foldersNeg)):
-
+        # if var > 1500:
+        # break
         # g_name = get_pkg_data_filename(foldersNeg[var]+'/g_WCSClipped.fits')
         # r_name = get_pkg_data_filename(foldersNeg[var]+'/r_WCSClipped.fits')
         # i_name = get_pkg_data_filename(foldersNeg[var]+'/i_WCSClipped.fits')    
@@ -128,12 +132,14 @@ def loadImage(positiveArray, negativeArray):
 
     for num in range(0,len(positiveArray)):
         image_train.append(positiveArray[num])
-        labelPos = 'Gravitational Lensing'
+        # labelPos = 'Gravitational Lensing'
+        labelPos = 1 # assign 1 for gravitational lensing
         image_labels.append(labelPos)
     
     for num in range(0,len(negativeArray)):
         image_train.append(negativeArray[num])
-        labelNeg = 'No Gravitational Lensing'
+        # labelNeg = 'No Gravitational Lensing'
+        labelNeg = 0 # assign 0  for non gravitational lenses 
         image_labels.append(labelNeg)
 
     return (np.array(image_train), np.array(image_labels))
@@ -345,6 +351,7 @@ def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray):
 
     imageKnownTest, labelsKnownTest = loadImage(allKnownArray, unknownArray)
     x_ImageTest = imageKnownTest.reshape(imageKnownTest.shape[0], imageKnownTest.shape[1]*imageKnownTest.shape[2]*imageKnownTest.shape[3]) # batchsize, height*width*3channels
+    print(" x ImageTest: " + str(x_ImageTest.shape))
 
     encoder = LabelEncoder()
     y_ImageLabels = encoder.fit_transform(labelsKnownTest)
@@ -391,89 +398,63 @@ def makeTrainTest(positiveArray, negativeArray):
     imageTrain_std = imageTrain.std()
     imageTrain_mean = imageTrain.mean()
     imageTrain_shape = imageTrain.shape
-    print("imageTrain shape: " +str(imageTrain_shape))
-    imageLabels_shape = imageLabels.shape
 
-    # reshape X
-    X = imageTrain.reshape(imageTrain.shape[0], imageTrain.shape[1]*imageTrain.shape[2]*imageTrain.shape[3]) # batchsize, height*width*3channels
-    print ("X shape: " + str(X.shape))
+    # X = imageTrain.reshape(imageTrain.shape[0], imageTrain.shape[1]*imageTrain.shape[2]*imageTrain.shape[3])
+    # print("X shape: " + str(X.shape))
+
+    imageLabels_shape = imageLabels.shape
 
     # Encoding Y now
     encoder = LabelEncoder()
     Y = encoder.fit_transform(imageLabels)
-    print (" Y shape: " +str(Y.shape))
+    # print("Y shape: " +str(Y.shape))
 
     # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
     test_percent = 0.2
-    x_train, x_test, y_train, y_test = train_test_split(X, Y, shuffle=True, test_size =test_percent)
+    x_train, x_test, y_train, y_test = train_test_split(imageTrain, Y, shuffle=True, test_size =test_percent, random_state = 1 )
     xTrain_shape = x_train.shape
     xTest_shape = x_test.shape
     yTrain_shape = y_train.shape
     yTest_shape = y_test.shape
+
+    # yTrain_shape = y_train.reshape(-1).shape
+    # y_train=y_train.reshape(-1)
+    # yTest_shape = y_test.reshape(-1).shape
+    # y_test = y_test.reshape(-1)
     print("x_train: " +str(xTrain_shape))
     print("y_train: "+str(y_train.shape))
     print("x_test shape: "+str(xTest_shape))
     print("y_test shape: "+str(y_train.shape))
 
-
     train_percent = (1 - test_percent)
 
-    return(x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape)
-#_____________________________________________________________________________________________________________________________
-# MAIN
+    return(x_train, x_test, y_train, y_test)
 
+def makeModel():
+    # mlp classifeir without cnn
+    model = Sequential()
+    model.add(Dense(1000, activation = 'relu', input_shape = (3, 100, 100)))
+    model.add(Dense(100, activation = 'relu'))
+    # model.add(Dense(100, activation = 'relu'))
+    model.add(Flatten())
+    # model.add(Dense(100))
+    # model.add(Activation('relu'))
+    model.add(Dense(1))
+    model.add(Activation('sigmoid')) # THE KERAS WITHOUT ES PNG IMAGE, HAS SIGMOID
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    return model
+
+
+
+#_____________________________________________________________________________________________________________________________
+
+# MAIN
 positiveArray = getPositiveSimulated()
 negativeArray = getNegativeDES()
-
-x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape = makeTrainTest(positiveArray, negativeArray)
-
-# Trianing the data with MLPClassifier, from scikit learn
-clf_image = MLPClassifier(activation = 'relu',
-                          hidden_layer_sizes = (100, 100, 100), # 3 layers of 100 neurons each
-                          solver = 'sgd', 
-                          verbose = True,
-                          max_iter = 100,
-                          batch_size=500,
-                          early_stopping=True) # batchsize = 200 default
-
-description = str(clf_image)
-
-# Getting training loss
-clf_image.fit(x_train, y_train)
-loss_train = clf_image.loss_curve_
-
-# Accuracy Testing
-y_pred = clf_image.predict(x_test)
-AccuracyScore = (accuracy_score(y_test, y_pred))*100
-
-# Getting validation loss
-clf_image.fit(x_test, y_test)
-loss_val = clf_image.loss_curve_
-
-epochs = range(1,10)
-plt.plot(loss_train, label = 'Training Loss')
-plt.plot(loss_val, label = 'Validation Loss')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.legend()
-plt.savefig('../Results/TrainingvsValidationLoss_Sklearn.png')
-
-# Cross Validation
-n_splits = 10
-random_state = 100
-kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
-results = model_selection.cross_val_score(clf_image, x_test, y_test, cv = kfold)
-resultsMean = (results.mean())*100
-resultsStd = results.std()
-print("Score Mean: " +str(resultsMean))
-print("Scores Std: " +str(resultsStd))
-fig4 = plt.figure()
-plt.plot(results, label = 'Scores')
-plt.plot(resultsMean, label = 'Scores Mean')
-plt.plot(resultsStd, label = 'Scores Standard Deviation')
-plt.legend()
-fig4.savefig('../Results/SkLearnKFold_AllScores.png')
-
+model = makeModel()
+x_train, x_test, y_train, y_test = makeTrainTest(positiveArray, negativeArray)
+    
+    
 #______________________________________________________________________________________________________________________
 # knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()
 # knownJacobs, AccuracyScore_84, KFoldAccuracy_84= testJacobs()
