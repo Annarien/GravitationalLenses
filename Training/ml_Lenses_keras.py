@@ -406,7 +406,7 @@ def makeTrainTest(positiveArray, negativeArray):
     # Encoding Y now
     encoder = LabelEncoder()
     Y = encoder.fit_transform(imageLabels)
-    print("Y shape: " +str(Y.shape))
+    # print("Y shape: " +str(Y.shape))
 
     # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
     test_percent = 0.2
@@ -472,8 +472,8 @@ def useKerasModel(positiveArray, negativeArray):
     history = History()
     train_loss = seqModel.history['loss']
     val_loss = seqModel.history['val_loss']
-    accuracy = seqModel.history['accuracy']
-    accuracy_loss = seqModel.history['val_accuracy']
+    train_accuracy = seqModel.history['accuracy']
+    val_accuracy = seqModel.history['val_accuracy']
 
     # epochs = range(1,50)
     fig1 = plt.figure()
@@ -486,12 +486,12 @@ def useKerasModel(positiveArray, negativeArray):
     # fig1.close()
 
     fig2 = plt.figure()
-    plt.plot(accuracy, label = 'Accuracy')
-    plt.plot(accuracy_loss, label = 'Accuracy Loss')
+    plt.plot(train_accuracy, label = 'Train Accuracy')
+    plt.plot(val_accuracy, label = 'Validation Accuracy')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
-    fig2.savefig('../Results/AccuracyVsAccuracyLoss_Keras.png')
+    fig2.savefig('../Results/TrainingvsValidationAccuracy_Keras.png')
     # fig2.close()
 
     return(x_train, x_test, y_train, y_test, model)
@@ -504,6 +504,8 @@ def getKerasKFold(x_train, x_test, y_train, y_test):
                                     verbose=0)
 
     scores = cross_val_score(neural_network, x_test, y_test, cv=10)
+    print('Scores Length: ' + str(len(scores)))
+    print('Scores: ' +str(scores))
     scoresMean = scores.mean()
     scoreStd = scores.std()
 
@@ -519,7 +521,7 @@ def getKerasKFold(x_train, x_test, y_train, y_test):
     plt.plot(scoresMean, label = 'Scores Mean')
     plt.plot(scoreStd, label = 'Scores Standard Deviation')
     plt.legend()
-    fig4.savefig('../Results/KerasKFold_AllScores.png')
+    fig5.savefig('../Results/KerasKFold_AllScores.png')
     #_____________________________________________________________________________________________________________________________
 
 # MAIN
