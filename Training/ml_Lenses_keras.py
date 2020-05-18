@@ -506,13 +506,14 @@ def getKerasKFold(x_train, x_test, y_train, y_test):
     KFoldAccuracy = (scores.mean())*100
     KFoldAccuracy_std = scores.std()
 
-    fig3 = plt.figure()
-    plt.plot(scores, label = 'Scores')
-    plt.legend()
-    fig3.savefig('../Results/KerasKFold.png')
+    # fig3 = plt.figure()
+    # plt.plot(scores, label = 'Scores')
+    # plt.legend()
+    # fig3.savefig('../Results/KerasKFold.png')
     # fig3.close()
 
     fig4 = plt.figure()
+    plt.plot(KFoldAccuracy, label = 'Scores')
     plt.plot(KFoldAccuracy, label = 'Scores Mean')
     plt.plot(KFoldAccuracy_std, label = 'Scores Standard Deviation')
     plt.legend()
