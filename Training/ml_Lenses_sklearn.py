@@ -465,9 +465,12 @@ results = model_selection.cross_val_score(clf_image, x_test, y_test, cv = kfold)
 KFoldAccuracy = (results.mean())*100
 KFoldAccuracy_std = results.std()
 
-plt.plot(results, label = 'Results')
+fig4 = plt.figure()
+plt.plot(KFoldAccuracy, label = 'Scores')
+plt.plot(KFoldAccuracy, label = 'Scores Mean')
+plt.plot(KFoldAccuracy_std, label = 'Scores Standard Deviation')
 plt.legend()
-plt.savefig('../Results/SklearnKFold.png')
+fig4.savefig('../Results/KerasKFoldScores.png')
 
 #______________________________________________________________________________________________________________________
 knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()

@@ -4,13 +4,14 @@ This is a draft of machine learning code, so that we can test how to do the mach
 # IMPORTS
 import os
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import makeExcelTable
 from astropy.utils.data import get_pkg_data_filename
 from astropy.io import fits
 from sklearn.preprocessing import LabelEncoder
 from keras.callbacks import History 
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split, cross_val_score, learning_curve
 from keras.models import Sequential
 from keras.layers import Input, Flatten, Dense, Dropout, Convolution2D, Conv2D, MaxPooling2D, Lambda, GlobalMaxPooling2D, GlobalAveragePooling2D, BatchNormalization, Activation, AveragePooling2D, Concatenate
 from keras.callbacks import EarlyStopping
@@ -493,7 +494,7 @@ def useKerasModel(positiveArray, negativeArray):
     fig2.savefig('../Results/AccuracyVsAccuracyLoss_Keras.png')
     # fig2.close()
 
-    return(x_train, x_test, y_train, y_test)
+    return(x_train, x_test, y_train, y_test, model)
     
 def getKerasKFold(x_train, x_test, y_train, y_test):
     # Stratified K fold Cross Validation
@@ -503,30 +504,30 @@ def getKerasKFold(x_train, x_test, y_train, y_test):
                                     verbose=0)
 
     scores = cross_val_score(neural_network, x_test, y_test, cv=10)
-    KFoldAccuracy = (scores.mean())*100
-    KFoldAccuracy_std = scores.std()
-
-    # fig3 = plt.figure()
-    # plt.plot(scores, label = 'Scores')
-    # plt.legend()
-    # fig3.savefig('../Results/KerasKFold.png')
-    # fig3.close()
+    scoresMean = scores.mean()
+    scoreStd = scores.std()
 
     fig4 = plt.figure()
-    plt.plot(KFoldAccuracy, label = 'Scores')
-    plt.plot(KFoldAccuracy, label = 'Scores Mean')
-    plt.plot(KFoldAccuracy_std, label = 'Scores Standard Deviation')
+    # plt.plot(scores, label = 'Scores')
+    plt.plot(scoresMean, label = 'Scores Mean')
+    plt.plot(scoreStd, label = 'Scores Standard Deviation')
     plt.legend()
     fig4.savefig('../Results/KerasKFoldScores.png')
+
+    fig5 = plt.figure()
+    plt.plot(scores, label ='Scores')
+    plt.plot(scoresMean, label = 'Scores Mean')
+    plt.plot(scoreStd, label = 'Scores Standard Deviation')
+    plt.legend()
+    fig4.savefig('../Results/KerasKFold_AllScores.png')
     #_____________________________________________________________________________________________________________________________
 
 # MAIN
 
 positiveArray = getPositiveSimulated()
 negativeArray = getNegativeDES()
-x_train, x_test, y_train, y_test = useKerasModel(positiveArray, negativeArray)
+x_train, x_test, y_train, y_test, model = useKerasModel(positiveArray, negativeArray)
 getKerasKFold(x_train, x_test, y_train, y_test)
-
     
 #______________________________________________________________________________________________________________________
 # knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()
