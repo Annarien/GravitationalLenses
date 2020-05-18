@@ -44,7 +44,7 @@ def getElementList(description, imageTrain_std, imageTrain_mean, imageTrain_shap
     return (elementList)
 #_______________________________________________________________________________________________________
 
-makeInitialTable()
+# makeInitialTable()
 # random variables to test
 
 # description = ' This is just a description'

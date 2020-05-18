@@ -495,33 +495,31 @@ def useKerasModel(positiveArray, negativeArray):
     # fig2.close()
 
     return(x_train, x_test, y_train, y_test, model)
-    
+
 def getKerasKFold(x_train, x_test, y_train, y_test):
     # Stratified K fold Cross Validation
     neural_network = KerasClassifier(build_fn=makeKerasModel,
-                                    epochs=10, 
-                                    batch_size=100, 
+                                    epochs=30, 
+                                    batch_size=200, 
                                     verbose=0)
 
     scores = cross_val_score(neural_network, x_test, y_test, cv=10)
-    print('Scores Length: ' + str(len(scores)))
-    print('Scores: ' +str(scores))
-    scoresMean = scores.mean()
-    scoreStd = scores.std()
+    scoresMean = (scores.mean())*100
+    scoresStd = scores.std()
+
+    fig3 = plt.figure()
+    plt.plot(scores, label = 'Scores')
+    plt.legend()
+    fig3.savefig('../Results/KerasKFold_Scores.png')
+    # fig3.close()
 
     fig4 = plt.figure()
-    # plt.plot(scores, label = 'Scores')
+    plt.plot(scores, label = 'Scores')
     plt.plot(scoresMean, label = 'Scores Mean')
-    plt.plot(scoreStd, label = 'Scores Standard Deviation')
+    plt.plot(scoresStd, label = 'Scores Standard Deviation')
     plt.legend()
-    fig4.savefig('../Results/KerasKFoldScores.png')
+    fig4.savefig('../Results/KerasKFold_AllScores.png')
 
-    fig5 = plt.figure()
-    plt.plot(scores, label ='Scores')
-    plt.plot(scoresMean, label = 'Scores Mean')
-    plt.plot(scoreStd, label = 'Scores Standard Deviation')
-    plt.legend()
-    fig5.savefig('../Results/KerasKFold_AllScores.png')
     #_____________________________________________________________________________________________________________________________
 
 # MAIN
@@ -529,6 +527,7 @@ def getKerasKFold(x_train, x_test, y_train, y_test):
 positiveArray = getPositiveSimulated()
 negativeArray = getNegativeDES()
 x_train, x_test, y_train, y_test, model = useKerasModel(positiveArray, negativeArray)
+print("DONE 1")
 getKerasKFold(x_train, x_test, y_train, y_test)
     
 #______________________________________________________________________________________________________________________

@@ -455,7 +455,7 @@ plt.plot(loss_val, label = 'Validation Loss')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
-plt.savefig('../Results/TrainingvsValidationLoss.png')
+plt.savefig('../Results/TrainingvsValidationLoss_Sklearn.png')
 
 # Cross Validation
 n_splits = 10
