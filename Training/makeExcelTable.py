@@ -42,33 +42,3 @@ def appendRowAsList(filename, elementList):
 def getElementList(description, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, train_percent, test_percent, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, n_splits, random_state, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131):
     elementList = [description, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, train_percent, test_percent, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, n_splits, random_state, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131]
     return (elementList)
-#_______________________________________________________________________________________________________
-
-# makeInitialTable()
-# random variables to test
-
-# description = ' This is just a description'
-# train_percent = 0.8
-# test_percent = 0.2
-# n_splits = 10
-# random_state = 100 
-# imageTrain_std = 0.99
-# imageTrain_mean = 0.005
-# imageTrain_shape = 20000, 3, 100, 100 
-# imageLabels_shape = 20000
-# xTrain_shape = 16000, 30000
-# xTest_shape = 4000, 30000
-# yTrain_shape = 16000
-# yTest_shape = 4000
-# AccuracyScore = 0.973
-# KFoldAccuracy = 0.96 
-# AccuracyScore_47 = 0.62
-# KFoldAccuracy_47 = 0.72
-# AccuracyScore_84 = 0.54
-# KFoldAccuracy_84 = 0.65
-# AccuracyScore_131 = 0.5
-# KFoldAccuracy_131 = 0.6
-
-# # elementList = getElementList(description, train_percent, test_percent, n_splits, random_state, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131)
-# filename = '../Results/ml_Lenses_results.csv'
-# appendRowAsList(filename, elementList)

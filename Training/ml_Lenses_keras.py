@@ -470,7 +470,7 @@ def useKerasModel(positiveArray, negativeArray):
     print("Accuracy Score: " +str(AccuracyScore))
 
     # plot training vs validation loss. 
-    history = History()
+    History()
     train_loss = seqModel.history['loss']
     val_loss = seqModel.history['val_loss']
     train_accuracy = seqModel.history['accuracy']
@@ -484,7 +484,6 @@ def useKerasModel(positiveArray, negativeArray):
     plt.ylabel('Loss')
     plt.legend()
     fig1.savefig('../Results/TrainingvsValidationLoss_Keras.png')
-    # fig1.close()
 
     fig2 = plt.figure()
     plt.plot(train_accuracy, label = 'Train Accuracy')
@@ -493,7 +492,6 @@ def useKerasModel(positiveArray, negativeArray):
     plt.ylabel('Loss')
     plt.legend()
     fig2.savefig('../Results/TrainingvsValidationAccuracy_Keras.png')
-    # fig2.close()
 
     return(x_train, x_test, y_train, y_test, model)
 
@@ -504,9 +502,9 @@ def getKerasKFold(x_train, x_test, y_train, y_test, model):
                                     batch_size=500, 
                                     verbose=0)
     print("DONE 2")
-    scores = cross_val_score(neural_network, x_test, y_test, cv=10)
+    scores = cross_val_score(neural_network, x_test, y_test, scoring = 'accuracy', cv=10)
     print("DONE 3")
-    scoresMean = (scores.mean())*100
+    scoresMean = scores.mean()*100
     print("Score Mean: " +str(scoresMean))
     scoresStd = scores.std()
     print("Scores Std: " +str(scoresStd))
@@ -516,14 +514,6 @@ def getKerasKFold(x_train, x_test, y_train, y_test, model):
     plt.plot(scores, label = 'Scores')
     plt.legend()
     fig3.savefig('../Results/KerasKFold_Scores.png')
-    # fig3.close()
-
-    fig4 = plt.figure()
-    plt.plot(scores, label = 'Scores')
-    plt.plot(scoresMean, label = 'Scores Mean')
-    plt.plot(scoresStd, label = 'Scores Standard Deviation')
-    plt.legend()
-    fig4.savefig('../Results/KerasKFold_AllScores.png')
 
     #_____________________________________________________________________________________________________________________________
 
