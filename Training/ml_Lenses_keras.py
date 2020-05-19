@@ -498,8 +498,8 @@ def useKerasModel(positiveArray, negativeArray):
 def getKerasKFold(x_train, x_test, y_train, y_test, model):
     # Stratified K fold Cross Validation
     neural_network = KerasClassifier(build_fn=makeKerasModel,
-                                    epochs=10, 
-                                    batch_size=500, 
+                                    epochs=30, 
+                                    batch_size=200, 
                                     verbose=0)
     print("DONE 2")
     scores = cross_val_score(neural_network, x_test, y_test, scoring = 'accuracy', cv=10)

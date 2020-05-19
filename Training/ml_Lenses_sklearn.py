@@ -433,7 +433,7 @@ clf_image = MLPClassifier(activation = 'relu',
                           solver = 'sgd', 
                           verbose = True,
                           max_iter = 100,
-                          batch_size=500,
+                          batch_size=200,
                           early_stopping=True) # batchsize = 200 default
 
 description = str(clf_image)
@@ -441,41 +441,22 @@ description = str(clf_image)
 # Getting training loss
 clf_image.fit(x_train, y_train)
 train_loss = clf_image.loss_curve_ 
-# train_accuracy = accuracy_score(x_test, y_train)
-# print("Accuracy Train " +str(train_accuracy))
-# print("Accuracy Type: "+str(type(train_accuracy)))
 
 # Accuracy Testing
 y_pred = clf_image.predict(x_test)
-yAccuracy = (accuracy_score(y_test, y_pred))
-
-y_reshape = y_test.reshape(-1, 1)
-x_pred = clf_image.predict(y_test)
-xAccuracy = (accuracy_score(x_test, x_pred))
+yAccuracy = (accuracy_score(y_test, y_pred))*100
 
 # Getting validation loss
 clf_image.fit(x_test, y_test)
 val_loss = clf_image.loss_curve_
-# val_accuracy = accuracy_score(y_test, y_pred)
-# print("Val Accuracy: "+str(val_accuracy))
-# print("Val Accuracy Type:"+str(type(val_accuracy)))
 
-epochs = range(1,10)
+epochs = range(1,30)
 plt.plot(train_loss, label = 'Training Loss')
 plt.plot(val_loss, label = 'Validation Loss')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
 plt.savefig('../Results/TrainingvsValidationLoss_Sklearn.png')
-
-
-fig2 = plt.figure()
-plt.plot(xAccuracy, label = 'x Accuracy')
-plt.plot(yAccuracy, label = 'y Accuracy')
-plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
-plt.legend()
-fig2.savefig('../Results/xVsyAccuracy_Sklearn.png')
 
 # Cross Validation
 n_splits = 10
@@ -484,6 +465,8 @@ kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state)
 results = model_selection.cross_val_score(clf_image, x_test, y_test, scoring='accuracy', cv = kfold)
 resultsMean = results.mean()*100
 resultsStd = results.std()
+print("Y Accuracy: "+str(yAccuracy))
+print("Y Accuracy Type: "+str(type(yAccuracy)))
 print("Score Mean: " +str(resultsMean))
 print("Scores Std: " +str(resultsStd))
 
