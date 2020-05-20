@@ -475,6 +475,15 @@ plt.plot(results, label = 'Scores')
 plt.legend()
 fig4.savefig('../Results/SkLearnKFold_Scores.png')
 
+fig5 = plt.figure()
+plt.plot(train_loss, label = 'Training Loss')
+plt.plot(val_loss, label = 'Validation Loss')
+plt.plot(yAccuracy, label = 'Accuracy')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+plt.savefig('../Results/LossAccuracy_Sklearn.png')
+
 #______________________________________________________________________________________________________________________
 # knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()
 # knownJacobs, AccuracyScore_84, KFoldAccuracy_84= testJacobs()

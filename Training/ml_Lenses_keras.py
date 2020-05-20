@@ -433,9 +433,9 @@ def makeTrainTest(positiveArray, negativeArray):
 def makeKerasModel():
     # mlp classifeir without cnn
     model = Sequential()
-    model.add(Dense(1000, activation = 'relu', input_shape = (3, 100, 100)))
+    model.add(Dense(100, activation = 'relu', input_shape = (3, 100, 100)))
     model.add(Dense(100, activation = 'relu'))
-    # model.add(Dense(100, activation = 'relu'))
+    model.add(Dense(100, activation = 'relu'))
     model.add(Flatten())
     # model.add(Dense(100))
     # model.add(Activation('relu'))
@@ -459,7 +459,7 @@ def useKerasModel(positiveArray, negativeArray):
     es = EarlyStopping(monitor='val_loss', verbose=1, patience = 3)
 
     model = makeKerasModel()
-    seqModel = model.fit(x_train, y_train, epochs=10, batch_size=500, validation_data=(x_test, y_test), callbacks = [es])
+    seqModel = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test), callbacks = [es])
 
     description = str(model)
     # Accuracy Testing
