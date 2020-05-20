@@ -128,12 +128,14 @@ def loadImage(positiveArray, negativeArray):
 
     for num in range(0,len(positiveArray)):
         image_train.append(positiveArray[num])
-        labelPos = 'Gravitational Lensing'
+        # labelPos = 'Gravitational Lensing'
+        labelPos = 1 # assign 1 for gravitational lensing
         image_labels.append(labelPos)
     
     for num in range(0,len(negativeArray)):
         image_train.append(negativeArray[num])
-        labelNeg = 'No Gravitational Lensing'
+        # labelNeg = 'No Gravitational Lensing'
+        labelNeg = 1 # assign 1 for no lensing
         image_labels.append(labelNeg)
 
     return (np.array(image_train), np.array(image_labels))
@@ -261,9 +263,9 @@ def testDES2017():
 
     Returns:
         knownDES2017Array (numpy array):    This is the numpy array of the known DES2017 images.
-        AccuracyScore_47 (float):           This is the accuracy score of the 47 unseen unknown images and of the
+        accuracyScore_47 (float):           This is the accuracy score of the 47 unseen unknown images and of the
                                             47 images from DES2017, being tested on the already learnt set.
-        KFoldAccuracy_47(float):            This is the accuracy score of the 47 unseen unknown images and of the 47
+        kFoldAccuracy_47(float):            This is the accuracy score of the 47 unseen unknown images and of the 47
                                             images from DES2017 after k fold cross validation, being 
                                             tested on the already learnt set. 
     
@@ -281,12 +283,13 @@ def testDES2017():
     y_ImageLabels = encoder.fit_transform(labelsTest)
 
     y_pred = clf_image.predict(x_ImageTest)
-    AccuracyScore_47 = (accuracy_score(y_ImageLabels, y_pred))*100
+    accuracyScore_47 = (accuracy_score(y_ImageLabels, y_pred))*100
 
     results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
-    KFoldAccuracy_47 = (results.mean())*100
+    kFoldAccuracy_47 = (results.mean())*100
+    kFoldStd_47 = results.std
 
-    return(knownDES2017Array, AccuracyScore_47, KFoldAccuracy_47)
+    return(knownDES2017Array, accuracyScore_47, kFoldAccuracy_47, kFoldStd_47)
 
 def testJacobs():
     """
@@ -295,9 +298,9 @@ def testJacobs():
 
     Returns:
         knownJacobsArray (numpy array):     This is the numpy array of the known Jacobs images.
-        AccuracyScore_84 (float):           This is the accuracy score of the 84 unseen unknown images and of the
+        accuracyScore_84 (float):           This is the accuracy score of the 84 unseen unknown images and of the
                                             84 images from Jacobs, being tested on the already learnt set.
-        KFoldAccuracy_84(float):            This is the accuracy score of the 84 unseen unknown images and of the 84
+        kFoldAccuracy_84(float):            This is the accuracy score of the 84 unseen unknown images and of the 84
                                             images from Jacobs after k fold cross validation, being 
                                             tested on the already learnt set. 
     
@@ -315,12 +318,14 @@ def testJacobs():
     y_ImageLabels = encoder.fit_transform(labelsJacobsTest)
 
     y_pred = clf_image.predict(x_ImageTest)
-    AccuracyScore_84 = (accuracy_score(y_ImageLabels, y_pred))*100
+    accuracyScore_84 = (accuracy_score(y_ImageLabels, y_pred))*100
 
     results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
-    KFoldAccuracy_84 = (results.mean())*100
+    kFoldAccuracy_84 = (results.mean())*100
+    kFoldStd_84 = results.std
 
-    return(knownJacobsArray, AccuracyScore_84, KFoldAccuracy_84)
+
+    return(knownJacobsArray, accuracyScore_84, kFoldAccuracy_84,kFoldStd_84)
 
 def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray):
     """
@@ -331,9 +336,9 @@ def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray):
         knownDES2017Array (numpy array):    This is the dataset of the unseen known DES2017 images.
         knownJacobsArray (numpy array):     This is the dataset of the unseen known Jacobs images.
     Returns:
-        AccuracyScore_131 (float):          This is the accuracy score of the 131 unseen unknown images and of the
+        accuracyScore_131 (float):          This is the accuracy score of the 131 unseen unknown images and of the
                                             131 images from DES2017 and Jacobs, being tested on the already learnt set.
-        KFoldAccuracy_131(float):           This is the accuracy score of the 131 unseen unknown images and of the 131
+        kFoldAccuracy_131(float):           This is the accuracy score of the 131 unseen unknown images and of the 131
                                             images from DES2017 and Jacobs after k fold cross validation, being 
                                             tested on the already learnt set. 
     """
@@ -350,12 +355,13 @@ def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray):
     y_ImageLabels = encoder.fit_transform(labelsKnownTest)
 
     y_pred = clf_image.predict(x_ImageTest)
-    AccuracyScore_131 = (accuracy_score(y_ImageLabels, y_pred))*100
+    accuracyScore_131 = (accuracy_score(y_ImageLabels, y_pred))*100
 
     results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
-    KFoldAccuracy_131 = (results.mean())*100
+    kFoldAccuracy_131 = (results.mean())*100
+    kFoldStd_131 = results.std()
 
-    return(AccuracyScore_131, KFoldAccuracy_131)
+    return(accuracyScore_131, kFoldAccuracy_131, kFoldStd_131)
 
 def makeTrainTest(positiveArray, negativeArray):
     """
@@ -444,7 +450,7 @@ train_loss = clf_image.loss_curve_
 
 # Accuracy Testing
 y_pred = clf_image.predict(x_test)
-yAccuracy = (accuracy_score(y_test, y_pred))*100
+accuracyScore = (accuracy_score(x_test, y_test))*100
 
 # Getting validation loss
 clf_image.fit(x_test, y_test)
@@ -462,34 +468,35 @@ plt.savefig('../Results/TrainingvsValidationLoss_Sklearn.png')
 n_splits = 10
 random_state = 100
 kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
-results = model_selection.cross_val_score(clf_image, x_test, y_test, scoring='accuracy', cv = kfold)
-resultsMean = results.mean()*100
-resultsStd = results.std()
-print("Y Accuracy: "+str(yAccuracy))
-print("Y Accuracy Type: "+str(type(yAccuracy)))
-print("Score Mean: " +str(resultsMean))
-print("Scores Std: " +str(resultsStd))
+kFoldAccuracy = model_selection.cross_val_score(clf_image, x_test, y_test, scoring='accuracy', cv = kfold)
+kFoldMean = kFoldAccuracy.mean()*100
+kFoldStd = kFoldAccuracy.std()
+print("Accuracy Score: "+str(accuracyScore))
+print("Accuracy Type: "+str(type(accuracyScore)))
+print("Score Mean: " +str(kFoldMean))
+print("Scores Std: " +str(kFoldStd))
 
 fig4 = plt.figure()
-plt.plot(results, label = 'Scores')
+plt.plot(kFoldAccuracy, label = 'Scores')
 plt.legend()
 fig4.savefig('../Results/SkLearnKFold_Scores.png')
 
 fig5 = plt.figure()
 plt.plot(train_loss, label = 'Training Loss')
 plt.plot(val_loss, label = 'Validation Loss')
-plt.plot(yAccuracy, label = 'Accuracy')
+# plt.plot(accuracyScore, label = 'Accuracy')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
 plt.savefig('../Results/LossAccuracy_Sklearn.png')
 
 #______________________________________________________________________________________________________________________
-# knownDES2017, AccuracyScore_47, KFoldAccuracy_47 = testDES2017()
-# knownJacobs, AccuracyScore_84, KFoldAccuracy_84= testJacobs()
-# AccuracyScore_131, KFoldAccuracy_131 =testDES2017AndJacobs(knownDES2017, knownJacobs)
+knownDES2017, accuracyScore_47, kFoldAccuracy_47, kFoldStd_47 = testDES2017()
+knownJacobs, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84= testJacobs()
+accuracyScore_131, kFoldAccuracy_131, kFoldStd_131 =testDES2017AndJacobs(knownDES2017, knownJacobs)
 
-# # write to ml_Lenses_results.xlsx
-# elementList = makeExcelTable.getElementList(description, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, train_percent, test_percent, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, n_splits, random_state, AccuracyScore, KFoldAccuracy, AccuracyScore_47, KFoldAccuracy_47, AccuracyScore_84, KFoldAccuracy_84, AccuracyScore_131, KFoldAccuracy_131)
-# filename = '../Results/ml_Lenses_results.csv'
-# makeExcelTable.appendRowAsList(filename, elementList)
+# write to ml_Lenses_results.xlsx
+makeExcelTable.makeInitialTable()
+elementList = makeExcelTable.getElementList(description, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, train_percent, test_percent, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, n_splits, random_state, accuracyScore, kFoldAccuracy, kFoldStd, accuracyScore_47, kFoldAccuracy_47, kFoldStd_47, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84, accuracyScore_131, kFoldAccuracy_131, kFoldStd_131)
+filename = '../Results/ml_Lenses_results.csv'
+makeExcelTable.appendRowAsList(filename, elementList)
