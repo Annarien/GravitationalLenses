@@ -1,0 +1,9 @@
+Description,imageTrain_std,imageTrain_mean,imageTrain_shape,imageLabels_shape,train_percent,test_percent,xTrain_shape,xTest_shape,yTrain_shape,yTest_shape,n_splits,random_state,AccuracyScore,KFoldAccuracy,KFold Std,AccuracyScore_47,KFoldAccuracy_47,KFold Std_47,AccuracyScore_84,KFoldAccuracy_84,KFold Std_84,AccuracyScore_131,KFoldAccuracy_131,KFold Std_131
+0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+"MLPClassifier(activation='relu', alpha=0.0001, batch_size=200, beta_1=0.9,
+       beta_2=0.999, early_stopping=True, epsilon=1e-08,
+       hidden_layer_sizes=(100, 100, 100), learning_rate='constant',
+       learning_rate_init=0.001, max_iter=100, momentum=0.9,
+       n_iter_no_change=10, nesterovs_momentum=True, power_t=0.5,
+       random_state=None, shuffle=True, solver='sgd', tol=0.0001,
+       validation_fraction=0.1, verbose=True, warm_start=False)",1.000259326861474,0.00012721201096237093,"(20000, 3, 100, 100)","(20000,)",0.8,0.2,"(16000, 30000)","(4000, 30000)","(16000,)","(4000,)",10,100,97.075,[0.9675 0.9575 0.9675 0.97   0.95   0.965  0.965  0.9775 0.965  0.9525],0.007846177413237617,68.08510638297872,71.44444444444444,<built-in method std of numpy.ndarray object at 0x1b68eb170>,50.0,65.4779411764706,<built-in method std of numpy.ndarray object at 0x247f2b7b0>,55.72519083969466,63.04843304843305,0.15833664944564807

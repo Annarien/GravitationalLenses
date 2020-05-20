@@ -6,7 +6,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import makeExcelTable
-
 from astropy.utils.data import get_pkg_data_filename
 from astropy.io import fits
 from sklearn.preprocessing import LabelEncoder
@@ -24,7 +23,7 @@ def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
     Args:
         base_dir (string):      This the root file path of the positively simulated images.  
     Returns:
-        DataPos(numpy array):   This is the array of positively simulated images.
+        dataPos(numpy array):   This is the array of positively simulated images.
     """
 
     folders = {}
@@ -37,7 +36,7 @@ def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
     #number of Positive DataPoints
     nDT = len(folders)
 
-    DataPos = np.zeros([nDT, 3, 100, 100])
+    dataPos = np.zeros([nDT, 3, 100, 100])
 
     # key is name of folder number
     # value is the number of the folder to be added to the file name
@@ -45,24 +44,24 @@ def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
     counter = 0
     for key, value in folders.items():
 
-        g_name = get_pkg_data_filename(value + '/' + str(key) + '_g_norm.fits')
-        r_name = get_pkg_data_filename(value + '/' + str(key) + '_r_norm.fits')
-        i_name = get_pkg_data_filename(value + '/' + str(key) + '_i_norm.fits')
+        gName = get_pkg_data_filename(value + '/' + str(key) + '_g_norm.fits')
+        rName = get_pkg_data_filename(value + '/' + str(key) + '_r_norm.fits')
+        iName = get_pkg_data_filename(value + '/' + str(key) + '_i_norm.fits')
 
-        # g_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_g.fits')
-        # r_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_r.fits')
-        # i_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_i.fits')
+        # gName = get_pkg_data_filename(value + '/' + str(key) + '_posSky_g.fits')
+        # rName = get_pkg_data_filename(value + '/' + str(key) + '_posSky_r.fits')
+        # iName = get_pkg_data_filename(value + '/' + str(key) + '_posSky_i.fits')
         
-        g = fits.open(g_name)[0].data[0:100,0:100]
-        r = fits.open(r_name)[0].data[0:100,0:100]
-        i = fits.open(i_name)[0].data[0:100,0:100]
+        g = fits.open(gName)[0].data[0:100, 0:100]
+        r = fits.open(rName)[0].data[0:100, 0:100]
+        i = fits.open(iName)[0].data[0:100, 0:100]
         
-        DataPos[counter] = [g, r, i] 
+        dataPos[counter] = [g, r, i] 
         counter += 1
         # just to run, and use less things
         # if counter > 1500:
         #     break
-    return (DataPos)
+    return (dataPos)
 
 def getNegativeDES(base_dir = 'DES/DES_Processed'):
     """
@@ -73,34 +72,34 @@ def getNegativeDES(base_dir = 'DES/DES_Processed'):
     Args:
         base_dir (string):      This the root file path of the negative images.  
     Returns:
-        DataNeg (numpy array):  This is the array of negative images.
+        dataNeg (numpy array):  This is the array of negative images.
     """
     foldersNeg = []
     for root, dirs, files in os.walk(base_dir):
         for folder in dirs:
             foldersNeg.append(os.path.join(root, folder))
     nDT = len(foldersNeg)
-    DataNeg = np.zeros([nDT,3,100,100])
+    dataNeg = np.zeros([nDT, 3, 100, 100])
 
     for var in range(len(foldersNeg)):
 
-        # g_name = get_pkg_data_filename(foldersNeg[var]+'/g_WCSClipped.fits')
-        # r_name = get_pkg_data_filename(foldersNeg[var]+'/r_WCSClipped.fits')
-        # i_name = get_pkg_data_filename(foldersNeg[var]+'/i_WCSClipped.fits')    
+        # gName = get_pkg_data_filename(foldersNeg[var] + '/g_WCSClipped.fits')
+        # rName = get_pkg_data_filename(foldersNeg[var] + '/r_WCSClipped.fits')
+        # iName = get_pkg_data_filename(foldersNeg[var] + '/i_WCSClipped.fits')    
 
-        g_name = get_pkg_data_filename(foldersNeg[var]+'/g_norm.fits')
-        r_name = get_pkg_data_filename(foldersNeg[var]+'/r_norm.fits')
-        i_name = get_pkg_data_filename(foldersNeg[var]+'/i_norm.fits')    
+        gName = get_pkg_data_filename(foldersNeg[var] + '/g_norm.fits')
+        rName = get_pkg_data_filename(foldersNeg[var] + '/r_norm.fits')
+        iName = get_pkg_data_filename(foldersNeg[var] + '/i_norm.fits')    
 
-        g = fits.open(g_name)[0].data[0:100,0:100]
-        r = fits.open(r_name)[0].data[0:100,0:100]
-        i = fits.open(i_name)[0].data[0:100,0:100]    
+        g = fits.open(gName)[0].data[0:100, 0:100]
+        r = fits.open(rName)[0].data[0:100, 0:100]
+        i = fits.open(iName)[0].data[0:100, 0:100]    
         
-        DataNeg[var] = [g, r, i]
+        dataNeg[var] = [g, r, i]
         # just to run, and use less things
         # if var > 1500:
         #     break
-    return (DataNeg)
+    return (dataNeg)
 
 def loadImage(positiveArray, negativeArray):
     """
@@ -113,9 +112,9 @@ def loadImage(positiveArray, negativeArray):
         positiveArray (numpy array):    This is the positively simulated array of gravitational lenses.
         negativeArray (numpy array):    This is the negative array of from DES. 
     Returns:
-        image_train (numpy array):      This is the numpy array of the positive and negative arrays added
+        imageTrain (numpy array):      This is the numpy array of the positive and negative arrays added
                                         together to make a single array.
-        image_labels (numpy array):     This is the numpy array of the labels for the positive and negative 
+        imageLabels (numpy array):     This is the numpy array of the labels for the positive and negative 
                                         arrays added together to make a single array.
     """
 
@@ -123,22 +122,22 @@ def loadImage(positiveArray, negativeArray):
     negativeData = []
     positiveLabel = []
     negativeLabel = []
-    image_train = []
-    image_labels = []
+    imageTrain = []
+    imageLabels = []
 
-    for num in range(0,len(positiveArray)):
-        image_train.append(positiveArray[num])
-        # labelPos = 'Gravitational Lensing'
-        labelPos = 1 # assign 1 for gravitational lensing
-        image_labels.append(labelPos)
+    for num in range(0, len(positiveArray)):
+        imageTrain.append(positiveArray[num])
+        labelPos = 'Gravitational Lensing'
+        # labelPos = 1 # assign 1 for gravitational lensing
+        imageLabels.append(labelPos)
     
-    for num in range(0,len(negativeArray)):
-        image_train.append(negativeArray[num])
-        # labelNeg = 'No Gravitational Lensing'
-        labelNeg = 1 # assign 1 for no lensing
-        image_labels.append(labelNeg)
+    for num in range(0, len(negativeArray)):
+        imageTrain.append(negativeArray[num])
+        labelNeg = 'No Gravitational Lensing'
+        # labelNeg = 1 # assign 1 for no lensing
+        imageLabels.append(labelNeg)
 
-    return (np.array(image_train), np.array(image_labels))
+    return (np.array(imageTrain), np.array(imageLabels))
 
 def getDES2017(base_dir = 'KnownLenses/DES2017/'):
     """
@@ -146,7 +145,7 @@ def getDES2017(base_dir = 'KnownLenses/DES2017/'):
     Args:
         base_dir (string):          This is the root directory of the DES2017 folder. 
     Returns:
-        DataKnownDES (numpy array): This is the numpy array of the the DES2017 dataset.
+        dataKnownDES (numpy array): This is the numpy array of the the DES2017 dataset.
     """
 
     foldersKnownDES2017 = []
@@ -155,25 +154,25 @@ def getDES2017(base_dir = 'KnownLenses/DES2017/'):
             foldersKnownDES2017.append(os.path.join(root, folder))
 
     nDT = len(foldersKnownDES2017)
-    DataKnownDES = np.zeros([nDT,3,100,100])
+    dataKnownDES = np.zeros([nDT, 3, 100, 100])
 
     for var in range(len(foldersKnownDES2017)):
 
-        # g_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/g_WCSClipped.fits')
-        # r_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/r_WCSClipped.fits')
-        # i_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/i_WCSClipped.fits')    
+        # gName = get_pkg_data_filename(foldersKnownDES2017[var]+'/g_WCSClipped.fits')
+        # rName = get_pkg_data_filename(foldersKnownDES2017[var]+'/r_WCSClipped.fits')
+        # iName = get_pkg_data_filename(foldersKnownDES2017[var]+'/i_WCSClipped.fits')    
 
-        g_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/g_norm.fits')
-        r_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/r_norm.fits')
-        i_name = get_pkg_data_filename(foldersKnownDES2017[var]+'/i_norm.fits')    
+        gName = get_pkg_data_filename(foldersKnownDES2017[var] + '/g_norm.fits')
+        rName = get_pkg_data_filename(foldersKnownDES2017[var] + '/r_norm.fits')
+        iName = get_pkg_data_filename(foldersKnownDES2017[var] + '/i_norm.fits')    
     
-        g = fits.open(g_name)[0].data[0:100,0:100]
-        r = fits.open(r_name)[0].data[0:100,0:100]
-        i = fits.open(i_name)[0].data[0:100,0:100]    
+        g = fits.open(gName)[0].data[0:100, 0:100]
+        r = fits.open(rName)[0].data[0:100, 0:100]
+        i = fits.open(iName)[0].data[0:100, 0:100]    
         
-        DataKnownDES[var] = [g, r, i]
+        dataKnownDES[var] = [g, r, i]
 
-    return (DataKnownDES)
+    return (dataKnownDES)
 
 def getJacobs(base_dir = 'KnownLenses/Jacobs_KnownLenses/'):
     """
@@ -182,7 +181,7 @@ def getJacobs(base_dir = 'KnownLenses/Jacobs_KnownLenses/'):
     Args:
         base_dir (string):          This is the root directory of the DES2017 folder. 
     Returns:
-        DataKnownDES (numpy array): This is the numpy array of the the DES2017 dataset.
+        dataKnownDES (numpy array): This is the numpy array of the the DES2017 dataset.
     """
 
     foldersKnownJacobs = []
@@ -190,24 +189,24 @@ def getJacobs(base_dir = 'KnownLenses/Jacobs_KnownLenses/'):
         for folder in dirs:
             foldersKnownJacobs.append(os.path.join(root, folder))
     nDT = len(foldersKnownJacobs)
-    DataKnownJacobs = np.zeros([nDT,3,100,100])
+    dataKnownJacobs = np.zeros([nDT, 3, 100, 100])
 
     for var in range(len(foldersKnownJacobs)):
 
-        # g_name = get_pkg_data_filename(foldersKnownJacobs[var]+'/g_WCSClipped.fits')
-        # r_name = get_pkg_data_filename(foldersKnownJacobs[var]+'/r_WCSClipped.fits')
-        # i_name = get_pkg_data_filename(foldersKnownJacobs[var]+'/i_WCSClipped.fits')    
+        # gName = get_pkg_data_filename(foldersKnownJacobs[var] + '/g_WCSClipped.fits')
+        # rName = get_pkg_data_filename(foldersKnownJacobs[var] + '/r_WCSClipped.fits')
+        # iName = get_pkg_data_filename(foldersKnownJacobs[var] + '/i_WCSClipped.fits')    
 
-        g_name = get_pkg_data_filename(foldersKnownJacobs[var]+'/g_norm.fits')
-        r_name = get_pkg_data_filename(foldersKnownJacobs[var]+'/r_norm.fits')
-        i_name = get_pkg_data_filename(foldersKnownJacobs[var]+'/i_norm.fits')    
+        gName = get_pkg_data_filename(foldersKnownJacobs[var] + '/g_norm.fits')
+        rName = get_pkg_data_filename(foldersKnownJacobs[var] + '/r_norm.fits')
+        iName = get_pkg_data_filename(foldersKnownJacobs[var] + '/i_norm.fits')    
     
-        g = fits.open(g_name)[0].data[0:100,0:100]
-        r = fits.open(r_name)[0].data[0:100,0:100]
-        i = fits.open(i_name)[0].data[0:100,0:100]    
+        g = fits.open(gName)[0].data[0:100, 0:100]
+        r = fits.open(rName)[0].data[0:100, 0:100]
+        i = fits.open(iName)[0].data[0:100, 0:100]    
         
-        DataKnownJacobs[var] = [g, r, i]
-    return (DataKnownJacobs)
+        dataKnownJacobs[var] = [g, r, i]
+    return (dataKnownJacobs)
 
 def getUnknown(num, base_dir = 'KnownLenses'):
     """
@@ -221,7 +220,7 @@ def getUnknown(num, base_dir = 'KnownLenses'):
                                     This indicates how many unseen negative images is to be retrieved. 
         base_dir (string):          This is the root directory file path of where the unknown lenses are situated in. 
     Returns:
-        DataUnknown (numpy array):  This is the numpy array of the unknown dataset.
+        dataUnknown (numpy array):  This is the numpy array of the unknown dataset.
     """
 
     if num == 47:
@@ -237,24 +236,24 @@ def getUnknown(num, base_dir = 'KnownLenses'):
             foldersUnknown.append(os.path.join(root, folder))
 
     nDT = len(foldersUnknown)
-    DataUnknown = np.zeros([nDT,3,100,100])
+    dataUnknown = np.zeros([nDT, 3, 100, 100])
 
     for var in range(len(foldersUnknown)):
-        # g_name = get_pkg_data_filename(foldersUnknown[var]+'/g_WCSClipped.fits')
-        # r_name = get_pkg_data_filename(foldersUnknown[var]+'/r_WCSClipped.fits')
-        # i_name = get_pkg_data_filename(foldersUnknown[var]+'/i_WCSClipped.fits')    
+        # gName = get_pkg_data_filename(foldersUnknown[var]+'/g_WCSClipped.fits')
+        # rName = get_pkg_data_filename(foldersUnknown[var]+'/r_WCSClipped.fits')
+        # iName = get_pkg_data_filename(foldersUnknown[var]+'/i_WCSClipped.fits')    
 
-        g_name = get_pkg_data_filename(foldersUnknown[var]+'/g_norm.fits')
-        r_name = get_pkg_data_filename(foldersUnknown[var]+'/r_norm.fits')
-        i_name = get_pkg_data_filename(foldersUnknown[var]+'/i_norm.fits')    
+        gName = get_pkg_data_filename(foldersUnknown[var] + '/g_norm.fits')
+        rName = get_pkg_data_filename(foldersUnknown[var] + '/r_norm.fits')
+        iName = get_pkg_data_filename(foldersUnknown[var] + '/i_norm.fits')    
 
-        g = fits.open(g_name)[0].data[0:100,0:100]
-        r = fits.open(r_name)[0].data[0:100,0:100]
-        i = fits.open(i_name)[0].data[0:100,0:100]    
+        g = fits.open(gName)[0].data[0:100, 0:100]
+        r = fits.open(rName)[0].data[0:100, 0:100]
+        i = fits.open(iName)[0].data[0:100, 0:100]    
         
-        DataUnknown[var] = [g, r, i]
+        dataUnknown[var] = [g, r, i]
 
-    return (DataUnknown)
+    return (dataUnknown)
 
 def testDES2017():
     """
@@ -277,15 +276,15 @@ def testDES2017():
     unknownArray = getUnknown(num)
 
     imageTest, labelsTest = loadImage(knownDES2017Array, unknownArray)
-    x_ImageTest = imageTest.reshape(imageTest.shape[0], imageTest.shape[1]*imageTest.shape[2]*imageTest.shape[3]) # batchsize, height*width*3channels
+    xImageTest = imageTest.reshape(imageTest.shape[0], imageTest.shape[1] * imageTest.shape[2] * imageTest.shape[3]) # batchsize, height*width*3channels
 
     encoder = LabelEncoder()
-    y_ImageLabels = encoder.fit_transform(labelsTest)
+    yImageLabels = encoder.fit_transform(labelsTest)
 
-    y_pred = clf_image.predict(x_ImageTest)
-    accuracyScore_47 = (accuracy_score(y_ImageLabels, y_pred))*100
+    yPred = clfImages.predict(xImageTest)
+    accuracyScore_47 = (accuracy_score(yImageLabels, yPred))*100
 
-    results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
+    results = model_selection.cross_val_score(clfImages, xImageTest, yImageLabels, cv = kfold)
     kFoldAccuracy_47 = (results.mean())*100
     kFoldStd_47 = results.std
 
@@ -312,20 +311,19 @@ def testJacobs():
     unknownArray = getUnknown(num)
 
     imageJacobsTest, labelsJacobsTest = loadImage(knownJacobsArray, unknownArray)
-    x_ImageTest = imageJacobsTest.reshape(imageJacobsTest.shape[0], imageJacobsTest.shape[1]*imageJacobsTest.shape[2]*imageJacobsTest.shape[3]) # batchsize, height*width*3channels
+    xImageTest = imageJacobsTest.reshape(imageJacobsTest.shape[0], imageJacobsTest.shape[1]*imageJacobsTest.shape[2]*imageJacobsTest.shape[3]) # batchsize, height*width*3channels
 
     encoder = LabelEncoder()
-    y_ImageLabels = encoder.fit_transform(labelsJacobsTest)
+    yImageLabels = encoder.fit_transform(labelsJacobsTest)
 
-    y_pred = clf_image.predict(x_ImageTest)
-    accuracyScore_84 = (accuracy_score(y_ImageLabels, y_pred))*100
+    yPred = clfImages.predict(xImageTest)
+    accuracyScore_84 = (accuracy_score(yImageLabels, yPred))*100
 
-    results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
+    results = model_selection.cross_val_score(clfImages, xImageTest, yImageLabels, cv = kfold)
     kFoldAccuracy_84 = (results.mean())*100
     kFoldStd_84 = results.std
 
-
-    return(knownJacobsArray, accuracyScore_84, kFoldAccuracy_84,kFoldStd_84)
+    return(knownJacobsArray, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84)
 
 def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray):
     """
@@ -349,16 +347,16 @@ def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray):
     unknownArray = getUnknown(num)
 
     imageKnownTest, labelsKnownTest = loadImage(allKnownArray, unknownArray)
-    x_ImageTest = imageKnownTest.reshape(imageKnownTest.shape[0], imageKnownTest.shape[1]*imageKnownTest.shape[2]*imageKnownTest.shape[3]) # batchsize, height*width*3channels
+    xImageTest = imageKnownTest.reshape(imageKnownTest.shape[0], imageKnownTest.shape[1] * imageKnownTest.shape[2] * imageKnownTest.shape[3]) # batchsize, height*width*3channels
 
     encoder = LabelEncoder()
-    y_ImageLabels = encoder.fit_transform(labelsKnownTest)
+    yImageLabels = encoder.fit_transform(labelsKnownTest)
 
-    y_pred = clf_image.predict(x_ImageTest)
-    accuracyScore_131 = (accuracy_score(y_ImageLabels, y_pred))*100
+    yPred = clfImages.predict(xImageTest)
+    accuracyScore_131 = (accuracy_score(yImageLabels, yPred))*100
 
-    results = model_selection.cross_val_score(clf_image, x_ImageTest, y_ImageLabels, cv = kfold)
-    kFoldAccuracy_131 = (results.mean())*100
+    results = model_selection.cross_val_score(clfImages, xImageTest, yImageLabels, cv = kfold)
+    kFoldAccuracy_131 = (results.mean()) * 100
     kFoldStd_131 = results.std()
 
     return(accuracyScore_131, kFoldAccuracy_131, kFoldStd_131)
@@ -373,108 +371,107 @@ def makeTrainTest(positiveArray, negativeArray):
         positiveArray (numpy array):    This is the positively simulated dataset images.
         negativeArray (numpy array):    This is the negative DES images.
     Returns:
-        x_train (numpy array):          This is the array of the training set of the training images, 
+        xTrain (numpy array):          This is the array of the training set of the training images, 
                                         which is 80% of the image training set. 
-        x_test (numpy array):           This is the array of the testing set of the training images, which 
+        xTest (numpy array):           This is the array of the testing set of the training images, which 
                                         is the 20% of the training images. 
-        y_train (numpy array):          This is the array of the labels of the training labels, which is 80% 
+        yTrain (numpy array):          This is the array of the labels of the training labels, which is 80% 
                                         of the training labels.
-        y_test (numpy array):           This is the array of the labels of the testing labels, which is 20% 
+        yTest (numpy array):           This is the array of the labels of the testing labels, which is 20% 
                                         of the training labels.
-        train_percent (float):          This is the percentage of data used for training (1- test_percent).
-        test_percent (float):           This is the percentage of date used for testing.
-        imageTrain_std (float):         This is the standard deviation of the entire training set, all 20000 images. 
-        imageTrain_mean (float):        This is the mean of the entire training set, all 20000 images. 
-        imageTrain_shape (list):        This is the shape of the entire training set, all 20000 images.
-        imageLabels_shape (list):       This is the shape of the entire training sets' labels, all 20000 labels.
-        xTrain_shape (list):            This is the shape of the training set of the images.
-        xTest_shape (list):             This is the shape of the testing set of the images.
-        yTrain_shape (list):            This is the shape of the training set of the labels.
-        yTest_shape (list):             This is the shape of the testing set of the labels. 
+        trainPercent (float):          This is the percentage of data used for training (1- testPercent).
+        testPercent (float):           This is the percentage of date used for testing.
+        imageTrainStd (float):         This is the standard deviation of the entire training set, all 20000 images. 
+        imageTrainMean (float):        This is the mean of the entire training set, all 20000 images. 
+        imageTrainShape (list):        This is the shape of the entire training set, all 20000 images.
+        imageLabelsShape (list):       This is the shape of the entire training sets' labels, all 20000 labels.
+        xTrainShape (list):            This is the shape of the training set of the images.
+        xTestShape (list):             This is the shape of the testing set of the images.
+        yTrainShape (list):            This is the shape of the training set of the labels.
+        yTestShape (list):             This is the shape of the testing set of the labels. 
     """
 
     imageTrain, imageLabels = loadImage(positiveArray, negativeArray)
-    imageTrain_std = imageTrain.std()
-    imageTrain_mean = imageTrain.mean()
-    imageTrain_shape = imageTrain.shape
-    print("imageTrain shape: " +str(imageTrain_shape))
-    imageLabels_shape = imageLabels.shape
+    imageTrainStd = imageTrain.std()
+    imageTrainMean = imageTrain.mean()
+    imageTrainShape = imageTrain.shape
+    print("imageTrain shape: " + str(imageTrainShape))
+    imageLabelsShape = imageLabels.shape
 
-    # reshape X
-    X = imageTrain.reshape(imageTrain.shape[0], imageTrain.shape[1]*imageTrain.shape[2]*imageTrain.shape[3]) # batchsize, height*width*3channels
-    print ("X shape: " + str(X.shape))
+    # reshape x
+    x = imageTrain.reshape(imageTrain.shape[0], imageTrain.shape[1] * imageTrain.shape[2] * imageTrain.shape[3]) # batchsize, height*width*3channels
+    print ("x shape: " + str(x.shape))
 
-    # Encoding Y now
+    # Encoding y now
     encoder = LabelEncoder()
-    Y = encoder.fit_transform(imageLabels)
-    print (" Y shape: " +str(Y.shape))
+    y = encoder.fit_transform(imageLabels)
+    print (" y shape: " + str(y.shape))
 
     # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
-    test_percent = 0.2
-    x_train, x_test, y_train, y_test = train_test_split(X, Y, shuffle=True, test_size =test_percent)
-    xTrain_shape = x_train.shape
-    xTest_shape = x_test.shape
-    yTrain_shape = y_train.shape
-    yTest_shape = y_test.shape
-    print("x_train: " +str(xTrain_shape))
-    print("y_train: "+str(y_train.shape))
-    print("x_test shape: "+str(xTest_shape))
-    print("y_test shape: "+str(y_train.shape))
+    testPercent = 0.2
+    xTrain, xTest, yTrain, yTest = train_test_split(x, y, shuffle = True, test_size = testPercent)
+    xTrainShape = xTrain.shape
+    xTestShape = xTest.shape
+    yTrainShape = yTrain.shape
+    yTestShape = yTest.shape
+    print("xTrain: " + str(xTrainShape))
+    print("yTrain: " + str(yTrain.shape))
+    print("xTest shape: " + str(xTestShape))
+    print("yTest shape: " + str(yTrain.shape))
 
+    trainPercent = (1 - testPercent)
 
-    train_percent = (1 - test_percent)
-
-    return(x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape)
+    return(xTrain, xTest, yTrain, yTest, trainPercent, testPercent, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, xTrainShape, xTestShape, yTrainShape, yTestShape)
 #_____________________________________________________________________________________________________________________________
 # MAIN
 
 positiveArray = getPositiveSimulated()
 negativeArray = getNegativeDES()
 
-x_train, x_test, y_train, y_test, train_percent, test_percent, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape = makeTrainTest(positiveArray, negativeArray)
+xTrain, xTest, yTrain, yTest, trainPercent, testPercent, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, xTrainShape, xTestShape, yTrainShape, yTestShape = makeTrainTest(positiveArray, negativeArray)
 
 # Trianing the data with MLPClassifier, from scikit learn
-clf_image = MLPClassifier(activation = 'relu',
+clfImages = MLPClassifier(activation = 'relu',
                           hidden_layer_sizes = (100, 100, 100), # 3 layers of 100 neurons each
                           solver = 'sgd', 
                           verbose = True,
                           max_iter = 100,
-                          batch_size=200,
-                          early_stopping=True) # batchsize = 200 default
+                          batch_size = 200,
+                          early_stopping = True) # batchsize = 200 default
 
-description = str(clf_image)
+description = str(clfImages)
 
 # Getting training loss
-clf_image.fit(x_train, y_train)
-train_loss = clf_image.loss_curve_ 
+clfImages.fit(xTrain, yTrain)
+trainLoss = clfImages.loss_curve_ 
 
 # Accuracy Testing
-y_pred = clf_image.predict(x_test)
-accuracyScore = (accuracy_score(x_test, y_test))*100
+yPred = clfImages.predict(xTest)
+accuracyScore = (accuracy_score(yTest, yPred))*100
 
 # Getting validation loss
-clf_image.fit(x_test, y_test)
-val_loss = clf_image.loss_curve_
+clfImages.fit(xTest, yTest)
+valLoss = clfImages.loss_curve_
 
-epochs = range(1,30)
-plt.plot(train_loss, label = 'Training Loss')
-plt.plot(val_loss, label = 'Validation Loss')
+epochs = range(1, 30)
+plt.plot(trainLoss, label = 'Training Loss')
+plt.plot(valLoss, label = 'Validation Loss')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
 plt.savefig('../Results/TrainingvsValidationLoss_Sklearn.png')
 
 # Cross Validation
-n_splits = 10
-random_state = 100
-kfold = model_selection.KFold(n_splits = n_splits, random_state = random_state) 
-kFoldAccuracy = model_selection.cross_val_score(clf_image, x_test, y_test, scoring='accuracy', cv = kfold)
+nSplits = 10
+randomState = 100
+kfold = model_selection.KFold(nSplits = nSplits, random_state = randomState) 
+kFoldAccuracy = model_selection.cross_val_score(clfImages, xTest, yTest, scoring='accuracy', cv = kfold)
 kFoldMean = kFoldAccuracy.mean()*100
 kFoldStd = kFoldAccuracy.std()
-print("Accuracy Score: "+str(accuracyScore))
-print("Accuracy Type: "+str(type(accuracyScore)))
-print("Score Mean: " +str(kFoldMean))
-print("Scores Std: " +str(kFoldStd))
+print("Accuracy Score: " + str(accuracyScore))
+print("Accuracy Type: " + str(type(accuracyScore)))
+print("Score Mean: " + str(kFoldMean))
+print("Scores Std: " + str(kFoldStd))
 
 fig4 = plt.figure()
 plt.plot(kFoldAccuracy, label = 'Scores')
@@ -482,8 +479,8 @@ plt.legend()
 fig4.savefig('../Results/SkLearnKFold_Scores.png')
 
 fig5 = plt.figure()
-plt.plot(train_loss, label = 'Training Loss')
-plt.plot(val_loss, label = 'Validation Loss')
+plt.plot(trainLoss, label = 'Training Loss')
+plt.plot(valLoss, label = 'Validation Loss')
 # plt.plot(accuracyScore, label = 'Accuracy')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
@@ -492,11 +489,11 @@ plt.savefig('../Results/LossAccuracy_Sklearn.png')
 
 #______________________________________________________________________________________________________________________
 knownDES2017, accuracyScore_47, kFoldAccuracy_47, kFoldStd_47 = testDES2017()
-knownJacobs, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84= testJacobs()
-accuracyScore_131, kFoldAccuracy_131, kFoldStd_131 =testDES2017AndJacobs(knownDES2017, knownJacobs)
+knownJacobs, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84 = testJacobs()
+accuracyScore_131, kFoldAccuracy_131, kFoldStd_131 = testDES2017AndJacobs(knownDES2017, knownJacobs)
 
 # write to ml_Lenses_results.xlsx
 makeExcelTable.makeInitialTable()
-elementList = makeExcelTable.getElementList(description, imageTrain_std, imageTrain_mean, imageTrain_shape, imageLabels_shape, train_percent, test_percent, xTrain_shape, xTest_shape, yTrain_shape, yTest_shape, n_splits, random_state, accuracyScore, kFoldAccuracy, kFoldStd, accuracyScore_47, kFoldAccuracy_47, kFoldStd_47, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84, accuracyScore_131, kFoldAccuracy_131, kFoldStd_131)
+elementList = makeExcelTable.getElementList(description, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, trainPercent, testPercent, xTrainShape, xTestShape, yTrainShape, yTestShape, nSplits, randomState, accuracyScore, kFoldAccuracy, kFoldStd, accuracyScore_47, kFoldAccuracy_47, kFoldStd_47, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84, accuracyScore_131, kFoldAccuracy_131, kFoldStd_131)
 filename = '../Results/ml_Lenses_results.csv'
 makeExcelTable.appendRowAsList(filename, elementList)
