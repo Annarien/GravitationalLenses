@@ -8,3 +8,10 @@ Description,imageTrain_std,imageTrain_mean,imageTrain_shape,imageLabels_shape,tr
        random_state=None, shuffle=True, solver='sgd', tol=0.0001,
        validation_fraction=0.1, verbose=True, warm_start=False)",1.000259326861474,0.00012721201096237093,"(20000, 3, 100, 100)","(20000,)",0.8,0.2,"(16000, 30000)","(4000, 30000)","(16000,)","(4000,)",10,100,97.075,[0.9675 0.9575 0.9675 0.97   0.95   0.965  0.965  0.9775 0.965  0.9525],0.007846177413237617,68.08510638297872,71.44444444444444,<built-in method std of numpy.ndarray object at 0x1b68eb170>,50.0,65.4779411764706,<built-in method std of numpy.ndarray object at 0x247f2b7b0>,55.72519083969466,63.04843304843305,0.15833664944564807
 <keras.engine.sequential.Sequential object at 0x13f339c50>,1.000259326861474,0.00012721201096237093,"(20000, 3, 100, 100)","(20000,)",0.8,0.2,"(16000, 3, 100, 100)","(4000, 3, 100, 100)","(16000,)","(4000,)",10,0,99.52499866485596,[0.9675 0.9825 0.975  0.965  0.9775 0.9775 0.9875 0.99   0.965  0.9625],0.009287087810503367,57.446807622909546,90.44444444444444,0.08666666666666666,50.0,78.41911764705883,0.12788675735826777,52.29007601737976,65.5982905982906,0.09401763359941856
+"MLPClassifier(activation='relu', alpha=0.0001, batch_size=200, beta_1=0.9,
+       beta_2=0.999, early_stopping=True, epsilon=1e-08,
+       hidden_layer_sizes=(100, 100, 100), learning_rate='constant',
+       learning_rate_init=0.001, max_iter=100, momentum=0.9,
+       n_iter_no_change=10, nesterovs_momentum=True, power_t=0.5,
+       random_state=None, shuffle=True, solver='sgd', tol=0.0001,
+       validation_fraction=0.1, verbose=True, warm_start=False)",1.000259326861474,0.00012721201096237093,"(20000, 3, 100, 100)","(20000,)",0.8,0.2,"(16000, 30000)","(4000, 30000)","(16000,)","(4000,)",10,100,97.35000000000001,96.55,0.01094303431411965,74.46808510638297,70.55555555555554,<built-in method std of numpy.ndarray object at 0x246dac0d0>,52.976190476190474,73.23529411764707,<built-in method std of numpy.ndarray object at 0x246db9580>,58.778625954198475,69.28774928774929,0.16502982722229492

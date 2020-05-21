@@ -358,6 +358,8 @@ def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray):
     results = model_selection.cross_val_score(clfImages, xImageTest, yImageLabels, cv = kfold)
     kFoldAccuracy_131 = (results.mean()) * 100
     kFoldStd_131 = results.std()
+    print("KFold Accuraccy_131: "+str(kFoldAccuracy_131))
+    print("K Fold Std: " +str(kFoldStd_131))
 
     return(accuracyScore_131, kFoldAccuracy_131, kFoldStd_131)
 
@@ -464,7 +466,7 @@ plt.savefig('../Results/TrainingvsValidationLoss_Sklearn.png')
 # Cross Validation
 nSplits = 10
 randomState = 100
-kfold = model_selection.KFold(nSplits = nSplits, random_state = randomState) 
+kfold = model_selection.KFold(n_splits = nSplits, random_state = randomState) 
 score = model_selection.cross_val_score(clfImages, xTest, yTest, scoring='accuracy', cv = kfold)
 kFoldAccuracy = score.mean()*100
 kFoldStd = score.std()
@@ -491,6 +493,18 @@ knownDES2017, accuracyScore_47, kFoldAccuracy_47, kFoldStd_47 = testDES2017()
 knownJacobs, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84 = testJacobs()
 accuracyScore_131, kFoldAccuracy_131, kFoldStd_131 = testDES2017AndJacobs(knownDES2017, knownJacobs)
 
+print("Accuracy Score: " + str(accuracyScore))
+print("Accuracy Type: " + str(type(accuracyScore)))
+print("K Fold Std: " + str(kFoldStd))
+print("Accuracy_47: "+str(accuracyScore_47))
+print("K Fold Accuraccy_47: "+str(kFoldAccuracy_47))
+print("K Fold Std_47: " +str(kFoldStd_47))
+print("Accuracy_84: "+str(accuracyScore_84))
+print("K Fold Accuraccy_84: "+str(kFoldAccuracy_84))
+print("K Fold Std_84: " +str(kFoldStd_84))
+print("Accuracy_131: "+str(accuracyScore_131) )
+print("K Fold Accuraccy_131: "+str(kFoldAccuracy_131))
+print("K Fold Std_131: " +str(kFoldStd_131))
 # write to ml_Lenses_results.xlsx
 # makeExcelTable.makeInitialTable()
 elementList = makeExcelTable.getElementList(description, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, trainPercent, testPercent, xTrainShape, xTestShape, yTrainShape, yTestShape, nSplits, randomState, accuracyScore, kFoldAccuracy, kFoldStd, accuracyScore_47, kFoldAccuracy_47, kFoldStd_47, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84, accuracyScore_131, kFoldAccuracy_131, kFoldStd_131)
