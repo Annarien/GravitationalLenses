@@ -282,7 +282,7 @@ def testDES2017():
     yImageLabels = encoder.fit_transform(labelsTest)
 
     yPred = clfImages.predict(xImageTest)
-    accuracyScore_47 = (accuracy_score(yImageLabels, yPred))*100
+    accuracyScore_47 = (accuracy_score(xImageTest,yImageLabels))*100
 
     results = model_selection.cross_val_score(clfImages, xImageTest, yImageLabels, cv = kfold)
     kFoldAccuracy_47 = (results.mean())*100
@@ -317,7 +317,7 @@ def testJacobs():
     yImageLabels = encoder.fit_transform(labelsJacobsTest)
 
     yPred = clfImages.predict(xImageTest)
-    accuracyScore_84 = (accuracy_score(yImageLabels, yPred))*100
+    accuracyScore_84 = (accuracy_score(xImageTest, yImageLabels))*100
 
     results = model_selection.cross_val_score(clfImages, xImageTest, yImageLabels, cv = kfold)
     kFoldAccuracy_84 = (results.mean())*100
@@ -353,7 +353,7 @@ def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray):
     yImageLabels = encoder.fit_transform(labelsKnownTest)
 
     yPred = clfImages.predict(xImageTest)
-    accuracyScore_131 = (accuracy_score(yImageLabels, yPred))*100
+    accuracyScore_131 = (accuracy_score(xImageTest,yImageLabels))*100
 
     results = model_selection.cross_val_score(clfImages, xImageTest, yImageLabels, cv = kfold)
     kFoldAccuracy_131 = (results.mean()) * 100
@@ -449,7 +449,7 @@ trainLoss = clfImages.loss_curve_
 
 # Accuracy Testing
 yPred = clfImages.predict(xTest)
-accuracyScore = (accuracy_score(yTest, yPred))*100
+accuracyScore = (accuracy_score(xTest,yTest))*100
 
 # Getting validation loss
 clfImages.fit(xTest, yTest)
