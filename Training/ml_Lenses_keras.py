@@ -282,14 +282,19 @@ def testDES2017(model, neuralNetwork, nSplits):
     unknownArray = getUnknown(num)
 
     imageTest, labelsTest = loadImage(knownDES2017Array, unknownArray)
-    # x_ImageTest = imageTest.reshape(imageTest.shape[0], imageTest.shape[1]*imageTest.shape[2]*imageTest.shape[3]) # batchsize, height*width*3channels
+    xImageTest = imageTest.reshape(imageTest.shape[0], imageTest.shape[1]*imageTest.shape[2]*imageTest.shape[3]) # batchsize, height*width*3channels
+    # print('xImageTest length: '+str(len(xImageTest)))
+    # print('imageTest shape: '+str(imageTest.shape()))
+    # print('labelsTest Shape: '+str(labelsTest.shape()))
 
     encoder = LabelEncoder()
     yImageLabels = encoder.fit_transform(labelsTest)
+    # print('yImageLabels Shape: '+str(yImageLabels.shape()))
 
     # Get Accuracy Score tests DES2017 on the mlpclassifier:
     yPred = model.predict(imageTest)
-    _, acc = model.evaluate(yImageLabels, yPred, verbose=0)
+    # print('yPred Shape: '+str(yPred.shape()))
+    _, acc = model.evaluate(imageTest, yImageLabels , verbose=0)
     accuracyScore_47 = acc * 100
 
     # get the k fold accuracy after k fold cross validation
@@ -298,7 +303,7 @@ def testDES2017(model, neuralNetwork, nSplits):
     print("kFold47 Scores Mean: " +str(scoresMean))
     kFoldStd_47 = scores.std()
     print("kFold47 Scores Std: " +str(kFoldStd_47))
-    kFoldAccuracy = scoresMean
+    kFoldAccuracy_47 = scoresMean
 
     return(knownDES2017Array, accuracyScore_47, kFoldAccuracy_47,kFoldStd_47)
 
@@ -323,7 +328,7 @@ def testJacobs(model, neuralNetwork, nSplits):
     unknownArray = getUnknown(num)
 
     imageJacobsTest, labelsJacobsTest = loadImage(knownJacobsArray, unknownArray)
-    # x_ImageTest = imageJacobsTest.reshape(imageJacobsTest.shape[0], imageJacobsTest.shape[1]*imageJacobsTest.shape[2]*imageJacobsTest.shape[3]) # batchsize, height*width*3channels
+    xImageTest = imageJacobsTest.reshape(imageJacobsTest.shape[0], imageJacobsTest.shape[1]*imageJacobsTest.shape[2]*imageJacobsTest.shape[3]) # batchsize, height*width*3channels
 
     encoder = LabelEncoder()
     yImageLabels = encoder.fit_transform(labelsJacobsTest)
@@ -366,8 +371,8 @@ def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray, model, neuralNetwo
     unknownArray = getUnknown(num)
 
     imageKnownTest, labelsKnownTest = loadImage(allKnownArray, unknownArray)
-    # x_ImageTest = imageKnownTest.reshape(imageKnownTest.shape[0], imageKnownTest.shape[1]*imageKnownTest.shape[2]*imageKnownTest.shape[3]) # batchsize, height*width*3channels
-    # print(" x ImageTest: " + str(x_ImageTest.shape))
+    xImageTest = imageKnownTest.reshape(imageKnownTest.shape[0], imageKnownTest.shape[1]*imageKnownTest.shape[2]*imageKnownTest.shape[3]) # batchsize, height*width*3channels
+    print(" x ImageTest: " + str(xImageTest.shape))
 
     encoder = LabelEncoder()
     yImageLabels = encoder.fit_transform(labelsKnownTest)
@@ -486,7 +491,7 @@ def useKerasModel(positiveArray, negativeArray):
     description = str(model)
     # Accuracy Testing
     yPred = model.predict(xTest)
-    _, acc = model.evaluate(xTest, yTest, verbose=0)
+    _, acc = model.evaluate(xTest,yTest, verbose=0)
     accuracyScore =  acc * 100.0
     print("Accuracy Score: " +str(accuracyScore))
     # plot training vs validation loss. 
@@ -528,8 +533,8 @@ def getKerasKFold(xTrain, xTest, yTrain, yTest):
     print("DONE 3")
     scoresMean = scores.mean()*100
     print("kFold Scores Mean: " +str(scoresMean))
-    scoresStd = scores.std()
-    print("kFold Scores Std: " +str(scoresStd))
+    kFoldStd = scores.std()
+    print("kFold Scores Std: " +str(kFoldStd))
     print("DONE 4")
 
     fig3 = plt.figure()

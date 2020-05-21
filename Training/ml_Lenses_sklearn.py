@@ -465,12 +465,11 @@ plt.savefig('../Results/TrainingvsValidationLoss_Sklearn.png')
 nSplits = 10
 randomState = 100
 kfold = model_selection.KFold(nSplits = nSplits, random_state = randomState) 
-kFoldAccuracy = model_selection.cross_val_score(clfImages, xTest, yTest, scoring='accuracy', cv = kfold)
-kFoldMean = kFoldAccuracy.mean()*100
-kFoldStd = kFoldAccuracy.std()
+score = model_selection.cross_val_score(clfImages, xTest, yTest, scoring='accuracy', cv = kfold)
+kFoldAccuracy = score.mean()*100
+kFoldStd = score.std()
 print("Accuracy Score: " + str(accuracyScore))
 print("Accuracy Type: " + str(type(accuracyScore)))
-print("Score Mean: " + str(kFoldMean))
 print("Scores Std: " + str(kFoldStd))
 
 fig4 = plt.figure()
@@ -493,7 +492,7 @@ knownJacobs, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84 = testJacobs()
 accuracyScore_131, kFoldAccuracy_131, kFoldStd_131 = testDES2017AndJacobs(knownDES2017, knownJacobs)
 
 # write to ml_Lenses_results.xlsx
-makeExcelTable.makeInitialTable()
+# makeExcelTable.makeInitialTable()
 elementList = makeExcelTable.getElementList(description, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, trainPercent, testPercent, xTrainShape, xTestShape, yTrainShape, yTestShape, nSplits, randomState, accuracyScore, kFoldAccuracy, kFoldStd, accuracyScore_47, kFoldAccuracy_47, kFoldStd_47, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84, accuracyScore_131, kFoldAccuracy_131, kFoldStd_131)
 filename = '../Results/ml_Lenses_results.csv'
 makeExcelTable.appendRowAsList(filename, elementList)
