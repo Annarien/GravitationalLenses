@@ -286,7 +286,7 @@ def testDES2017():
 
     results = model_selection.cross_val_score(clfImages, xImageTest, yImageLabels, cv = kfold)
     kFoldAccuracy_47 = (results.mean())*100
-    kFoldStd_47 = results.std
+    kFoldStd_47 = results.std()
 
     return(knownDES2017Array, accuracyScore_47, kFoldAccuracy_47, kFoldStd_47)
 
@@ -321,7 +321,7 @@ def testJacobs():
 
     results = model_selection.cross_val_score(clfImages, xImageTest, yImageLabels, cv = kfold)
     kFoldAccuracy_84 = (results.mean())*100
-    kFoldStd_84 = results.std
+    kFoldStd_84 = results.std()
 
     return(knownJacobsArray, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84)
 
@@ -468,7 +468,7 @@ nSplits = 10
 randomState = 100
 kfold = model_selection.KFold(n_splits = nSplits, random_state = randomState) 
 score = model_selection.cross_val_score(clfImages, xTest, yTest, scoring='accuracy', cv = kfold)
-kFoldAccuracy = score.mean()*100
+kFoldAccuracy = (score.mean())*100
 kFoldStd = score.std()
 print("Accuracy Score: " + str(accuracyScore))
 print("Accuracy Type: " + str(type(accuracyScore)))
@@ -479,14 +479,6 @@ plt.plot(kFoldAccuracy, label = 'Scores')
 plt.legend()
 fig4.savefig('../Results/SkLearnKFold_Scores.png')
 
-fig5 = plt.figure()
-plt.plot(trainLoss, label = 'Training Loss')
-plt.plot(valLoss, label = 'Validation Loss')
-# plt.plot(accuracyScore, label = 'Accuracy')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.legend()
-plt.savefig('../Results/LossAccuracy_Sklearn.png')
 
 #______________________________________________________________________________________________________________________
 knownDES2017, accuracyScore_47, kFoldAccuracy_47, kFoldStd_47 = testDES2017()
