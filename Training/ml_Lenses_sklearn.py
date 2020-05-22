@@ -498,7 +498,7 @@ print("Accuracy_131: "+str(accuracyScore_131) )
 print("K Fold Accuraccy_131: "+str(kFoldAccuracy_131))
 print("K Fold Std_131: " +str(kFoldStd_131))
 # write to ml_Lenses_results.xlsx
-# makeExcelTable.makeInitialTable()
+makeExcelTable.makeInitialTable()
 elementList = makeExcelTable.getElementList(description, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, trainPercent, testPercent, xTrainShape, xTestShape, yTrainShape, yTestShape, nSplits, randomState, accuracyScore, kFoldAccuracy, kFoldStd, accuracyScore_47, kFoldAccuracy_47, kFoldStd_47, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84, accuracyScore_131, kFoldAccuracy_131, kFoldStd_131)
 filename = '../Results/ml_Lenses_results.csv'
 makeExcelTable.appendRowAsList(filename, elementList)

@@ -485,7 +485,7 @@ def makeKerasModel():
 
 def useKerasModel(positiveArray, negativeArray):
     xTrain, xTest, yTrain, yTest, trainPercent, testPercent, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, xTrainShape, xTestShape, yTrainShape, yTestShape = makeTrainTest(positiveArray, negativeArray)
-    es = EarlyStopping(monitor = 'val_loss', verbose = 1, patience = 3)
+    es = EarlyStopping(monitor = 'val_loss', verbose = 1, patience = 2)
     model = makeKerasModel()
     seqModel = model.fit(xTrain, yTrain, epochs = 30, batch_size = 200, validation_data = (xTest, yTest), callbacks = [es])
     description = str(model)
@@ -541,7 +541,7 @@ def getKerasKFold(xTrain, xTest, yTrain, yTest):
     plt.plot(scores, label = 'Scores')
     plt.legend()
     fig3.savefig('../Results/KerasKFold_Scores.png')
-    return(nSplits, randomState, scores, kFoldStd, neuralNetwork)
+    return(nSplits, randomState, scoresMean, kFoldStd, neuralNetwork)
     #_____________________________________________________________________________________________________________________________
 
 # MAIN
@@ -558,6 +558,7 @@ knownJacobs, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84= testJacobs(model, 
 accuracyScore_131, kFoldAccuracy_131, kFoldStd_131 =testDES2017AndJacobs(knownDES2017, knownJacobs,model, neuralNetwork, nSplits)
 
 # write to ml_Lenses_results.xlsx
+# makeExcelTable.makeInitialTable()
 elementList = makeExcelTable.getElementList(description, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, trainPercent, testPercent, xTrainShape, xTestShape, yTrainShape, yTestShape, nSplits, randomState, accuracyScore, kFoldAccuracy, kFoldStd, accuracyScore_47, kFoldAccuracy_47,kFoldStd_47, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84, accuracyScore_131, kFoldAccuracy_131,kFoldStd_131)
 filename = '../Results/ml_Lenses_results.csv'
 makeExcelTable.appendRowAsList(filename, elementList)
