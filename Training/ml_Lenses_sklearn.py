@@ -475,7 +475,7 @@ print("Accuracy Type: " + str(type(accuracyScore)))
 print("Scores Std: " + str(kFoldStd))
 
 fig4 = plt.figure()
-plt.plot(kFoldAccuracy, label = 'Scores')
+plt.plot(score, label = 'Scores')
 plt.legend()
 fig4.savefig('../Results/SkLearnKFold_Scores.png')
 

@@ -22,3 +22,10 @@ Description,imageTrain_std,imageTrain_mean,imageTrain_shape,imageLabels_shape,tr
        n_iter_no_change=10, nesterovs_momentum=True, power_t=0.5,
        random_state=None, shuffle=True, solver='adam', tol=0.0001,
        validation_fraction=0.1, verbose=True, warm_start=False)",1.000259326861474,0.00012721201096237093,"(20000, 3, 100, 100)","(20000,)",0.8,0.2,"(16000, 30000)","(4000, 30000)","(16000,)","(4000,)",10,100,96.175,93.52500000000002,0.008764274071479033,70.2127659574468,72.22222222222221,<built-in method std of numpy.ndarray object at 0x10dd5d940>,50.595238095238095,42.72058823529411,<built-in method std of numpy.ndarray object at 0x2447f4a30>,54.961832061068705,67.15099715099714,0.21066849417555178
+"MLPClassifier(activation='relu', alpha=0.0001, batch_size=200, beta_1=0.9,
+       beta_2=0.999, early_stopping=True, epsilon=1e-08,
+       hidden_layer_sizes=(100, 100, 100), learning_rate='constant',
+       learning_rate_init=0.001, max_iter=100, momentum=0.9,
+       n_iter_no_change=10, nesterovs_momentum=True, power_t=0.5,
+       random_state=None, shuffle=True, solver='adam', tol=0.0001,
+       validation_fraction=0.1, verbose=True, warm_start=False)",1.000259326861474,0.00012721201096237093,"(20000, 3, 100, 100)","(20000,)",0.8,0.2,"(16000, 30000)","(4000, 30000)","(16000,)","(4000,)",10,100,97.0,93.9,0.009499999999999967,72.3404255319149,77.44444444444444,0.23046115872097048,52.38095238095239,40.220588235294116,0.32909730920707275,58.396946564885496,57.2079772079772,0.2246020932118846
