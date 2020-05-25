@@ -438,7 +438,7 @@ def makeTrainTest(positiveArray, negativeArray):
     # print("y shape: " +str(y.shape))
 
     # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
-    testPercent = 0.5
+    testPercent = 0.2
     xTrain, xTest, yTrain, yTest = train_test_split(imageTrain, y, shuffle=True, test_size = testPercent, random_state = 1 )
     xTrainShape = xTrain.shape
     xTestShape = xTest.shape
@@ -470,22 +470,24 @@ def makeKerasModel():
     model.add(Dense(1))
     model.add(Activation('sigmoid')) # THE KERAS WITHOUT ES PNG IMAGE, HAS SIGMOID
     model.compile(loss = 'binary_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
-
-    # model = Sequential()
-    # model.add(Conv2D(4, kernel_size = (3, 3), activation='relu', input_shape=(3, 100, 100)))
-    # model.add(MaxPooling2D(pool_size=(2,2), padding = 'same'))
-    # model.add(Flatten())
-    # model.add(Dense(128))
-    # model.add(Activation('relu'))
-    # model.add(Dense(1))
-    # model.add(Activation('sigmoid'))
-    # model.compile(loss = 'binary_crossentropy', optimizer = 'rmsprop', metrics = ['accuracy'])
     return (model)
+
+def makeKerasCNNModel():
+    model = Sequential()
+    model.add(Conv2D(4, kernel_size = (3, 3), activation='relu', input_shape=(3, 100, 100)))
+    model.add(MaxPooling2D(pool_size=(2,2), padding = 'same'))
+    model.add(Flatten())
+    model.add(Dense(128))
+    model.add(Activation('relu'))
+    model.add(Dense(1))
+    model.add(Activation('sigmoid'))
+    model.compile(loss = 'binary_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
+    return(model)
 
 def useKerasModel(positiveArray, negativeArray):
     xTrain, xTest, yTrain, yTest, trainPercent, testPercent, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, xTrainShape, xTestShape, yTrainShape, yTestShape = makeTrainTest(positiveArray, negativeArray)
     es = EarlyStopping(monitor = 'val_loss', verbose = 1, patience = 2)
-    model = makeKerasModel()
+    model = makeKerasCNNModel()
     seqModel = model.fit(xTrain, yTrain, epochs = 30, batch_size = 200, validation_data = (xTest, yTest), callbacks = [es])
     description = str(model)
     # Accuracy Testing
@@ -524,7 +526,7 @@ def useKerasModel(positiveArray, negativeArray):
 
 def getKerasKFold(xTrain, xTest, yTrain, yTest):
     # Stratified K fold Cross Validation
-    neuralNetwork = KerasClassifier(build_fn = makeKerasModel,  # https://machinelearningmastery.com/use-keras-deep-learning-models-scikit-learn-python/
+    neuralNetwork = KerasClassifier(build_fn = makeKerasCNNModel,  # https://machinelearningmastery.com/use-keras-deep-learning-models-scikit-learn-python/
                                     epochs = 30,                 
                                     batch_size = 200, 
                                     verbose = 0)
