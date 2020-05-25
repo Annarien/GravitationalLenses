@@ -372,7 +372,6 @@ def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray, model, neuralNetwo
 
     imageKnownTest, labelsKnownTest = loadImage(allKnownArray, unknownArray)
     xImageTest = imageKnownTest.reshape(imageKnownTest.shape[0], imageKnownTest.shape[1]*imageKnownTest.shape[2]*imageKnownTest.shape[3]) # batchsize, height*width*3channels
-    print(" x ImageTest: " + str(xImageTest.shape))
 
     encoder = LabelEncoder()
     yImageLabels = encoder.fit_transform(labelsKnownTest)
@@ -439,7 +438,7 @@ def makeTrainTest(positiveArray, negativeArray):
     # print("y shape: " +str(y.shape))
 
     # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
-    testPercent = 0.3
+    testPercent = 0.5
     xTrain, xTest, yTrain, yTest = train_test_split(imageTrain, y, shuffle=True, test_size = testPercent, random_state = 1 )
     xTrainShape = xTrain.shape
     xTestShape = xTest.shape
