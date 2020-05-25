@@ -518,6 +518,7 @@ def useKerasModel(positiveArray, negativeArray):
     plt.legend()
     fig2.savefig('../Results/TrainingvsValidationAccuracy_Keras.png')
 
+    #saving model weights in keras. 
     model.save_weights('kerasModel.h5')
 
     return(model, xTrain, xTest, yTrain, yTest, description,  trainPercent, testPercent,imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, xTrainShape, xTestShape, yTrainShape, yTestShape, accuracyScore)
