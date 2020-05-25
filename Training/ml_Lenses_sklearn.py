@@ -134,7 +134,7 @@ def loadImage(positiveArray, negativeArray):
     for num in range(0, len(negativeArray)):
         imageTrain.append(negativeArray[num])
         labelNeg = 'No Gravitational Lensing'
-        # labelNeg = 1 # assign 1 for no lensing
+        # labelNeg = 0 # assign 0 for no lensing
         imageLabels.append(labelNeg)
 
     return (np.array(imageTrain), np.array(imageLabels))

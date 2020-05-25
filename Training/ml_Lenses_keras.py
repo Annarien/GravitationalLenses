@@ -18,6 +18,9 @@ from keras.callbacks import EarlyStopping
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.datasets import make_classification
 
+# TO EXTRACT FEATURES FROM CNN
+# https://datascience.stackexchange.com/questions/17513/extracting-features-using-tensorflow-cnn
+
 # FUNCTIONS
 def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
     """
@@ -474,7 +477,7 @@ def makeKerasModel():
 
 def makeKerasCNNModel():
     model = Sequential()
-    model.add(Conv2D(4, kernel_size = (3, 3), activation='relu', input_shape=(3, 100, 100)))
+    model.add(Conv2D(64, kernel_size = (3, 3), activation='relu', input_shape=(3, 100, 100)))
     model.add(MaxPooling2D(pool_size=(2,2), padding = 'same'))
     model.add(Flatten())
     model.add(Dense(128))
