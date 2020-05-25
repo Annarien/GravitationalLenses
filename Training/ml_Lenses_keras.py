@@ -439,7 +439,7 @@ def makeTrainTest(positiveArray, negativeArray):
     # print("y shape: " +str(y.shape))
 
     # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
-    testPercent = 0.2
+    testPercent = 0.3
     xTrain, xTest, yTrain, yTest = train_test_split(imageTrain, y, shuffle=True, test_size = testPercent, random_state = 1 )
     xTrainShape = xTrain.shape
     xTestShape = xTest.shape
