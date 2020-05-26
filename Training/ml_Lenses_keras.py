@@ -18,7 +18,7 @@ from keras.callbacks import EarlyStopping
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.datasets import make_classification
 
-# TO EXTRACT FEATURES FROM CNN
+# TO EXTRACT FEATURES FROM CNN 
 # https://datascience.stackexchange.com/questions/17513/extracting-features-using-tensorflow-cnn
 
 # FUNCTIONS
