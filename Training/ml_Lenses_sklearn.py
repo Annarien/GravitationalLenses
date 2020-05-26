@@ -353,6 +353,8 @@ def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray):
     yImageLabels = encoder.fit_transform(labelsKnownTest)
 
     yPred = clfImages.predict(xImageTest)
+    #    accuracyScore_131 = (clf_images.evaluate(xImageTest, yImageLabels)) * 100
+
     accuracyScore_131 = (accuracy_score(yImageLabels, yPred))*100
 
     results = model_selection.cross_val_score(clfImages, xImageTest, yImageLabels, cv = kfold)
