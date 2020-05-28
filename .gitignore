@@ -11,7 +11,9 @@ settings.json
 Training/PositiveNoiseless/
 Training/PositiveWithDESSky/
 Training/KnownLenses/
-Training/.vscode
+Training/.vscode/
+Training/.idea/
+Results/
 .DS_Store
 .vscode
 *.zip
@@ -19,6 +21,8 @@ Training/.vscode
 *.png
 *.jpeg
 *.fits
+*.fits.fz
+*.docx
 model_baseline.h5
 DESa_lsst_lists.pkl
 DESb_lsst_lists.pkl
