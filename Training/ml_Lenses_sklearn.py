@@ -15,7 +15,7 @@ from sklearn.metrics import accuracy_score
 from sklearn import model_selection
 
 # FUNCTIONS
-def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
+def getPositiveSimulated(base_dir = 'NewLenses/LenseWithDES'):
     """
     This gets the g, r, and i of the 10 000 positively simulated images from the 
     PositiveWithDESSky, as well as returning the positively simulate array.
@@ -61,6 +61,7 @@ def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
         # just to run, and use less things
         # if counter > 1500:
         #     break
+    print("DONE 1")
     return (dataPos)
 
 def getNegativeDES(base_dir = 'DES/DES_Processed'):
@@ -99,6 +100,7 @@ def getNegativeDES(base_dir = 'DES/DES_Processed'):
         # just to run, and use less things
         # if var > 1500:
         #     break
+    print("DONE 2")
     return (dataNeg)
 
 def loadImage(positiveArray, negativeArray):
@@ -127,16 +129,16 @@ def loadImage(positiveArray, negativeArray):
 
     for num in range(0, len(positiveArray)):
         imageTrain.append(positiveArray[num])
-        labelPos = 'Gravitational Lensing'
-        # labelPos = 1 # assign 1 for gravitational lensing
+        # labelPos = 'Gravitational Lensing'
+        labelPos = 1 # assign 1 for gravitational lensing
         imageLabels.append(labelPos)
     
     for num in range(0, len(negativeArray)):
         imageTrain.append(negativeArray[num])
-        labelNeg = 'No Gravitational Lensing'
-        # labelNeg = 0 # assign 0 for no lensing
+        # labelNeg = 'No Gravitational Lensing'
+        labelNeg = 0 # assign 0 for no lensing
         imageLabels.append(labelNeg)
-
+    print("DONE 3")
     return (np.array(imageTrain), np.array(imageLabels))
 
 def getDES2017(base_dir = 'KnownLenses/DES2017/'):
@@ -360,9 +362,7 @@ def testDES2017AndJacobs(knownDES2017Array, knownJacobsArray):
     results = model_selection.cross_val_score(clfImages, xImageTest, yImageLabels, cv = kfold)
     kFoldAccuracy_131 = (results.mean()) * 100
     kFoldStd_131 = results.std()
-    print("KFold Accuraccy_131: "+str(kFoldAccuracy_131))
-    print("K Fold Std: " +str(kFoldStd_131))
-
+   
     return(accuracyScore_131, kFoldAccuracy_131, kFoldStd_131)
 
 def makeTrainTest(positiveArray, negativeArray):
@@ -499,8 +499,9 @@ print("K Fold Std_84: " +str(kFoldStd_84))
 print("Accuracy_131: "+str(accuracyScore_131) )
 print("K Fold Accuraccy_131: "+str(kFoldAccuracy_131))
 print("K Fold Std_131: " +str(kFoldStd_131))
+
 # write to ml_Lenses_results.xlsx
-makeExcelTable.makeInitialTable()
+# makeExcelTable.makeInitialTable()
 elementList = makeExcelTable.getElementList(description, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, trainPercent, testPercent, xTrainShape, xTestShape, yTrainShape, yTestShape, nSplits, randomState, accuracyScore, kFoldAccuracy, kFoldStd, accuracyScore_47, kFoldAccuracy_47, kFoldStd_47, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84, accuracyScore_131, kFoldAccuracy_131, kFoldStd_131)
 filename = '../Results/ml_Lenses_results.csv'
 makeExcelTable.appendRowAsList(filename, elementList)

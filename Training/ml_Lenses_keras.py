@@ -17,12 +17,13 @@ from keras.layers import Input, Flatten, Dense, Dropout, Convolution2D, Conv2D, 
 from keras.callbacks import EarlyStopping
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.datasets import make_classification
+from keras.models import Model
 
 # TO EXTRACT FEATURES FROM CNN 
 # https://datascience.stackexchange.com/questions/17513/extracting-features-using-tensorflow-cnn
 
 # FUNCTIONS
-def getPositiveSimulated(base_dir = 'PositiveWithDESSky'):
+def getPositiveSimulated(base_dir = 'NewLenses/LenseWithDES'):
     """
     This gets the g, r, and i of the 10 000 positively simulated images from the 
     PositiveWithDESSky, as well as returning the positively simulate array.
@@ -448,10 +449,6 @@ def makeTrainTest(positiveArray, negativeArray):
     yTrainShape = yTrain.shape
     yTestShape = yTest.shape
 
-    # yTrainShape = yTrain.reshape(-1).shape
-    # yTrain=yTrain.reshape(-1)
-    # yTestShape = yTest.reshape(-1).shape
-    # yTest = yTest.reshape(-1)
     print("xTrain: " +str(xTrainShape))
     print("yTrain: "+str(yTrain.shape))
     print("xTest shape: "+str(xTestShape))
@@ -489,8 +486,8 @@ def makeKerasCNNModel():
 
 def useKerasModel(positiveArray, negativeArray):
     xTrain, xTest, yTrain, yTest, trainPercent, testPercent, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, xTrainShape, xTestShape, yTrainShape, yTestShape = makeTrainTest(positiveArray, negativeArray)
-    es = EarlyStopping(monitor = 'val_loss', verbose = 1, patience = 2)
-    model = makeKerasCNNModel()
+    es = EarlyStopping(monitor = 'val_loss', verbose = 1, patience = 3)
+    model = makeKerasModel()
     seqModel = model.fit(xTrain, yTrain, epochs = 30, batch_size = 200, validation_data = (xTest, yTest), callbacks = [es])
     description = str(model)
     # Accuracy Testing
@@ -529,7 +526,7 @@ def useKerasModel(positiveArray, negativeArray):
 
 def getKerasKFold(xTrain, xTest, yTrain, yTest):
     # Stratified K fold Cross Validation
-    neuralNetwork = KerasClassifier(build_fn = makeKerasCNNModel,  # https://machinelearningmastery.com/use-keras-deep-learning-models-scikit-learn-python/
+    neuralNetwork = KerasClassifier(build_fn = makeKerasModel,  # https://machinelearningmastery.com/use-keras-deep-learning-models-scikit-learn-python/
                                     epochs = 30,                 
                                     batch_size = 200, 
                                     verbose = 0)
@@ -551,21 +548,47 @@ def getKerasKFold(xTrain, xTest, yTrain, yTest):
     return(nSplits, randomState, scoresMean, kFoldStd, neuralNetwork)
     #_____________________________________________________________________________________________________________________________
 
+
+def display_activation(activations, col_size, row_size, act_index): 
+    activation = activations[act_index]
+    activation_index=0
+    fig, ax = plt.subplots(row_size, col_size, figsize=(row_size*2.5,col_size*1.5))
+    for row in range(0,row_size):
+        for col in range(0,col_size):
+            ax[row][col].imshow(activation[0, :, :, activation_index], cmap='gray')
+            activation_index += 1
+
+def visualizeKeras(model, xTrain):
+
+    # https://www.kaggle.com/amarjeet007/visualize-cnn-with-keras
+
+    # topLayer= model.layers[0]
+    # plt.show(topLayer.get_weights())
+
+    layer_outputs = [layer.output for layer in model.layers]
+    activation_model = Model(inputs=model.input, outputs=layer_outputs)
+    activations = activation_model.predict(xTrain) # 20000 images and 100X100 dimensions and 3 channels
+    plt.imshow(xTrain[10][:,:,0])
+    display_activation(activations, 100, 100,3)
+        
+#_________________________________________________________________________________________________________________________
 # MAIN
 
 positiveArray = getPositiveSimulated()
 negativeArray = getNegativeDES()
 model, xTrain, xTest, yTrain, yTest, description, trainPercent, testPercent, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, xTrainShape, xTestShape, yTrainShape, yTestShape, accuracyScore = useKerasModel(positiveArray, negativeArray)
 print("DONE 1")
-nSplits, randomState, kFoldAccuracy, kFoldStd, neuralNetwork = getKerasKFold(xTrain, xTest, yTrain, yTest)
-    
-#______________________________________________________________________________________________________________________
-knownDES2017, accuracyScore_47, kFoldAccuracy_47,kFoldStd_47 = testDES2017(model, neuralNetwork, nSplits)
-knownJacobs, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84= testJacobs(model, neuralNetwork, nSplits)
-accuracyScore_131, kFoldAccuracy_131, kFoldStd_131 =testDES2017AndJacobs(knownDES2017, knownJacobs,model, neuralNetwork, nSplits)
+visualizeKeras(model, xTrain)
+# nSplits, randomState, kFoldAccuracy, kFoldStd, neuralNetwork = getKerasKFold(xTrain, xTest, yTrain, yTest)
 
-# write to ml_Lenses_results.xlsx
-# makeExcelTable.makeInitialTable()
-elementList = makeExcelTable.getElementList(description, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, trainPercent, testPercent, xTrainShape, xTestShape, yTrainShape, yTestShape, nSplits, randomState, accuracyScore, kFoldAccuracy, kFoldStd, accuracyScore_47, kFoldAccuracy_47,kFoldStd_47, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84, accuracyScore_131, kFoldAccuracy_131,kFoldStd_131)
-filename = '../Results/ml_Lenses_results.csv'
-makeExcelTable.appendRowAsList(filename, elementList)
+    
+# #______________________________________________________________________________________________________________________
+# knownDES2017, accuracyScore_47, kFoldAccuracy_47,kFoldStd_47 = testDES2017(model, neuralNetwork, nSplits)
+# knownJacobs, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84= testJacobs(model, neuralNetwork, nSplits)
+# accuracyScore_131, kFoldAccuracy_131, kFoldStd_131 =testDES2017AndJacobs(knownDES2017, knownJacobs,model, neuralNetwork, nSplits)
+
+# # write to ml_Lenses_results.xlsx
+# # makeExcelTable.makeInitialTable()
+# elementList = makeExcelTable.getElementList(description, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, trainPercent, testPercent, xTrainShape, xTestShape, yTrainShape, yTestShape, nSplits, randomState, accuracyScore, kFoldAccuracy, kFoldStd, accuracyScore_47, kFoldAccuracy_47,kFoldStd_47, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84, accuracyScore_131, kFoldAccuracy_131,kFoldStd_131)
+# filename = '../Results/ml_Lenses_results.csv'
+# makeExcelTable.appendRowAsList(filename, elementList)

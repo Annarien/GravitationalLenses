@@ -182,7 +182,7 @@ for sourcePopulation in ["lsst"]:
             mag, msrc, SN, bestband, pf = simulation[survey].SourceMetaData(SNcutA=snThreshold, magcut=magnificationThreshold, SNcutB=[c,d])
             for srcNumber in simulation[survey].sourcenumbers:
                 rfpf[srcNumber] = False      
-                rfsn[srcNumber] = [0]]
+                rfsn[srcNumber] = [0]
                 lenspars["mag"][srcNumber] = mag[srcNumber]
                 lenspars["msrc"][srcNumber] = msrc[srcNumber]
                 lenspars["SN"][survey][srcNumber] = SN[srcNumber]
@@ -211,8 +211,6 @@ for sourcePopulation in ["lsst"]:
             lenspars["rfpf"][survey] = rfpf
             lenspars["rfsn"][survey] = rfsn
             
-            
-
             ###
             #This is where you can add your own lens finder
             #e.g.

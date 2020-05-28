@@ -31,7 +31,7 @@ class SO():
             a=numpy.sort(a)
             return a[int(x)]
         if mode == "resolve":
-            #return (self.fos*self.bl[1])*self.pixelsize)
+            # return (self.fos*self.bl[1])*self.pixelsize)
             try:
                 if self.bfac*(self.bl[1])**2-self.rfac*(self.rs[1])**2<0:
                     floor1=0
@@ -45,13 +45,12 @@ class SO():
             except KeyError:
                 floor2=999
 
-
             floor=numpy.min([floor1,floor2])
 
             return (floor)*self.pixelsize
 
         if mode == "resolveclever":
-            print "warning: the resolveclever code isn't finsihed"
+            print ("warning: the resolveclever code isn't finsihed")
             (self.fos*self.bl[1]*self.pixelsize)
             numpy.sort(a)
             la=len(a)

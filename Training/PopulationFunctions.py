@@ -75,7 +75,7 @@ class RedshiftDependentRelation():
         elif units=="Mpc":
             corfrac=1
         else:
-            print "don't know those units yet"
+            print ("don't know those units yet")
         if z2==None:
             return self.splev(z1,self.Da_spline)*corfrac
         else:
@@ -134,7 +134,7 @@ class Population(RedshiftDependentRelation):
             colours=self.colour(z,band)
         if colours==None:
             colours=0
-            print "warning no k-correction"
+            print ("warning no k-correction")
         Dmods=self.Dmod(z)
         ml = M - colours + Dmods
         return ml
@@ -260,7 +260,7 @@ class LensPopulation_(Population):
             sigs =interpolate.splev(numpy.random.random(len(z)),self.cdfdNdsigz0asspline)
             return sigs
         else:
-            print "Warning: drawing from 2dpdf is low accuracy"
+            print ("Warning: drawing from 2dpdf is low accuracy")
             return self.cdfdsigdzasspline.ev(numpy.random.random(len(z)),z)
 
     def draw_zsig(self,N):
@@ -403,7 +403,7 @@ class SourcePopulation_(Population):
         import cPickle
 
         f=open('lsst.1sqdegree_catalog2.pkl','rb')
-        print "new lsst catalogue"
+        print ("new lsst catalogue")
         data=cPickle.load(f)
         f.close()
         
@@ -495,7 +495,7 @@ class AnalyticSourcePopulation_(SourcePopulation_):
                   ):
         self.bands=bands
         self.beginRedshiftDependentRelation(D,reset)
-        print "not written!"
+        print ("not written!")
 
 
 
@@ -508,11 +508,11 @@ if __name__=="__main__":
     S2=SourcePopulation_(reset=False,population="lsst")
 
 
-    print numpy.median(S.Mv[S.m["i_SDSS"]<25])-numpy.median(S2.Mv[S2.m["i_SDSS"]<25])
-    print len(S.Mv[S.m["i_SDSS"]<25])*1./(len(S2.Mv[S2.m["i_SDSS"]<25])*100)
-    print len(S.Mv)/(60.**2)/2.
-    print len(S2.Mv[S2.m["i_SDSS"]<25])/(0.2**2)/(60.**2)
-    print len(S2.Mv)/(0.2**2)/(60.**2)
+    print (numpy.median(S.Mv[S.m["i_SDSS"]<25])-numpy.median(S2.Mv[S2.m["i_SDSS"]<25]))
+    print (len(S.Mv[S.m["i_SDSS"]<25])*1./(len(S2.Mv[S2.m["i_SDSS"]<25])*100))
+    print (len(S.Mv)/(60.**2)/2.)
+    print (len(S2.Mv[S2.m["i_SDSS"]<25])/(0.2**2)/(60.**2))
+    print (len(S2.Mv)/(0.2**2)/(60.**2))
 
     #print EarlyTypeRelations(self,100,z=None,scatter=True,band=None)
 

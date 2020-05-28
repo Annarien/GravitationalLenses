@@ -39,7 +39,7 @@ def cutCosmosTable(cosmos):
         lensTable(table):       The lensTable containing objects with the revelant magnitudes of typical 
                                 strong galaxy-galaxy gravitational lenses.
     """ 
-    tab = cosmos[cosmos['Rmag'] < 22]
+    tab = cosmos[cosmos['Gmag'] < 22]
     sourcesTable = tab[np.logical_and(tab['zpbest'] > 1, tab['zpbest'] < 2)]
     lensTable = tab[np.logical_and(tab['zpbest'] > 0.1, tab['zpbest'] < 0.3)]
     lensTable = lensTable[np.logical_and(lensTable['Imag'] > 18, lensTable['Imag'] < 22)]
