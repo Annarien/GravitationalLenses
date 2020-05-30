@@ -631,11 +631,21 @@ print("DONE 1")
 # visualizeKeras(model, x_train)
 n_splits, random_state, k_fold_accuracy, k_fold_std, neural_network = getKerasKFold(x_train, x_test, yTrain, y_test)
 
+# calculating the amount of things accuractely identified
+# looking at Known131
+# 1 = gravitational lens
+# 0 = negative lens
+
+y_test_index = np.round(model.predict(y_test))
+Ones = np.count_nonzero(y_test_index == 1)
+Zeroes = np.count_nonzero(y_test_index ==0)
 # #______________________________________________________________________________________________________________________
 known_des_2017, accuracy_score_47, k_fold_accuracy_47, k_fold_std_47 = testDES2017(model, neural_network, n_splits)
 known_jacobs, accuracy_score_84, k_fold_accuracy_84, k_fold_std_84 = testJacobs(model, neural_network, n_splits)
 accuracy_score_131, k_fold_accuracy_131, k_fold_std_131 = testDES2017AndJacobs(known_des_2017, known_jacobs, model,
                                                                                neural_network, n_splits)
+print("Ones: %s / 131" %(Ones))
+print("Zeroes: %s /131"%(Zeroes))
 
 # write to ml_Lenses_results.xlsx
 # makeExcelTable.makeInitialTable()
