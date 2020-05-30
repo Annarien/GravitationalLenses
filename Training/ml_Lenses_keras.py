@@ -18,14 +18,14 @@ from keras.layers import Input, Flatten, Dense, Dropout, Convolution2D, Conv2D, 
 from keras.callbacks import EarlyStopping
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.datasets import make_classification
-from keras.models import Model
+# from keras.models import Model
 
 
 # TO EXTRACT FEATURES FROM CNN
 # https://datascience.stackexchange.com/questions/17513/extracting-features-using-tensorflow-cnn
 
 # FUNCTIONS
-def getPositiveSimulated(base_dir='NewLenses/LenseWithDES'):
+def getPositiveSimulated(base_dir='PositiveWithDESSky'):
     """
     This gets the g, r, and i of the 10 000 positively simulated images from the 
     PositiveWithDESSky, as well as returning the positively simulate array.
@@ -599,17 +599,17 @@ negativeArray = getNegativeDES()
 model, xTrain, xTest, yTrain, yTest, description, trainPercent, testPercent, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, xTrainShape, xTestShape, yTrainShape, yTestShape, accuracyScore = useKerasModel(
     positiveArray, negativeArray)
 print("DONE 1")
-visualizeKeras(model, xTrain)
-# nSplits, randomState, kFoldAccuracy, kFoldStd, neuralNetwork = getKerasKFold(xTrain, xTest, yTrain, yTest)
+# visualizeKeras(model, xTrain)
+nSplits, randomState, kFoldAccuracy, kFoldStd, neuralNetwork = getKerasKFold(xTrain, xTest, yTrain, yTest)
 
 
 # #______________________________________________________________________________________________________________________
-# knownDES2017, accuracyScore_47, kFoldAccuracy_47,kFoldStd_47 = testDES2017(model, neuralNetwork, nSplits)
-# knownJacobs, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84= testJacobs(model, neuralNetwork, nSplits)
-# accuracyScore_131, kFoldAccuracy_131, kFoldStd_131 =testDES2017AndJacobs(knownDES2017, knownJacobs,model, neuralNetwork, nSplits)
+knownDES2017, accuracyScore_47, kFoldAccuracy_47,kFoldStd_47 = testDES2017(model, neuralNetwork, nSplits)
+knownJacobs, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84= testJacobs(model, neuralNetwork, nSplits)
+accuracyScore_131, kFoldAccuracy_131, kFoldStd_131 =testDES2017AndJacobs(knownDES2017, knownJacobs,model, neuralNetwork, nSplits)
 
-# # write to ml_Lenses_results.xlsx
-# # makeExcelTable.makeInitialTable()
-# elementList = makeExcelTable.getElementList(description, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, trainPercent, testPercent, xTrainShape, xTestShape, yTrainShape, yTestShape, nSplits, randomState, accuracyScore, kFoldAccuracy, kFoldStd, accuracyScore_47, kFoldAccuracy_47,kFoldStd_47, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84, accuracyScore_131, kFoldAccuracy_131,kFoldStd_131)
-# filename = '../Results/ml_Lenses_results.csv'
-# makeExcelTable.appendRowAsList(filename, elementList)
+# write to ml_Lenses_results.xlsx
+# makeExcelTable.makeInitialTable()
+elementList = makeExcelTable.getElementList(description, imageTrainStd, imageTrainMean, imageTrainShape, imageLabelsShape, trainPercent, testPercent, xTrainShape, xTestShape, yTrainShape, yTestShape, nSplits, randomState, accuracyScore, kFoldAccuracy, kFoldStd, accuracyScore_47, kFoldAccuracy_47,kFoldStd_47, accuracyScore_84, kFoldAccuracy_84, kFoldStd_84, accuracyScore_131, kFoldAccuracy_131,kFoldStd_131)
+filename = '../Results/ml_Lenses_results.csv'
+makeExcelTable.appendRowAsList(filename, elementList)
