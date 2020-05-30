@@ -533,6 +533,7 @@ def useKerasModel(positive_array, negative_array):
     description = str(model)
     # Accuracy Testing
     y_pred = model.predict(x_test)
+
     _, acc = model.evaluate(x_test, y_test, verbose=0)
     accuracy_score = acc * 100.0
     print("Accuracy Score: " + str(accuracy_score))
@@ -636,7 +637,8 @@ n_splits, random_state, k_fold_accuracy, k_fold_std, neural_network = getKerasKF
 # 1 = gravitational lens
 # 0 = negative lens
 
-y_test_index = np.round(model.predict(y_test))
+x_test = x_test.transpose(0, 1, 2, 3)
+y_test_index = np.round(model.predict(x_test))
 Ones = np.count_nonzero(y_test_index == 1)
 Zeroes = np.count_nonzero(y_test_index ==0)
 # #______________________________________________________________________________________________________________________
