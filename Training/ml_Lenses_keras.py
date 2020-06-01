@@ -318,6 +318,7 @@ def testDES2017(model, neural_network, n_splits):
     # print('y_pred Shape: '+str(y_pred.shape()))
     _, acc = model.evaluate(image_test, y_image_labels, verbose=0)
     accuracy_score_47 = acc * 100
+    print("Accuracy Score_47: "+str(accuracy_score_47))
 
     # get the k fold accuracy after k fold cross validation
     scores = cross_val_score(neural_network, image_test, y_image_labels, scoring='accuracy', cv=n_splits)
@@ -363,6 +364,7 @@ def testJacobs(model, neural_network, n_splits):
     y_pred = model.predict(image_jacobs_test)
     _, acc = model.evaluate(image_jacobs_test, y_image_labels, verbose=0)
     accuracy_score_84 = acc * 100
+    print("Accuracy Score_84: "+str(accuracy_score_84))
 
     # get the k fold accuracy after k fold cross validation
     scores = cross_val_score(neural_network, image_jacobs_test, y_image_labels, scoring='accuracy', cv=n_splits)
@@ -409,6 +411,7 @@ def testDES2017AndJacobs(known_des2017_array, known_jacobs_array, model, neural_
     y_pred = model.predict(image_known_test)
     _, acc = model.evaluate(image_known_test, y_image_labels, verbose=0)
     accuracy_score_131 = acc * 100
+    print("Accuracy Score _131: "+str(accuracy_score_131))
 
     # get the k fold accuracy after k fold cross validation
     scores = cross_val_score(neural_network, image_known_test, y_image_labels, scoring='accuracy', cv=n_splits)
@@ -534,6 +537,13 @@ def useKerasModel(positive_array, negative_array):
     # Accuracy Testing
     y_pred = model.predict(x_test)
 
+    y_test_index = np.round(y_pred)
+    Ones = np.count_nonzero(y_test_index == 1)
+    Zeroes = np.count_nonzero(y_test_index == 0)
+
+    print("Ones: %s / 131" % (Ones))
+    print("Zeroes: %s /131" % (Zeroes))
+
     _, acc = model.evaluate(x_test, y_test, verbose=0)
     accuracy_score = acc * 100.0
     print("Accuracy Score: " + str(accuracy_score))
@@ -637,17 +647,12 @@ n_splits, random_state, k_fold_accuracy, k_fold_std, neural_network = getKerasKF
 # 1 = gravitational lens
 # 0 = negative lens
 
-x_test = x_test.transpose(0, 1, 2, 3)
-y_test_index = np.round(model.predict(x_test))
-Ones = np.count_nonzero(y_test_index == 1)
-Zeroes = np.count_nonzero(y_test_index ==0)
 # #______________________________________________________________________________________________________________________
 known_des_2017, accuracy_score_47, k_fold_accuracy_47, k_fold_std_47 = testDES2017(model, neural_network, n_splits)
 known_jacobs, accuracy_score_84, k_fold_accuracy_84, k_fold_std_84 = testJacobs(model, neural_network, n_splits)
 accuracy_score_131, k_fold_accuracy_131, k_fold_std_131 = testDES2017AndJacobs(known_des_2017, known_jacobs, model,
                                                                                neural_network, n_splits)
-print("Ones: %s / 131" %(Ones))
-print("Zeroes: %s /131"%(Zeroes))
+
 
 # write to ml_Lenses_results.xlsx
 # makeExcelTable.makeInitialTable()
