@@ -311,16 +311,18 @@ def getUnknown(num, base_dir='KnownLenses'):
 
 
 def getTestSet():
-    # data_des_2017 = getDES2017()
+    data_des_2017 = getDES2017()
+    negative_47 = getUnknown(47)
+
     # data_jacobs = getJacobs()
     # data_known_131 = np.vstack((data_des_2017,data_jacobs))
     # negative_131 = getUnknown(131)
     #
-    # images, labels = loadImage(data_des_2017, negative_131)
+    images, labels = loadImage(data_des_2017, negative_47)
 
-    data_pos_1000 = getPositiveSimulated1000()
-    unknown_1000 = getUnknown(1000)
-    images, labels = loadImage(data_pos_1000, unknown_1000)
+    # data_pos_1000 = getPositiveSimulated1000()
+    # unknown_1000 = getUnknown(1000)
+    # images, labels = loadImage(data_pos_1000, unknown_1000)
 
     return images, labels
 
@@ -571,22 +573,24 @@ def makeKerasCNNModel():
 
 
 def useKerasModel(positive_array, negative_array):
+
     x_train, x_test, y_train, y_test, train_percent, test_percent, image_train_std, image_train_mean, \
     image_train_shape, image_labels_shape, x_train_shape, x_test_shape, y_train_shape, y_test_shape = makeTrainTest(
         positive_array, negative_array)
+
     es = EarlyStopping(monitor='val_loss', verbose=1, patience=3)
     model = makeKerasModel()
     seq_model = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test), callbacks=[es])
     description = str(model)
+
     # Accuracy Testing
     y_pred = model.predict(x_test)
-
     y_test_index = np.round(y_pred)
     Ones = np.count_nonzero(y_test_index == 1)
     Zeroes = np.count_nonzero(y_test_index == 0)
 
-    print("Ones: %s / 2000" % (Ones))
-    print("Zeroes: %s / 2000" % (Zeroes))
+    print("Ones: %s / 1000" % (Ones))
+    print("Zeroes: %s / 1000" % (Zeroes))
 
     _, acc = model.evaluate(x_test, y_test, verbose=0)
     accuracy_score = acc * 100.0

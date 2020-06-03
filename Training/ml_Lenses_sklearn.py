@@ -13,6 +13,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
 from sklearn import model_selection
+from sklearn.utils import shuffle
+
 
 
 # FUNCTIONS
@@ -233,6 +235,8 @@ def getUnknown(num, base_dir='KnownLenses'):
         path_unknown = '%s/Unknown_Processed_84' % base_dir
     elif num == 131:
         path_unknown = '%s/Unknown_Processed_131' % base_dir
+    elif num == 1000:
+        path_unknown = '%s/Unknown_Processed_1000' % base_dir
 
     folders_unknown = []
     for root, dirs, files in os.walk(path_unknown):
@@ -258,6 +262,59 @@ def getUnknown(num, base_dir='KnownLenses'):
         data_unknown[var] = [g, r, i]
 
     return data_unknown
+
+def getPositiveSimulated1000(base_dir='NewLenses/PositiveWithDESSky'):
+    folders = {}
+    for root, dirs, files in os.walk(base_dir):
+        for folder in dirs:
+            key = folder
+            value = os.path.join(root, folder)
+            folders[key] = value
+
+    # number of Positive DataPoints
+    num_data_target = len(folders)
+
+    data_pos_1000 = np.zeros([num_data_target, 3, 100, 100])
+
+    # key is name of folder number
+    # value is the number of the folder to be added to the file name
+
+    counter = 0
+    for key, value in folders.items():
+        g_name = get_pkg_data_filename(value + '/' + str(key) + '_g_norm.fits')
+        r_name = get_pkg_data_filename(value + '/' + str(key) + '_r_norm.fits')
+        i_name = get_pkg_data_filename(value + '/' + str(key) + '_i_norm.fits')
+
+        # g_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_g.fits')
+        # r_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_r.fits')
+        # i_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_i.fits')
+
+        g = fits.open(g_name)[0].data[0:100, 0:100]
+        r = fits.open(r_name)[0].data[0:100, 0:100]
+        i = fits.open(i_name)[0].data[0:100, 0:100]
+
+        data_pos_1000[counter] = [g, r, i]
+        counter += 1
+        # just to run, and use less things
+        # if counter > 1500:
+        #     break
+    return data_pos_1000
+
+def getTestSet():
+    data_des_2017 = getDES2017()
+    negative_47 = getUnknown(47)
+
+    # data_jacobs = getJacobs()
+    # data_known_131 = np.vstack((data_des_2017,data_jacobs))
+    # negative_131 = getUnknown(131)
+
+    images, labels = loadImage(data_des_2017, negative_47)
+
+    # data_pos_1000 = getPositiveSimulated1000()
+    # unknown_1000 = getUnknown(1000)
+    # images, labels = loadImage(data_pos_1000, unknown_1000)
+
+    return images, labels
 
 
 def testDES2017():
@@ -414,19 +471,29 @@ def makeTrainTest(positive_array, negative_array):
     print("image_train shape: " + str(image_train_shape))
     image_labels_shape = image_labels.shape
 
-    # reshape x
-    x = image_train.reshape(image_train.shape[0], image_train.shape[1] * image_train.shape[2] * image_train.shape[
-        3])  # batch size, height*width*3channels
-    print("x shape: " + str(x.shape))
+    image_new_test, labels_new_test = getTestSet()
 
+    # reshape x
+    image_train_reshaped = image_train.reshape(image_train.shape[0], image_train.shape[1] * image_train.shape[2] *
+                                               image_train.shape[3])  # batch size, height*width*3channels
+    # print("x shape: " + str(x.shape))
+
+    image_new_test_reshaped = image_new_test.reshape(image_new_test.shape[0], image_new_test.shape[1] *
+                                                     image_new_test.shape[2] * image_new_test.shape[3])
     # Encoding y now
     encoder = LabelEncoder()
-    y = encoder.fit_transform(image_labels)
-    print(" y shape: " + str(y.shape))
+    y_labels_train = encoder.fit_transform(image_labels)
+    y_labels_new = encoder.fit_transform(labels_new_test)
 
     # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
     test_percent = 0.2
-    x_train, x_test, y_train, y_test = train_test_split(x, y, shuffle=True, test_size=test_percent)
+    # x_train, x_test, y_train, y_test = train_test_split(x, y, shuffle=True, test_size=test_percent)
+
+    x_train = shuffle(image_train_reshaped)
+    y_train = shuffle(y_labels_train)
+    x_test = shuffle(image_new_test_reshaped)
+    y_test = shuffle(y_labels_new)
+
     x_train_shape = x_train.shape
     x_test_shape = x_test.shape
     y_train_shape = y_train.shape
@@ -471,6 +538,13 @@ train_loss = clf_images.loss_curve_
 y_pred = clf_images.predict(x_test)
 model_accuracy_score = (accuracy_score(yTest, y_pred)) * 100
 
+# Testing number of ones and zeroes
+y_test_index = np.round(y_pred)
+Ones = np.count_nonzero(y_test_index == 1)
+Zeroes = np.count_nonzero(y_test_index == 0)
+print("Ones: %s / 1000" % (Ones))
+print("Zeroes: %s / 1000" % (Zeroes))
+
 # Getting validation loss
 clf_images.fit(x_test, yTest)
 val_loss = clf_images.loss_curve_
@@ -503,6 +577,7 @@ accuracy_score_131, k_fold_accuracy_131, k_fold_std_131 = testDES2017AndJacobs(k
 
 print("Accuracy Score: " + str(model_accuracy_score))
 print("Accuracy Type: " + str(type(model_accuracy_score)))
+print("K Fold Accuracy: "+str(k_fold_accuracy))
 print("K Fold Std: " + str(k_fold_std))
 print("Accuracy_47: " + str(accuracy_score_47))
 print("K Fold Accuracy_47: " + str(k_fold_accuracy_47))
