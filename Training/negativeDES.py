@@ -7,6 +7,7 @@ to as negativeDES images. These negativeDES images are normalised, as well as co
 """
 
 import sys
+import os
 import astropy.table as atpy
 import numpy as np
 from negativeDESUtils import getRandomIndices, loadDES, randomSkyClips, clipWCS, normaliseRGB
@@ -29,12 +30,12 @@ for key in ['MAG_AUTO_G', 'MAG_AUTO_R', 'MAG_AUTO_I']:
 table_des = table_des[table_des['MAG_AUTO_G'] < 24]
 len_tab_des = len(table_des)
 
-training_size = 20000
-testing_size = 5000
+training_size = 10000
+testing_size = 1000
 random_indices = []
 
 training = getRandomIndices(training_size, random_indices, len_tab_des)
-testing = getRandomIndices(training_size, random_indices, len_tab_des)
+testing = getRandomIndices(testing_size, random_indices, len_tab_des)
 
 print("Training: "+str(training))
 print("Testing: "+str(testing))
@@ -54,9 +55,13 @@ for i in range(0, len(training)):
     print('Rmag: ' + str(r_mag))
 
     train_file = 'Training/Negative/'
+    train_dessky = 'Training/DESSky'
+
+    if not os.path.exists('Training'):
+        os.mkdir('Training')
 
     loadDES(tile_name)
-    randomSkyClips(num, tile_name, ra, dec, g_mag, r_mag, i_mag)
+    randomSkyClips(num, tile_name, ra, dec, g_mag, r_mag, i_mag, train_dessky)
     clipWCS(tile_name, num, g_mag, r_mag, i_mag, ra, dec, train_file)
     normaliseRGB(num, tile_name, train_file)
 
@@ -74,8 +79,12 @@ for i in range(0, len(testing)):
     print('Rmag: ' + str(r_mag))
 
     test_file = 'Testing/Negative/'
+    test_dessky = 'Testing/DESSky'
+
+    if not os.path.exists('Testing'):
+        os.mkdir('Testing')
 
     loadDES(tile_name)
-    randomSkyClips(num, tile_name, ra, dec, g_mag, r_mag, i_mag)
+    randomSkyClips(num, tile_name, ra, dec, g_mag, r_mag, i_mag, test_dessky)
     clipWCS(tile_name, num, g_mag, r_mag, i_mag, ra, dec, test_file)
     normaliseRGB(num, tile_name, test_file)

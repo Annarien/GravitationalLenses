@@ -103,7 +103,7 @@ def randomXY(source, base_dir='DES/DES_Original'):
         return x_random, y_random
 
 
-def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir='DES/DES_Original'):
+def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, dessky_file, base_dir='DES/DES_Original'):
     """
     Clipping of the g, r, and i DES Original fits images, to create a 100*100 pixel sized image of noise/sky.
 
@@ -127,11 +127,8 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir='DES/DES_Ori
              'rBandPath': glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0],
              'iBandPath': glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, source, source))[0]}
 
-    if not os.path.exists('Training'):
-        os.mkdir('Training')
-
-    if not os.path.exists('Training/DESSky'):
-        os.mkdir('Training/DESSky')
+    if not os.path.exists('%s' % dessky_file):
+        os.mkdir('%s' % dessky_file)
 
     made_sky = False
     clipped_sky = {}
@@ -160,7 +157,7 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir='DES/DES_Ori
         header['G_MAG'] = gmag
         header['I_MAG'] = imag
         header['R_MAG'] = rmag
-        fits.writeto('Training/DESSky/%i_%s_sky.fits' % (num, band), clipped_sky[band], header=header, overwrite=True)
+        fits.writeto('%s/%i_%s_sky.fits' % (dessky_file, num, band), clipped_sky[band], header=header, overwrite=True)
 
 
 def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_new, base_dir='DES/DES_Original'):
@@ -192,9 +189,6 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_new, base_dir='DES/DES_
     paths = {'gBandPath': glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0],
              'rBandPath': glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0],
              'iBandPath': glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, source, source))[0]}
-
-    if not os.path.exists('Testing'):
-        os.mkdir('Testing')
 
     if not os.path.exists('%s' % base_new):
         os.mkdir('%s' % base_new)
