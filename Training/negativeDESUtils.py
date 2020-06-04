@@ -3,10 +3,8 @@ This contains all definitions used in getting the negativeDES data.
 """
 
 import os
-import sys
 import random
 import wget
-import astropy.table as atpy
 import glob
 import numpy as np
 import pylab as plt
@@ -18,13 +16,13 @@ from bs4 import BeautifulSoup
 
 
 def getRandomIndices(desired_list_size, random_indices_list, survey_len):
-    list = []
-    while len(list) < desired_list_size:
+    index_list = []
+    while len(index_list) < desired_list_size:
         random_index = np.random.randint(0, survey_len)
         if random_index not in random_indices_list:
             random_indices_list.append(random_index)
-            list.append(random_index)
-    return list
+            index_list.append(random_index)
+    return index_list
 
 
 def loadDES(source, base_dir='DES/DES_Original'):
@@ -41,8 +39,8 @@ def loadDES(source, base_dir='DES/DES_Original'):
         Downloads the images from DES for g, r, and i .fits files of each source.
         These images are downloaded to 'DES/DES_Original'.
     """
-    if not os.path.exists('%s' % (base_dir)):
-        os.mkdir('%s' % (base_dir))
+    if not os.path.exists('%s' % base_dir):
+        os.mkdir('%s' % base_dir)
 
     # For each tile name, download the HTML, scrape it for the files and create the correct download link
     if not os.path.exists('%s/%s' % (base_dir, source)):
@@ -86,23 +84,23 @@ def randomXY(source, base_dir='DES/DES_Original'):
         source(string):     This is the tilename of the DES DR1 images, used for each object.
         base_dir(string):   This is the root directory that contains the original DES images.
     Returns:
-        xRandom(int):       The random x coordinate, within the DES Original g band image.
-        yRandom(int):       The random y coordinate, within the DES Original g band image.
+        x_random(int):       The random x coordinate, within the DES Original g band image.
+        y_random(int):       The random y coordinate, within the DES Original g band image.
     """
 
     with fits.open(glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0]) as bandDES:
-        inHDUList = bandDES[1].header
-        print ('NAXIS1: ' + str(inHDUList['NAXIS1']))
-        print ('NAXIS2: ' + str(inHDUList['NAXIS2']))
+        in_hdu_list = bandDES[1].header
+        print ('NAXIS1: ' + str(in_hdu_list['NAXIS1']))
+        print ('NAXIS2: ' + str(in_hdu_list['NAXIS2']))
 
-        xMax = inHDUList['NAXIS1']
-        yMax = inHDUList['NAXIS2']
-        xRandom = random.randint(100, xMax - 100)
-        yRandom = random.randint(100, yMax - 100)
+        x_max = in_hdu_list['NAXIS1']
+        y_max = in_hdu_list['NAXIS2']
+        x_random = random.randint(100, x_max - 100)
+        y_random = random.randint(100, y_max - 100)
 
-        print("x: " + str(xRandom))
-        print("y: " + str(yRandom))
-        return (xRandom, yRandom)
+        print("x: " + str(x_random))
+        print("y: " + str(y_random))
+        return x_random, y_random
 
 
 def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir='DES/DES_Original'):
@@ -125,10 +123,9 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir='DES/DES_Ori
         astronomical parameters.
     """
 
-    paths = {}
-    paths['gBandPath'] = glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0]
-    paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0]
-    paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, source, source))[0]
+    paths = {'gBandPath': glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0],
+             'rBandPath': glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0],
+             'iBandPath': glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, source, source))[0]}
 
     if not os.path.exists('Training'):
         os.mkdir('Training')
@@ -136,26 +133,26 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir='DES/DES_Ori
     if not os.path.exists('Training/DESSky'):
         os.mkdir('Training/DESSky')
 
-    madeSky = False
-    clippedSky = {}
-    while madeSky == False:
-        allImagesValid = True
+    made_sky = False
+    clipped_sky = {}
+    while not made_sky:
+        all_images_valid = True
         x, y = randomXY(source)
         for band in ['g', 'r', 'i']:
-            with fits.open(paths[band + 'BandPath']) as bandDES:
-                bandSky = astImages.clipImageSectionPix(bandDES[1].data, x, y, [100, 100])
+            with fits.open(paths[band + 'BandPath']) as band_des:
+                band_sky = astImages.clipImageSectionPix(band_des[1].data, x, y, [100, 100])
 
-                if np.any(bandSky) == 0:
-                    allImagesValid = False
+                if np.any(band_sky) == 0:
+                    all_images_valid = False
                     print("randomly-chosen postage stamp position contained zero values - trying again ...")
                     break
                 else:
-                    clippedSky[band] = bandSky
+                    clipped_sky[band] = band_sky
 
-        if allImagesValid == True:
-            madeSky = True
+        if all_images_valid:
+            made_sky = True
 
-    for band in clippedSky.keys():
+    for band in clipped_sky.keys():
         header = fits.Header()
         header['TILENAME'] = source
         header['RA'] = ra
@@ -163,15 +160,15 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir='DES/DES_Ori
         header['G_MAG'] = gmag
         header['I_MAG'] = imag
         header['R_MAG'] = rmag
-        fits.writeto('Training/DESSky/%i_%s_sky.fits' % (num, band), clippedSky[band], header=header, overwrite=True)
+        fits.writeto('Training/DESSky/%i_%s_sky.fits' % (num, band), clipped_sky[band], header=header, overwrite=True)
 
 
 def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_new, base_dir='DES/DES_Original'):
     """
     Clips the g, r, i original .fits images for each source from DES to have 100*100 pixel size or 0.0073125*0.007315 degrees.
-    The WCS coordinates are used, to maintain the necessary information that may be needed in future.
+    The wcs coordinates are used, to maintain the necessary information that may be needed in future.
     These WCSclipped images are saved at ('%s.WCSclipped.fits' % (paths[band+'BandPath']).
-    The WCS images, are normalised and saved at ('%s.norm.fits' % (paths[band + 'BandPath']).
+    The wcs images, are normalised and saved at ('%s.norm.fits' % (paths[band + 'BandPath']).
 
     Args:
         source(string):     This is the tilename of the original images from DES.
@@ -182,42 +179,44 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_new, base_dir='DES/DES_
         ra(float):          The right ascension of the orignal images from DES.
         dec(float):         The declination of the original images from DES.
         base_dir(string):   The root directory of the orignal DES images.
-        base_new(string):   The root directory in which the WCSClipped images are saved,
+        base_new(string):   The root directory in which the wcs_clipped images are saved,
                             this is defaulted to 'DES/DES_Processed'.
     Returns:
-        WCSClipped (numpy array):   A numpy array of the WCSclipped, with its WCS coordinates.
-        The g, r, and i WCSClipped images are saved under 'DES/DES_Processed', with the revelant
+        wcs_clipped (numpy array):   A numpy array of the WCSclipped, with its wcs coordinates.
+        The g, r, and i wcs_clipped images are saved under 'DES/DES_Processed', with the revelant
         astronomical parameters in the header of these images.
     """
     # Getting the RA and Dec of each source
-    sizeWCS = [0.0073125, 0.0073125]  # 100*100 pixels in degrees
+    size_wcs = [0.0073125, 0.0073125]  # 100*100 pixels in degrees
 
-    paths = {}
-    paths['gBandPath'] = glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0]
-    paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0]
-    paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, source, source))[0]
+    paths = {'gBandPath': glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0],
+             'rBandPath': glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0],
+             'iBandPath': glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, source, source))[0]}
+
+    if not os.path.exists('Testing'):
+        os.mkdir('Testing')
 
     if not os.path.exists('%s' % base_new):
         os.mkdir('%s' % base_new)
 
-    newPath = ('%s/%s_%s' % (base_new, num, source))
-    if not os.path.exists(newPath):
+    new_path = ('%s/%s_%s' % (base_new, num, source))
+    if not os.path.exists(new_path):
         os.mkdir('%s/%s_%s' % (base_new, num, source))
 
     for band in ['g', 'r', 'i']:
-        with fits.open(paths[band + 'BandPath']) as bandDES:
-            header = bandDES[1].header
+        with fits.open(paths[band + 'BandPath']) as band_des:
+            header = band_des[1].header
             header.set('MAG_G', gmag)
             header.set('MAG_I', imag)
             header.set('MAG_R', rmag)
             header.set('RA', ra)
             header.set('DEC', dec)
-            WCS = astWCS.WCS(header, mode="pyfits")
-            WCSClipped = astImages.clipImageSectionWCS(bandDES[1].data, WCS, ra, dec, sizeWCS)
-            astImages.saveFITS('%s/%s_WCSClipped.fits' % (newPath, band), WCSClipped['data'], WCS)
-            print('Created %s_WCSclipped at %s/%s_WCSClipped.fits' % (band, newPath, band))
+            wcs = astWCS.WCS(header, mode="pyfits")
+            wcs_clipped = astImages.clipImageSectionWCS(band_des[1].data, wcs, ra, dec, size_wcs)
+            astImages.saveFITS('%s/%s_WCSClipped.fits' % (new_path, band), wcs_clipped['data'], wcs)
+            print('Created %s_WCSclipped at %s/%s_WCSClipped.fits' % (band, new_path, band))
 
-    return (WCSClipped)
+    return wcs_clipped
 
 
 def normaliseRGB(num, source, base_dir):
@@ -234,29 +233,28 @@ def normaliseRGB(num, source, base_dir):
         These normalised images are saved under 'DES/DES_Processed/num_source/'.
         The rgb composite images are created and saved under 'DES/DES_Processed/num_source/'.
     """
-    paths = {}
-    paths['iBandPath'] = glob.glob('%s/%s_%s/i_WCSClipped.fits' % (base_dir, num, source))[0]
-    paths['rBandPath'] = glob.glob('%s/%s_%s/r_WCSClipped.fits' % (base_dir, num, source))[0]
-    paths['gBandPath'] = glob.glob('%s/%s_%s/g_WCSClipped.fits' % (base_dir, num, source))[0]
+    paths = {'iBandPath': glob.glob('%s/%s_%s/i_WCSClipped.fits' % (base_dir, num, source))[0],
+             'rBandPath': glob.glob('%s/%s_%s/r_WCSClipped.fits' % (base_dir, num, source))[0],
+             'gBandPath': glob.glob('%s/%s_%s/g_WCSClipped.fits' % (base_dir, num, source))[0]}
 
-    rgbDict = {}
+    rgb_dict = {}
     wcs = None
 
     for band in ['g', 'r', 'i']:
         with fits.open(paths[band + 'BandPath']) as image:
             im = image[0].data
-            normImage = (im - im.mean()) / np.std(im)
+            norm_image = (im - im.mean()) / np.std(im)
             if wcs is None:
                 wcs = astWCS.WCS(image[0].header, mode='pyfits')
-            astImages.saveFITS('%s/%s_%s/%s_norm.fits' % (base_dir, num, source, band), normImage, wcs)
-            rgbDict[band] = normImage
+            astImages.saveFITS('%s/%s_%s/%s_norm.fits' % (base_dir, num, source, band), norm_image, wcs)
+            rgb_dict[band] = norm_image
 
-    minCut, maxCut = -1, 3
-    cutLevels = [[minCut, maxCut], [minCut, maxCut], [minCut, maxCut]]
+    min_cut, max_cut = -1, 3
+    cut_levels = [[min_cut, max_cut], [min_cut, max_cut], [min_cut, max_cut]]
     plt.figure(figsize=(10, 10))
-    astPlots.ImagePlot([rgbDict['i'], rgbDict['r'], rgbDict['g']],
+    astPlots.ImagePlot([rgb_dict['i'], rgb_dict['r'], rgb_dict['g']],
                        wcs,
-                       cutLevels=cutLevels,
+                       cutLevels=cut_levels,
                        axesLabels=None,
                        axesFontSize=26.0,
                        axes=[0, 0, 1, 1])

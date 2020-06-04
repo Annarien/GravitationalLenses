@@ -9,7 +9,6 @@ to as negativeDES images. These negativeDES images are normalised, as well as co
 import sys
 import astropy.table as atpy
 import numpy as np
-
 from negativeDESUtils import getRandomIndices, loadDES, randomSkyClips, clipWCS, normaliseRGB
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -20,61 +19,63 @@ Its is then clipped using the clipImages function.
 And we write these images to a file in .fits format using writeClippedImagesToFile function.
 """
 
-tableDES = atpy.Table().read("DES/DESGalaxies_18_I_22.fits")
+table_des = atpy.Table().read("DES/DESGalaxies_18_I_22.fits")
 
 # ensuring there is no none numbers in the gmag, rmag, and imag in the DES table. 
 # ensuring that there is no Gmag with values of 99.
 for key in ['MAG_AUTO_G', 'MAG_AUTO_R', 'MAG_AUTO_I']:
-    tableDES = tableDES[np.isnan(tableDES[key]) == False]
+    table_des = table_des[np.isnan(table_des[key]) == False]
 
-tableDES = tableDES[tableDES['MAG_AUTO_G'] < 24]
-lenTabDES = len(tableDES)
+table_des = table_des[table_des['MAG_AUTO_G'] < 24]
+len_tab_des = len(table_des)
 
-training_size = 10000
-testing_size = 1000
+training_size = 20000
+testing_size = 5000
 random_indices = []
 
-training = getRandomIndices(training_size, random_indices, lenTabDES)
-testing = getRandomIndices(training_size, random_indices, lenTabDES)
+training = getRandomIndices(training_size, random_indices, len_tab_des)
+testing = getRandomIndices(training_size, random_indices, len_tab_des)
 
-for i in range(training):
+print("Training: "+str(training))
+print("Testing: "+str(testing))
+
+for i in range(0, len(training)):
     num = training[i]
 
-    tileName = tableDES['TILENAME'][num]
-    print(type(tileName))
-    gmag = tableDES['MAG_AUTO_G'][num]
-    imag = tableDES['MAG_AUTO_I'][num]
-    rmag = tableDES['MAG_AUTO_R'][num]
-    ra = tableDES['RA'][num]
-    dec = tableDES['DEC'][num]
-    print('Gmag: ' + str(gmag))
-    print('Imag: ' + str(imag))
-    print('Rmag: ' + str(rmag))
+    tile_name = table_des['TILENAME'][num]
+    print(type(tile_name))
+    g_mag = table_des['MAG_AUTO_G'][num]
+    i_mag = table_des['MAG_AUTO_I'][num]
+    r_mag = table_des['MAG_AUTO_R'][num]
+    ra = table_des['RA'][num]
+    dec = table_des['DEC'][num]
+    print('Gmag: ' + str(g_mag))
+    print('Imag: ' + str(i_mag))
+    print('Rmag: ' + str(r_mag))
 
     train_file = 'Training/Negative/'
 
-    loadDES(tileName)
-    randomSkyClips(num, tileName, ra, dec, gmag, rmag, imag)
-    clipWCS(tileName, num, gmag, rmag, imag, ra, dec, train_file)
-    normaliseRGB(num, tileName, train_file)
+    loadDES(tile_name)
+    randomSkyClips(num, tile_name, ra, dec, g_mag, r_mag, i_mag)
+    clipWCS(tile_name, num, g_mag, r_mag, i_mag, ra, dec, train_file)
+    normaliseRGB(num, tile_name, train_file)
 
-for i in range(testing):
+for i in range(0, len(testing)):
     num = testing[i]
-
-    tileName = tableDES['TILENAME'][num]
-    print(type(tileName))
-    gmag = tableDES['MAG_AUTO_G'][num]
-    imag = tableDES['MAG_AUTO_I'][num]
-    rmag = tableDES['MAG_AUTO_R'][num]
-    ra = tableDES['RA'][num]
-    dec = tableDES['DEC'][num]
-    print('Gmag: ' + str(gmag))
-    print('Imag: ' + str(imag))
-    print('Rmag: ' + str(rmag))
+    tile_name = table_des['TILENAME'][num]
+    print(type(tile_name))
+    g_mag = table_des['MAG_AUTO_G'][num]
+    i_mag = table_des['MAG_AUTO_I'][num]
+    r_mag = table_des['MAG_AUTO_R'][num]
+    ra = table_des['RA'][num]
+    dec = table_des['DEC'][num]
+    print('Gmag: ' + str(g_mag))
+    print('Imag: ' + str(i_mag))
+    print('Rmag: ' + str(r_mag))
 
     test_file = 'Testing/Negative/'
 
-    loadDES(tileName)
-    randomSkyClips(num, tileName, ra, dec, gmag, rmag, imag)
-    clipWCS(tileName, num, gmag, rmag, imag, ra, dec, test_file)
-    normaliseRGB(num, tileName, test_file)
+    loadDES(tile_name)
+    randomSkyClips(num, tile_name, ra, dec, g_mag, r_mag, i_mag)
+    clipWCS(tile_name, num, g_mag, r_mag, i_mag, ra, dec, test_file)
+    normaliseRGB(num, tile_name, test_file)
