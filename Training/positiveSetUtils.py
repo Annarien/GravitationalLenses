@@ -9,15 +9,16 @@ to create a more realistic positively simulated image, whereas without it, the i
 These positive images which are now referred to as PositiveWithDESSky images. 
 These images are normalised and also used to create a RGB composite image. 
 """
-from __init__ import *
 import glob
 import os
-import pylab as plt
-import numpy as np
-import astropy.table as atpy
-from astropy.io import fits
-from astLib import *
 import re
+
+import numpy as np
+import pylab as plt
+from astLib import *
+from astropy.io import fits
+
+from __init__ import *
 
 
 def cutCosmosTable(cosmos):
@@ -30,41 +31,41 @@ def cutCosmosTable(cosmos):
     Args:
         cosmos(table):          The table retrieved from the COSMOS_Ilbert2009.fits.
     Returns:
-        sourceTable(table):     The sourcesTable containing objects with the revelant magnitudes of typical
+        sourceTable(table):     The sources_table containing objects with the revelant magnitudes of typical
                                 strong galaxy-galaxy gravitational sources.
-        lensTable(table):       The lensTable containing objects with the revelant magnitudes of typical
+        lens_table(table):       The lens_table containing objects with the revelant magnitudes of typical
                                 strong galaxy-galaxy gravitational lenses.
     """
     tab = cosmos[cosmos['Gmag'] < 22]
-    sourcesTable = tab[np.logical_and(tab['zpbest'] > 1, tab['zpbest'] < 2)]
-    lensTable = tab[np.logical_and(tab['zpbest'] > 0.1, tab['zpbest'] < 0.3)]
-    lensTable = lensTable[np.logical_and(lensTable['Imag'] > 18, lensTable['Imag'] < 22)]
+    sources_table = tab[np.logical_and(tab['zpbest'] > 1, tab['zpbest'] < 2)]
+    lens_table = tab[np.logical_and(tab['zpbest'] > 0.1, tab['zpbest'] < 0.3)]
+    lens_table = lens_table[np.logical_and(lens_table['Imag'] > 18, lens_table['Imag'] < 22)]
 
-    sourceMaxR = max(sourcesTable['Rmag'])
-    sourceMaxI = max(sourcesTable['Imag'])
-    print('SourceMaxR:' + str(sourceMaxR))
-    print('SourceMaxI:' + str(sourceMaxI))
-    lensMaxR = max(lensTable['Rmag'])
-    lensMaxI = max(lensTable['Imag'])
-    print('LensMaxR:' + str(lensMaxR))
-    print('LensMaxI:' + str(lensMaxI))
+    source_max_r = max(sources_table['Rmag'])
+    source_max_i = max(sources_table['Imag'])
+    print('SourceMaxR:' + str(source_max_r))
+    print('SourceMaxI:' + str(source_max_i))
+    lens_max_r = max(lens_table['Rmag'])
+    lens_max_i = max(lens_table['Imag'])
+    print('LensMaxR:' + str(lens_max_r))
+    print('LensMaxI:' + str(lens_max_i))
 
-    sourceMinR = min(sourcesTable['Rmag'])
-    sourceMinI = min(sourcesTable['Imag'])
-    print('SourceMinR:' + str(sourceMinR))
-    print('SourceMinI:' + str(sourceMinI))
-    lensMinR = min(lensTable['Rmag'])
-    lensMinI = min(lensTable['Imag'])
-    print('LensMinR:' + str(lensMinR))
-    print('LensMinI:' + str(lensMinI))
+    source_min_r = min(sources_table['Rmag'])
+    source_min_i = min(sources_table['Imag'])
+    print('SourceMinR:' + str(source_min_r))
+    print('SourceMinI:' + str(source_min_i))
+    lens_min_r = min(lens_table['Rmag'])
+    lens_min_i = min(lens_table['Imag'])
+    print('LensMinR:' + str(lens_min_r))
+    print('LensMinI:' + str(lens_min_i))
 
-    print('Row length of Sources Table ' + str(len(sourcesTable)) + '\n')
-    print('Column length of Sources Table ' + str(len(sourcesTable[0])) + '\n')
-    print (sourcesTable)
-    print('Row length of Lens Table ' + str(len(lensTable)) + '\n')
-    print('Column length of Lens Table ' + str(len(lensTable[0])) + '\n')
-    print(lensTable)
-    return (sourcesTable, lensTable)
+    print('Row length of Sources Table ' + str(len(sources_table)) + '\n')
+    print('Column length of Sources Table ' + str(len(sources_table[0])) + '\n')
+    print (sources_table)
+    print('Row length of Lens Table ' + str(len(lens_table)) + '\n')
+    print('Column length of Lens Table ' + str(len(lens_table[0])) + '\n')
+    print(lens_table)
+    return sources_table, lens_table
 
 
 def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseless, survey="DESc"):
@@ -89,21 +90,22 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseles
                             "DESc" corresponds to optimally stacked DES images.
     Returns:
        Saved images and psf images in each band g, r, and i for the source number as well as saving these fits images.
+
     """
 
     S = FastLensSim(survey, fractionofseeing=1)
     S.bfac = float(2)  # Not sure what these do - need to check
     S.rfac = float(2)
 
-    sourcenumber = 1
+    source_number = 1
 
     # Lens half-light radius in arcsec (weirdly, dictionary by band, all values the same, in arcsec)
-    rlDict = {}
+    rl_dict = {}
     for band in S.bands:
-        rlDict[band] = rl
+        rl_dict[band] = rl
 
-    S.setLensPars(ml, rlDict, ql, reset=True)
-    S.setSourcePars(b, ms, xs, ys, qs, ps, rs, sourcenumber=sourcenumber)
+    S.setLensPars(ml, rl_dict, ql, reset=True)
+    S.setSourcePars(b, ms, xs, ys, qs, ps, rs, sourcenumber=source_number)
 
     # Makes simulated image, convolving with PSF and adding noise
     model = S.makeLens(stochasticmode="MP")
@@ -114,12 +116,12 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseles
     S.ObserveLens()
 
     # Write FITS images
-    if os.path.exists(positive_noiseless) == False:
+    if not os.path.exists(positive_noiseless):
         os.makedirs(positive_noiseless)
 
     # For writing output
     folder = ('%s/%i' % (positive_noiseless, num))
-    if os.path.exists(folder) == False:
+    if not os.path.exists(folder):
         os.makedirs(folder)
 
     for band in S.bands:
@@ -143,14 +145,14 @@ def addSky(num, positive_noiseless, sky_path, positive_path):
         images are realistic.
     """
 
-    if os.path.exists('%s/%i' % (positive_path, num)) == False:
+    if not os.path.exists('%s/%i' % (positive_path, num)):
         os.makedirs('%s/%i' % (positive_path, num))
 
     for band in ['g', 'r', 'i']:
-        bandSkyImage = fits.open('%s/%i_%s_sky.fits' % (sky_path,num, band))
-        bandPosNoiselessImage = fits.open('%s/%s/%s_image_%s_SDSS.fits' % (positive_noiseless, num, num, band))
-        withSky = bandSkyImage[0].data + bandPosNoiselessImage[0].data
-        astImages.saveFITS('%s/%i/%i_%s_posSky.fits' % (positive_path, num, num, band), withSky)
+        band_sky_image = fits.open('%s/%i_%s_sky.fits' % (sky_path, num, band))
+        band_pos_noiseless_image = fits.open('%s/%s/%s_image_%s_SDSS.fits' % (positive_noiseless, num, num, band))
+        with_sky = band_sky_image[0].data + band_pos_noiseless_image[0].data
+        astImages.saveFITS('%s/%i/%i_%s_posSky.fits' % (positive_path, num, num, band), with_sky)
 
 
 def normalise(num, positive_path):
@@ -167,35 +169,34 @@ def normalise(num, positive_path):
         These normalised images are saved under 'PositiveWithDESSky/num/'.
         The rgb composite images are created and saved under 'PositiveWithDESSky/num/'.
     """
-    paths = {}
-    paths['iImg'] = glob.glob('%s/%s/%s_i_posSky.fits' % (positive_path, num, num))[0]
-    paths['rImg'] = glob.glob('%s/%s/%s_r_posSky.fits' % (positive_path, num, num))[0]
-    paths['gImg'] = glob.glob('%s/%s/%s_g_posSky.fits' % (positive_path, num, num))[0]
+    paths = {'iImg': glob.glob('%s/%s/%s_i_posSky.fits' % (positive_path, num, num))[0],
+             'rImg': glob.glob('%s/%s/%s_r_posSky.fits' % (positive_path, num, num))[0],
+             'gImg': glob.glob('%s/%s/%s_g_posSky.fits' % (positive_path, num, num))[0]}
 
-    rgbDict = {}
+    rgb_dict = {}
     wcs = None
     for band in ['g', 'r', 'i']:
         with fits.open(paths[band + 'Img']) as image:
             im = image[0].data
-            normImage = (im - im.mean()) / np.std(im)
+            norm_image = (im - im.mean()) / np.std(im)
             if wcs is None:
                 wcs = astWCS.WCS(image[0].header, mode='pyfits')
-            astImages.saveFITS('%s/%s/%s_%s_norm.fits' % (positive_path, num, num, band), normImage, None)
-            rgbDict[band] = normImage
+            astImages.saveFITS('%s/%s/%s_%s_norm.fits' % (positive_path, num, num, band), norm_image, None)
+            rgb_dict[band] = norm_image
 
-    minCut, maxCut = -1, 3
-    cutLevels = [[minCut, maxCut], [minCut, maxCut], [minCut, maxCut]]
+    min_cut, max_cut = -1, 3
+    cut_levels = [[min_cut, max_cut], [min_cut, max_cut], [min_cut, max_cut]]
     plt.figure(figsize=(10, 10))
-    astPlots.ImagePlot([rgbDict['i'], rgbDict['r'], rgbDict['g']],
+    astPlots.ImagePlot([rgb_dict['i'], rgb_dict['r'], rgb_dict['g']],
                        wcs,
-                       cutLevels=cutLevels,
+                       cutLevels=cut_levels,
                        axesLabels=None,
                        axesFontSize=26.0,
                        axes=[0, 0, 1, 1])
     plt.savefig('%s/%i/%i_rgb.png' % (positive_path, num, num))
 
-def getNegativeNumbers(base_dir):
 
+def getNegativeNumbers(base_dir):
     folders = {}
     numbers = []
 
@@ -212,5 +213,3 @@ def getNegativeNumbers(base_dir):
     print(numbers)
 
     return numbers
-
-

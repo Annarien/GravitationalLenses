@@ -14,8 +14,8 @@ import numpy as np
 
 from positiveSetUtils import cutCosmosTable, makeModelImage, addSky, normalise, getNegativeNumbers
 
-numbersTrainNeg = getNegativeNumbers('Training/Negative')
-numbersTestNeg = getNegativeNumbers('Testing/Negative')
+numbers_train_neg = getNegativeNumbers('Training/Negative')
+numbers_test_neg = getNegativeNumbers('Testing/Negative')
 
 cosmos = atpy.Table().read("COSMOS_Ilbert2009.fits")
 # to take out all nans in cosmos
@@ -37,22 +37,22 @@ qs = 0
 ps = 0
 rs = 0
 
-sourceRandomTable, lensRandomTable = cutCosmosTable(cosmos)
+source_random_table, lens_random_table = cutCosmosTable(cosmos)
 
-for i in range(0, len(numbersTrainNeg)):
-    num = numbersTrainNeg[i]
+for i in range(0, len(numbers_train_neg)):
+    num = numbers_train_neg[i]
 
-    rndmRow = np.random.randint(0, len(lensRandomTable))
-    print('Random row number was %i' % (rndmRow))
-    g_ml = (lensRandomTable['Gmag'][rndmRow]) - 2  # ml in g band
-    r_ml = (lensRandomTable['Rmag'][rndmRow]) - 2  # ml in r band
-    i_ml = (lensRandomTable['Imag'][rndmRow]) - 2  # ml in i band
+    random_row = np.random.randint(0, len(lens_random_table))
+    print('Random row number was %i' % random_row)
+    g_ml = (lens_random_table['Gmag'][random_row]) - 2  # ml in g band
+    r_ml = (lens_random_table['Rmag'][random_row]) - 2  # ml in r band
+    i_ml = (lens_random_table['Imag'][random_row]) - 2  # ml in i band
 
-    rndmRow = np.random.randint(0, len(sourceRandomTable))
-    print('Random row number was %i' % (rndmRow))
-    g_ms = (sourceRandomTable['Gmag'][rndmRow])  # ms in g band
-    r_ms = (sourceRandomTable['Rmag'][rndmRow])  # ms in r band
-    i_ms = (sourceRandomTable['Imag'][rndmRow])  # ms in i band
+    random_row = np.random.randint(0, len(source_random_table))
+    print('Random row number was %i' % random_row)
+    g_ms = (source_random_table['Gmag'][random_row])  # ms in g band
+    r_ms = (source_random_table['Rmag'][random_row])  # ms in r band
+    i_ms = (source_random_table['Imag'][random_row])  # ms in i band
 
     ml = {'g_SDSS': g_ml,  # Mags for lens (dictionary of magnitudes by band)
           'r_SDSS': r_ml,
@@ -79,20 +79,20 @@ for i in range(0, len(numbersTrainNeg)):
     addSky(num, train_positive_noiseless, train_sky, train_positive)
     normalise(num, train_positive)
 
-for i in range(0, len(numbersTestNeg)):
-    num = numbersTestNeg[i]
+for i in range(0, len(numbers_test_neg)):
+    num = numbers_test_neg[i]
 
-    rndmRow = np.random.randint(0, len(lensRandomTable))
-    print('Random row number was %i' % (rndmRow))
-    g_ml = (lensRandomTable['Gmag'][rndmRow]) - 2  # ml in g band
-    r_ml = (lensRandomTable['Rmag'][rndmRow]) - 2  # ml in r band
-    i_ml = (lensRandomTable['Imag'][rndmRow]) - 2  # ml in i band
+    random_row = np.random.randint(0, len(lens_random_table))
+    print('Random row number was %i' % random_row)
+    g_ml = (lens_random_table['Gmag'][random_row]) - 2  # ml in g band
+    r_ml = (lens_random_table['Rmag'][random_row]) - 2  # ml in r band
+    i_ml = (lens_random_table['Imag'][random_row]) - 2  # ml in i band
 
-    rndmRow = np.random.randint(0, len(sourceRandomTable))
-    print('Random row number was %i' % (rndmRow))
-    g_ms = (sourceRandomTable['Gmag'][rndmRow])  # ms in g band
-    r_ms = (sourceRandomTable['Rmag'][rndmRow])  # ms in r band
-    i_ms = (sourceRandomTable['Imag'][rndmRow])  # ms in i band
+    random_row = np.random.randint(0, len(source_random_table))
+    print('Random row number was %i' % random_row)
+    g_ms = (source_random_table['Gmag'][random_row])  # ms in g band
+    r_ms = (source_random_table['Rmag'][random_row])  # ms in r band
+    i_ms = (source_random_table['Imag'][random_row])  # ms in i band
 
     ml = {'g_SDSS': g_ml,  # Mags for lens (dictionary of magnitudes by band)
           'r_SDSS': r_ml,
@@ -118,4 +118,3 @@ for i in range(0, len(numbersTestNeg)):
     makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, test_positive_noiseless)
     addSky(num, test_positive_noiseless, test_sky, test_positive)
     normalise(num, test_positive)
-
