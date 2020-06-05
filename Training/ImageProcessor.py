@@ -7,7 +7,7 @@ The plotting of all the image grids is done under the function called: plotAndSa
 """
 
 ## Processing images into a grid, to view all images at the same time, to view the process taken. 
-#IMPORTS
+# IMPORTS
 import glob
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,8 +19,9 @@ from astLib import astImages
 from PIL import Image
 from os import walk
 
+
 # Open DES Processed WCS .fits files, and assign a variable to the g, r, i images.
-def getDESProcessedWCS(num, base_dir = 'DES/DES_Processed'):
+def getDESProcessedWCS(num, base_dir='DES/DES_Processed'):
     """
     This is to open the files of the negative DES WCSClipped images for the g, r, and i bands,
     which have been clipped using the World Coordinate Systems (WCS).
@@ -32,17 +33,18 @@ def getDESProcessedWCS(num, base_dir = 'DES/DES_Processed'):
         base_dir(string):   This is the top directory path of the background sky of the DES Original images. 
                             This is set to a default of 'DES/DES_Processed'.
     Returns:
-        gWCS(HDUList):      The data of the opened g band WCSClipped fits image.
-        rWCS(HDUList):      The data of the opened r band WCSClipped fits image.
-        iWCS(HDUList):      The data of the opened i band WCSClipped fits image.
+        g_wcs(HDUList):      The data of the opened g band WCSClipped fits image.
+        r_wcs(HDUList):      The data of the opened r band WCSClipped fits image.
+        i_wcs(HDUList):      The data of the opened i band WCSClipped fits image.
     """
-    gWCS = fits.open(glob.glob('%s/%s_*/g_WCSClipped.fits' % (base_dir, num))[0])
-    rWCS = fits.open(glob.glob('%s/%s_*/r_WCSClipped.fits' % (base_dir, num))[0])
-    iWCS = fits.open(glob.glob('%s/%s_*/i_WCSClipped.fits' % (base_dir, num))[0])
-    return(gWCS, rWCS,iWCS) 
+    g_wcs = fits.open(glob.glob('%s/%s_*/g_WCSClipped.fits' % (base_dir, num))[0])
+    r_wcs = fits.open(glob.glob('%s/%s_*/r_WCSClipped.fits' % (base_dir, num))[0])
+    i_wcs = fits.open(glob.glob('%s/%s_*/i_WCSClipped.fits' % (base_dir, num))[0])
+    return g_wcs, r_wcs, i_wcs
+
 
 # Open DES Processed norm .fits files and assign a variable to the g, r, i images.
-def getDESProcessedNorm(num, base_dir = 'DES/DES_Processed'):
+def getDESProcessedNorm(num, base_dir='DES/DES_Processed'):
     """
     This is to open the normalised files of the negative DES WCSClipped images for the g, r, and i bands.
 
@@ -54,19 +56,20 @@ def getDESProcessedNorm(num, base_dir = 'DES/DES_Processed'):
                             This is set to a default of 'DES/DES_Processed'.
     Returns:
         The images that are returned is the WCSClipped image normalised.
-        gDESNorm(HDUList):  The data of the opened g band normalised .fits image.
-        rDESNorm(HDUList):  The data of the opened r band normalised .fits image.
-        iDESNorm(HDUList):  The data of the opened i band normalised .fits image.
+        g_des_norm(HDUList):  The data of the opened g band normalised .fits image.
+        r_des_norm(HDUList):  The data of the opened r band normalised .fits image.
+        i_des_norm(HDUList):  The data of the opened i band normalised .fits image.
     """
 
-    gDESNorm = fits.open(glob.glob('%s/%s_*/g_norm.fits' % (base_dir, num))[0])
-    rDESNorm = fits.open(glob.glob('%s/%s_*/r_norm.fits' % (base_dir, num))[0])
-    iDESNorm = fits.open(glob.glob('%s/%s_*/i_norm.fits' % (base_dir, num))[0])
+    g_des_norm = fits.open(glob.glob('%s/%s_*/g_norm.fits' % (base_dir, num))[0])
+    r_des_norm = fits.open(glob.glob('%s/%s_*/r_norm.fits' % (base_dir, num))[0])
+    i_des_norm = fits.open(glob.glob('%s/%s_*/i_norm.fits' % (base_dir, num))[0])
 
-    return(gDESNorm, rDESNorm, iDESNorm) 
+    return g_des_norm, r_des_norm, i_des_norm
+
 
 # Open DESSky .fits files and assign a variable to the g, r, i images.
-def getDESSky(num, basedir = 'DESSky'):
+def getDESSky(num, base_dir='DESSky'):
     """
     This uses the num to open files of the background sky of the DES Original images for the g, r, and i bands.
 
@@ -77,17 +80,18 @@ def getDESSky(num, basedir = 'DESSky'):
         base_dir(string):   This is the top directory path of the background sky of the DES Original images. 
                             This is set to a default of 'DESSky'.
     Returns:
-        gDESSky(HDUList):   The data of the opened g band sky fits image.
-        rDESSky(HDUList):   The data of the opened r band sky fits image.
-        iDESSky(HDUList):   The data of the opened i band sky fits image.
+        g_des_sky(HDUList):   The data of the opened g band sky fits image.
+        r_des_sky(HDUList):   The data of the opened r band sky fits image.
+        i_des_sky(HDUList):   The data of the opened i band sky fits image.
     """
-    gDESSky = fits.open(glob.glob('%s/%s_g_sky.fits' % (basedir, num))[0])
-    rDESSky = fits.open(glob.glob('%s/%s_r_sky.fits' % (basedir, num))[0])
-    iDESSky = fits.open(glob.glob('%s/%s_i_sky.fits' % (basedir, num))[0])
-    return(gDESSky, rDESSky, iDESSky)
+    g_des_sky = fits.open(glob.glob('%s/%s_g_sky.fits' % (base_dir, num))[0])
+    r_des_sky = fits.open(glob.glob('%s/%s_r_sky.fits' % (base_dir, num))[0])
+    i_des_sky = fits.open(glob.glob('%s/%s_i_sky.fits' % (base_dir, num))[0])
+    return g_des_sky, r_des_sky, i_des_sky
+
 
 # Open PositiveNoiseless .fits files and assign a variable to the ..._SDSS_g, r, images.
-def getPosNoiseless(num, base_dir = 'PositiveNoiseless'):
+def getPosNoiseless(num, base_dir='PositiveNoiseless'):
     """
     This is to open files of the smoothly positively simulated images of gravitational lensing for the g, r, and i bands.
 
@@ -98,18 +102,19 @@ def getPosNoiseless(num, base_dir = 'PositiveNoiseless'):
         base_dir(string):   This is the top directory path of the positively simulated images. 
                             This is set to a default of 'PositiveNoiseless'.
     Returns:
-        gPos(HDUList):      The data of the opened g band of the positively simulated fits image.
-        rPos(HDUList):      The data of the opened r band of the positively simulated fits image.
-        iPos(HDUList):      The data of the opened i band of the positively simulated fits image.
+        g_pos(HDUList):      The data of the opened g band of the positively simulated fits image.
+        r_pos(HDUList):      The data of the opened r band of the positively simulated fits image.
+        i_pos(HDUList):      The data of the opened i band of the positively simulated fits image.
     """
 
-    gPos = fits.open(glob.glob('%s/%s/%s_image_g_SDSS.fits' % (base_dir, num, num))[0])
-    rPos = fits.open(glob.glob('%s/%s/%s_image_r_SDSS.fits' % (base_dir, num, num))[0])
-    iPos = fits.open(glob.glob('%s/%s/%s_image_i_SDSS.fits' % (base_dir, num, num))[0])
-    return(gPos, rPos, iPos)
+    g_pos = fits.open(glob.glob('%s/%s/%s_image_g_SDSS.fits' % (base_dir, num, num))[0])
+    r_pos = fits.open(glob.glob('%s/%s/%s_image_r_SDSS.fits' % (base_dir, num, num))[0])
+    i_pos = fits.open(glob.glob('%s/%s/%s_image_i_SDSS.fits' % (base_dir, num, num))[0])
+    return g_pos, r_pos, i_pos
+
 
 # Open PositiveWithDESSky  .fits files and assign a variable to the ...posSky_g, r, i images.
-def getPosWDESSky(num, base_dir = 'PositiveWithDESSky'):
+def getPosWDESSky(num, base_dir='PositiveWithDESSky'):
     """
     The number is used to open files of the positively simulated images of gravitational lensing for the g, r, and 
     i bands, that have the background sky added to them. 
@@ -121,21 +126,22 @@ def getPosWDESSky(num, base_dir = 'PositiveWithDESSky'):
         base_dir(string):       This is the top directory path of the positively simulated images with the 
                                 background sky added to it. This is set to a default of 'PositiveWithDESSky'.
     Returns:
-        gPosSky(HDUList):      The data of the opened g band of the positively simulated with the background 
+        g_pos_sky(HDUList):      The data of the opened g band of the positively simulated with the background
                                sky added fits images.
-        rPosSky(HDUList):      The data of the opened r band of the positively simulated with the background 
+        r_pos_sky(HDUList):      The data of the opened r band of the positively simulated with the background
                                sky added fits images.
-        iPosSky(HDUList):      The data of the opened i band of the positively simulated with the background 
+        i_pos_sky(HDUList):      The data of the opened i band of the positively simulated with the background
                                sky added fits images.
     """
 
-    gPosSky = fits.open(glob.glob('%s/%s/%s_posSky_g.fits' % (base_dir, num, num))[0])
-    rPosSky = fits.open(glob.glob('%s/%s/%s_posSky_r.fits' % (base_dir, num, num))[0])
-    iPosSky = fits.open(glob.glob('%s/%s/%s_posSky_i.fits' % (base_dir, num, num))[0])
-    return(gPosSky, rPosSky, iPosSky)
+    g_pos_sky = fits.open(glob.glob('%s/%s/%s_posSky_g.fits' % (base_dir, num, num))[0])
+    r_pos_sky = fits.open(glob.glob('%s/%s/%s_posSky_r.fits' % (base_dir, num, num))[0])
+    i_pos_sky = fits.open(glob.glob('%s/%s/%s_posSky_i.fits' % (base_dir, num, num))[0])
+    return g_pos_sky, r_pos_sky, i_pos_sky
+
 
 # Open PositiveWithDESSky norm. fits images and assign a variable to the ...posSky_g, r, i_norm images.
-def getPosWDESSkyNorm(num, base_dir = 'PositiveWithDESSky'):
+def getPosWDESSkyNorm(num, base_dir='PositiveWithDESSky'):
     """
     This is to open files of the normalised positively simulated images of gravitational lensing for the g, r, and 
     i bands, that have the background sky added to them. 
@@ -147,38 +153,40 @@ def getPosWDESSkyNorm(num, base_dir = 'PositiveWithDESSky'):
         base_dir(string):       This is the top directory path of the positively simulated images with the 
                                 background sky added to it. This is set to a default of 'PositiveWithDESSky'.                        
     Returns:
-       gPosSkyNorm(HDUList):    The data of the opened g band of the normalised positively simulated with 
+       g_pos_sky_norm(HDUList):    The data of the opened g band of the normalised positively simulated with
                                 the background sky added fits images.
-        rPosSkyNorm(HDUList):   The data of the opened r band of the normalised positively simulated with 
+        r_pos_sky_norm(HDUList):   The data of the opened r band of the normalised positively simulated with
                                 the background sky added fits images.
-        iPosSkyNorm(HDUList):   The data of the opened i band of the normalised positively simulated with 
+        i_pos_sky_norm(HDUList):   The data of the opened i band of the normalised positively simulated with
                                 the background sky added fits images.
     """
 
-    gPosSkyNorm = fits.open(glob.glob('%s/%s/%s_g_norm.fits' % (base_dir, num, num))[0])
-    rPosSkyNorm = fits.open(glob.glob('%s/%s/%s_r_norm.fits' % (base_dir, num, num))[0])
-    iPosSkyNorm = fits.open(glob.glob('%s/%s/%s_i_norm.fits' % (base_dir, num, num))[0])
-    return(gPosSkyNorm, rPosSkyNorm, iPosSkyNorm)
+    g_pos_sky_norm = fits.open(glob.glob('%s/%s/%s_g_norm.fits' % (base_dir, num, num))[0])
+    r_pos_sky_norm = fits.open(glob.glob('%s/%s/%s_r_norm.fits' % (base_dir, num, num))[0])
+    i_pos_sky_norm = fits.open(glob.glob('%s/%s/%s_i_norm.fits' % (base_dir, num, num))[0])
+    return g_pos_sky_norm, r_pos_sky_norm, i_pos_sky_norm
 
-def getNumOrRowsForGrid(numOfColsForRgbGrid, arrayRGB):
+
+def getNumOrRowsForGrid(num_of_cols_for_rgb_grid, array_rgb):
     """
     This is to get a number of rows using a predetermined number of columns. 
     This is to ensure that the images form a grid, so that multiple rgb images can be viewed at once. 
 
     Args:
-        lenRGB(integer):                The length of the array of RGB images that is used.
-        numOfColsForRgbGrid(integer):   The number of columns using that is predetermined. 
+        len_rgb(integer):                The length of the array of RGB images that is used.
+        num_of_cols_for_rgb_grid(integer):   The number of columns using that is predetermined.
     Returns:
-        numOfRowsForRgbGrid(integer):   The number of rows that is calculated using the length divided 
+        num_of_rows_for_rgb_grid(integer):   The number of rows that is calculated using the length divided
                                         by the number of predetermined columns
     """
 
-    lenRGB = len(arrayRGB)
-    numOfRowsForRgbGrid = (lenRGB / numOfColsForRgbGrid)
-    if lenRGB % numOfColsForRgbGrid != 0:
-        numOfRowsForRgbGrid += 1
+    len_rgb = len(array_rgb)
+    num_of_rows_for_rgb_grid = (len_rgb / num_of_cols_for_rgb_grid)
+    if len_rgb % num_of_cols_for_rgb_grid != 0:
+        num_of_rows_for_rgb_grid += 1
 
-    return (numOfRowsForRgbGrid)
+    return num_of_rows_for_rgb_grid
+
 
 def getDESRGBPath(num):
     """
@@ -188,12 +196,13 @@ def getDESRGBPath(num):
         num(integer):           The number of the DES Processed source. 
                                 The format of this is 'DES/DES_Processed/num_source/rgb.png
     Returns:
-        rgbDESPath(string):     The path of the rgb.png image of the negative DES processed images.                                 The format of this is 'DES/DES_Processed/num_source/rgb.png
+        rgb_des_path(string):     The path of the rgb.png image of the negative DES processed images.                                 The format of this is 'DES/DES_Processed/num_source/rgb.png
                                 The format of this file path is 'DES/DES_Processed/num_source/rgb.png.
     """
 
-    rgbDESPath = glob.glob('DES/DES_Processed/%s_*/rgb.png' % (num))[0]
-    return (rgbDESPath)
+    rgb_des_path = glob.glob('DES/DES_Processed/%s_*/rgb.png' % (num))[0]
+    return rgb_des_path
+
 
 def getKnownRGBPath(num):
     """
@@ -208,24 +217,25 @@ def getKnownRGBPath(num):
                             The rgb.png files are in the form: 'KnownLenses/DES2017/num_source/rgb.png'.
                             The g_WCSClipped.fits files are in the form: 'KnownLenses/DES2017/num_source/g_WCSClipped.fits
     Returns:
-        rgbKnown(string):   Provides the path name for the known lenses from DES2017 study.
-        desJ(string):       Provides the DESJ2000 name of the known lenses.
+        rgb_known(string):   Provides the path name for the known lenses from DES2017 study.
+        des_j(string):       Provides the DESJ2000 name of the known lenses.
         tilename(string):   Provides the DES DR1 tilename for the known lenses.
     """
 
     # get path of KnownRGBPath
-    rgbKnown = glob.glob('KnownLenses/DES2017/%s_*/rgb.png' % (num))[0]
-    
-    #get header of g image so that we can get the DESJ tile name
+    rgb_known = glob.glob('KnownLenses/DES2017/%s_*/rgb.png' % (num))[0]
 
-    gBand = glob.glob('KnownLenses/DES2017/%s_*/g_WCSClipped.fits' % (num))[0]
-    hdu1 = fits.open(gBand)
-    desJ=hdu1[0].header['DESJ']
+    # get header of g image so that we can get the DESJ tile name
+
+    g_band = glob.glob('KnownLenses/DES2017/%s_*/g_WCSClipped.fits' % (num))[0]
+    hdu1 = fits.open(g_band)
+    des_j = hdu1[0].header['DESJ']
     tilename = hdu1[0].header['TILENAME']
 
-    return(rgbKnown, desJ, tilename)
+    return rgb_known, des_j, tilename
 
-def makeRandomRGBArray(path, numberIterations):
+
+def makeRandomRGBArray(rgb_path, number_iterations):
     """
     This takes the root directory of rgb images that will create a list of random rgb images within the directory.
     An example of the necessary path of the root directory is 'PositiveWithDESSky' or 'DES/DES_Processed'.
@@ -234,97 +244,100 @@ def makeRandomRGBArray(path, numberIterations):
     This creates a list of random rgb images within the chosen directory. 
 
     Args:
-       path(string):                The path name in which the rgb images are found. 
+       rgb_path(string):                The path name in which the rgb images are found.
     Returns:
-        rgbRandomArray(list):       The list of random paths of rgb.png images, corresponding to the 
-                                    randomArrayIndex as its sources.
-        imageTitleArray(list):      The list of the numbers that correspond to the rgb.png images in the rgbRandomArray. 
+        rgb_random_array(list):       The list of random paths of rgb.png images, corresponding to the
+                                    random_array_index as its sources.
+        image_title_array(list):      The list of the numbers that correspond to the rgb.png images in the rgb_random_array.
     """
 
-    randomNum = 0
-    randomArray = []
-    randomArrayIndex = 0
-    rgbRandomArray = []
-    imageTitleArray = []
+    random_num = 0
+    random_array = []
+    random_array_index = 0
+    rgb_random_array = []
+    image_title_array = []
 
     files = folders = 0
-    for _, dirnames, filenames in os.walk(path):
-    # ^ this idiom means "we won't be using this value"
-        files += len(filenames)
-        folders += len(dirnames)
+    for _, dir_names, file_names in os.walk(rgb_path):
+        # ^ this idiom means "we won't be using this value"
+        files += len(file_names)
+        folders += len(dir_names)
 
     print ("{:,} files, {:,} folders".format(files, folders))
 
-    for num in range(0, numberIterations):
-        randomNum = random.randint(0, folders - 1)
-        while randomNum in randomArray:
-            randomNum = random.randint(0, folders - 1)
-        randomArray.append(randomNum)
+    for num in range(0, number_iterations):
+        random_num = random.randint(0, folders - 1)
+        while random_num in random_array:
+            random_num = random.randint(0, folders - 1)
+        random_array.append(random_num)
 
-    print ("RANDOM ARRAY: " + str (randomArray) + " TYPE: " +str(type(randomArray)))
-    for num in range(0, len(randomArray)):
-        randomArrayIndex = randomArray[num]
-        if path == 'PositiveWithDESSky':
-            rgbRandomArray.append('%s/%s/%s_rgb.png' % (path,randomArrayIndex, randomArrayIndex))
-            imageTitleArray.append(randomArrayIndex)
+    print ("RANDOM ARRAY: " + str(random_array) + " TYPE: " + str(type(random_array)))
+    for num in range(0, len(random_array)):
+        random_array_index = random_array[num]
+        if rgb_path == 'PositiveWithDESSky':
+            rgb_random_array.append('%s/%s/%s_rgb.png' % (rgb_path, random_array_index, random_array_index))
+            image_title_array.append(random_array_index)
 
-        elif path == 'DES/DES_Processed':
-            rgbRandomArray.append(glob.glob('%s/%s_*/rgb.png'%(path, randomArrayIndex))[0])
-            imageTitleArray.append(randomArrayIndex)
+        elif rgb_path == 'DES/DES_Processed':
+            rgb_random_array.append(glob.glob('%s/%s_*/rgb.png' % (rgb_path, random_array_index))[0])
+            image_title_array.append(random_array_index)
 
-    return(rgbRandomArray, imageTitleArray)
+    return rgb_random_array, image_title_array
 
-def plotAndSaveRgbGrid(filepath, rgbImagePaths, imageTitleArray): #You should probably pass num in here or something like that and save many images
+
+def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array):
+    # You should probably pass num in here or something like that and save many images
     """
     Using the image arrays (rgbImagePaths()) to make an image grid made of RGB images. 
     The title for each image is retrieved from the imageTitleArray(). 
 
     Args:
-        filepath(string):               The file path name where the Figure of the image grid is to be saved. 
-        rgbImagePaths(list):            This is the list of the rgb images, that are used when making the rgb image grids. 
+        file_path(string):               The file path name where the Figure of the image grid is to be saved.
+        rgb_image_paths(list):            This is the list of the rgb images, that are used when making the rgb image grids.
         imageTitle(list):               This is the list of the names or titles of each image that is in the grid. 
                                         These names will either be the numbers of the sources or the source name, 
                                         depending on which data is being used. 
         Returns:
             This saves the Figure, which is all the indivivual rgb images placed in a grid. 
             These figures are saved in the path which is retrieved from when this function is called.                           
-    """    
-    lenRGB = len(rgbImagePaths)
-    numOfColsForRgbGrid = 3
-    numOfRowsForRgbGrid = getNumOrRowsForGrid(numOfColsForRgbGrid, rgbImagePaths)
-    fig, axs = plt.subplots(numOfRowsForRgbGrid, numOfColsForRgbGrid)
-    rowNum = 0
-    currentIndex = 0
-    imageTitleNum = 0
-    while (rowNum < numOfRowsForRgbGrid):
-        imagesForRow = []
-        imageIndex = 0
-        while (imageIndex < numOfColsForRgbGrid and currentIndex < lenRGB):
-            imagesForRow.append(rgbImagePaths[currentIndex])
-            currentIndex += 1
-            imageIndex += 1
+    """
+    len_rgb = len(rgb_image_paths)
+    num_of_cols_for_rgb_grid = 3
+    num_of_rows_for_rgb_grid = getNumOrRowsForGrid(num_of_cols_for_rgb_grid, rgb_image_paths)
+    fig, axs = plt.subplots(num_of_rows_for_rgb_grid, num_of_cols_for_rgb_grid)
+    row_num = 0
+    current_index = 0
+    image_title_num = 0
+    while row_num < num_of_rows_for_rgb_grid:
+        images_for_row = []
+        image_index = 0
+        while image_index < num_of_cols_for_rgb_grid and current_index < len_rgb:
+            images_for_row.append(rgb_image_paths[current_index])
+            current_index += 1
+            image_index += 1
 
-        for columnNum in range(0, len(imagesForRow)):
-            img = Image.open(imagesForRow[columnNum])
+        for column_num in range(0, len(images_for_row)):
+            img = Image.open(images_for_row[column_num])
             img.thumbnail((100, 100))
-            axs[rowNum, columnNum].imshow(img)
-            axs[rowNum, columnNum].axis('off')
-            imageTitle = imageTitleArray[imageTitleNum]
-            axs[rowNum, columnNum].set_title("%s" % imageTitle, fontdict = None, loc = 'center', color = 'k' )
-            imageTitleNum += 1 
+            axs[row_num, column_num].imshow(img)
+            axs[row_num, column_num].axis('off')
+            imageTitle = image_title_array[image_title_num]
+            axs[row_num, column_num].set_title("%s" % imageTitle, fontdict=None, loc='center', color='k')
+            image_title_num += 1
             img.close()
 
-        if rowNum == numOfRowsForRgbGrid - 1:
-            numOfEmptyGridsForRow = numOfColsForRgbGrid - len(imagesForRow)
-            for emptyIndex in range(len(imagesForRow), numOfColsForRgbGrid):
-                axs[rowNum, emptyIndex].axis('off')
+        if row_num == num_of_rows_for_rgb_grid - 1:
+            numOfEmptyGridsForRow = num_of_cols_for_rgb_grid - len(images_for_row)
+            for emptyIndex in range(len(images_for_row), num_of_cols_for_rgb_grid):
+                axs[row_num, emptyIndex].axis('off')
 
-        rowNum += 1
-    
-    fig.savefig(filepath)
+        row_num += 1
+
+    fig.savefig(file_path)
     plt.close(fig)
 
-def plotprogressNegativePositive(numberIterations):
+
+def plotprogressNegativePositive(number_iterations):
     """
     This is the plotting of the progress taken, step by step of the negative and positive 
     data, placed into a grid for each source. This grid is made for each g, r, and i band, 
@@ -342,7 +355,7 @@ def plotprogressNegativePositive(numberIterations):
     row.
 
     Args:
-        numberIterations(integer):     This is the number of sources that will have the progress grids made for them.
+        number_iterations(integer):     This is the number of sources that will have the progress grids made for them.
                                        Not all sources are sometimes, since you just want to check the progress, 
                                        and how the images change overtime. This is also determines how many images from
                                        the positive and negative data sets to make the rgb image grids for positive and negative data.
@@ -350,12 +363,11 @@ def plotprogressNegativePositive(numberIterations):
         The Figure of the progress of the positive and negative data is saved. 
         The rgb image grids for the positive and negative data is saved as well.
     """
-    #Number of Images creating grids to view.
-    rgbPosImagePaths = []
-    rgbDESImagePaths = []
-    imageTitleArray = []
-    for num in range(0, numberIterations):
-
+    # Number of Images creating grids to view.
+    rgb_pos_image_paths = []
+    rgb_des_image_paths = []
+    image_title_array = []
+    for num in range(0, number_iterations):
         gWCS, rWCS, iWCS = getDESProcessedWCS(num)
         gDESNorm, rDESNorm, iDESNorm = getDESProcessedNorm(num)
         gDESSky, rDESSky, iDESSky = getDESSky(num)
@@ -363,26 +375,26 @@ def plotprogressNegativePositive(numberIterations):
         gPosSky, rPosSky, iPosSky = getPosWDESSky(num)
         gPosSkyNorm, rPosSkyNorm, iPosSkyNorm = getPosWDESSkyNorm(num)
 
-        #creating grids of images
-        #creating the first grid, in which the DES_Processed images are seen.   
+        # creating grids of images
+        # creating the first grid, in which the DES_Processed images are seen.
         fig1, axs = plt.subplots(3, 3)
-        axs[0, 0].imshow(gWCS[0].data, cmap = 'gray')
-        axs[0, 1].imshow(rWCS[0].data, cmap = 'gray')
-        axs[0, 2].imshow(iWCS[0].data, cmap = 'gray')
-        axs[1, 0].imshow(gDESNorm[0].data, cmap = 'gray')
-        axs[1, 1].imshow(rDESNorm[0].data, cmap = 'gray')
-        axs[1, 2].imshow(iDESNorm[0].data, cmap = 'gray')
-        axs[2, 0].imshow(gDESSky[0].data, cmap = 'gray')
-        axs[2, 1].imshow(rDESSky[0].data, cmap = 'gray')
-        axs[2, 2].imshow(iDESSky[0].data, cmap = 'gray')
+        axs[0, 0].imshow(gWCS[0].data, cmap='gray')
+        axs[0, 1].imshow(rWCS[0].data, cmap='gray')
+        axs[0, 2].imshow(iWCS[0].data, cmap='gray')
+        axs[1, 0].imshow(gDESNorm[0].data, cmap='gray')
+        axs[1, 1].imshow(rDESNorm[0].data, cmap='gray')
+        axs[1, 2].imshow(iDESNorm[0].data, cmap='gray')
+        axs[2, 0].imshow(gDESSky[0].data, cmap='gray')
+        axs[2, 1].imshow(rDESSky[0].data, cmap='gray')
+        axs[2, 2].imshow(iDESSky[0].data, cmap='gray')
 
         pathToPos = 'PositiveWithDESSky/'
         pathToNeg = 'DES/DES_Processed'
 
         filepath1 = (glob.glob('DES/DES_Processed/%s_*' % (num)))[0]
-        fig1.savefig("%s/DES_Processed_Grid.png"%(filepath1))
+        fig1.savefig("%s/DES_Processed_Grid.png" % (filepath1))
         plt.close(fig1)
-        
+
         gWCS.close()
         rWCS.close()
         iWCS.close()
@@ -395,15 +407,15 @@ def plotprogressNegativePositive(numberIterations):
 
         # creating the second grid, in which the Simulated images are seen.
         fig2, axs = plt.subplots(3, 3)
-        axs[0, 0].imshow(gPos[0].data, cmap = 'gray')
-        axs[0, 1].imshow(rPos[0].data, cmap = 'gray')
-        axs[0, 2].imshow(iPos[0].data, cmap = 'gray')
-        axs[1, 0].imshow(gPosSky[0].data, cmap = 'gray')
-        axs[1, 1].imshow(rPosSky[0].data, cmap = 'gray')
-        axs[1, 2].imshow(iPosSky[0].data, cmap = 'gray')
-        axs[2, 0].imshow(gPosSkyNorm[0].data, cmap = 'gray')
-        axs[2, 1].imshow(rPosSkyNorm[0].data, cmap = 'gray')
-        axs[2, 2].imshow(iPosSkyNorm[0].data, cmap = 'gray')
+        axs[0, 0].imshow(gPos[0].data, cmap='gray')
+        axs[0, 1].imshow(rPos[0].data, cmap='gray')
+        axs[0, 2].imshow(iPos[0].data, cmap='gray')
+        axs[1, 0].imshow(gPosSky[0].data, cmap='gray')
+        axs[1, 1].imshow(rPosSky[0].data, cmap='gray')
+        axs[1, 2].imshow(iPosSky[0].data, cmap='gray')
+        axs[2, 0].imshow(gPosSkyNorm[0].data, cmap='gray')
+        axs[2, 1].imshow(rPosSkyNorm[0].data, cmap='gray')
+        axs[2, 2].imshow(iPosSkyNorm[0].data, cmap='gray')
 
         filepath2 = ("%s/%s/%s_posSky_ImageGrid.png" % ('PositiveWithDESSky', num, num))
         fig2.savefig(filepath2)
@@ -420,21 +432,24 @@ def plotprogressNegativePositive(numberIterations):
         rPosSkyNorm.close()
         iPosSkyNorm.close()
 
-        rgbPosImagePaths.append('PositiveWithDESSky/%s/%s_rgb.png' % (num, num))
-        rgbDESImagePaths.append(getDESRGBPath(num))
+        rgb_pos_image_paths.append('PositiveWithDESSky/%s/%s_rgb.png' % (num, num))
+        rgb_des_image_paths.append(getDESRGBPath(num))
         imageTitlePos = '%s' % (num)
-        imageTitleArray.append(imageTitlePos)
+        image_title_array.append(imageTitlePos)
 
-    filepath3 = "PositiveWithDESSky/PositiveWithDESSky_RGB_ImageGrid.png"
-    # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
-    plotAndSaveRgbGrid(filepath3, rgbPosImagePaths, imageTitleArray)
+    file_path3 = "PositiveWithDESSky/PositiveWithDESSky_RGB_ImageGrid.png"
+    # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
+    # list( paths of rgb images)))
+    plotAndSaveRgbGrid(file_path3, rgb_pos_image_paths, image_title_array)
 
     # creating the rgb grid for the DES Images
-    filepath4 = "DES/DES_RGB_ImageGrid.png"
-    # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
-    plotAndSaveRgbGrid(filepath4, rgbDESImagePaths, imageTitleArray)
+    file_path4 = "DES/DES_RGB_ImageGrid.png"
+    # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
+    # list( paths of rgb images)))
+    plotAndSaveRgbGrid(file_path4, rgb_des_image_paths, image_title_array)
 
-def plotKnownLenses(numberIterations):
+
+def plotKnownLenses(number_iterations):
     """
     This is the plotting of knownlenses. This has the requested amount of known lenses to look at and check. 
     This function opens the function getKnownRGBPath(), and gets the paths of the rgb images of the known 
@@ -443,39 +458,40 @@ def plotKnownLenses(numberIterations):
     Returns:
         This saves the figure containing the rgb image grids of the knownlenses. 
     """
-    rgbKnownImagePaths = []
-    imageTitleArray = []
-    for num in range(0, numberIterations):
+    rgb_known_image_paths = []
+    image_title_array = []
+    for num in range(0, number_iterations):
         rgbKnown, desJ, tileName = getKnownRGBPath(num)
-        rgbKnownImagePaths.append(rgbKnown)
-        imageTitle = '%s_%s' % (num,desJ)
-        imageTitleArray.append(imageTitle)
-        
-    
-    filepath5 = "KnownLenses/DES2017_RGB_ImageGrid.png"
-    # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
-    plotAndSaveRgbGrid(filepath5, rgbKnownImagePaths, imageTitleArray)
+        rgb_known_image_paths.append(rgbKnown)
+        imageTitle = '%s_%s' % (num, desJ)
+        image_title_array.append(imageTitle)
+
+    file_path5 = "KnownLenses/DES2017_RGB_ImageGrid.png"
+    # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
+    # list( paths of rgb images)))
+    plotAndSaveRgbGrid(file_path5, rgb_known_image_paths, image_title_array)
+
 
 # ___________________________________________________________________________________________________________________________________________
 # MAIN 
-#Number of Images creating grids to view.
-numberIterations = int(sys.argv[1])
+# Number of Images creating grids to view.
+number_iterations = int(sys.argv[1])
 
 # plot progress and rgb images of negative and positive images 
-plotprogressNegativePositive(numberIterations)
+plotprogressNegativePositive(number_iterations)
 
 # Get Random RGB images from PositiveWithDESSky
 path = 'PositiveWithDESSky'
-filepath6 = "PositiveWithDESSky/randomRGB_ImageGrid.png"
-rgbRandom, imageTitleArray = makeRandomRGBArray(path, numberIterations)
-plotAndSaveRgbGrid(filepath6,rgbRandom, imageTitleArray)
+file_path6 = "PositiveWithDESSky/randomRGB_ImageGrid.png"
+rgb_random, image_title_array = makeRandomRGBArray(path, number_iterations)
+plotAndSaveRgbGrid(file_path6, rgb_random, image_title_array)
 
 # Get Random RGB images from NegativeDES
 path = 'DES/DES_Processed'
-filepath7 = "DES/randomRGB_ImageGrid.png"
-rgbRandom, imageTitleArray = makeRandomRGBArray(path, numberIterations)
+file_path7 = "DES/randomRGB_ImageGrid.png"
+rgb_random, image_title_array = makeRandomRGBArray(path, number_iterations)
 # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
-plotAndSaveRgbGrid(filepath7, rgbRandom, imageTitleArray)
+plotAndSaveRgbGrid(file_path7, rgb_random, image_title_array)
 
 # plot KnownLenses rgb images
-plotKnownLenses(numberIterations)
+plotKnownLenses(number_iterations)
