@@ -13,6 +13,10 @@ import astropy.table as atpy
 import numpy as np
 
 from positiveSetUtils import cutCosmosTable, makeModelImage, addSky, normalise, getNegativeNumbers
+#_______________________________________________________________________________________________________________
+
+# Get the amount of data from the negative training and testing sets and use the same DESSky that was made by
+# negativeDES.py, and add it to the positive simulated lenses.
 
 numbers_train_neg = getNegativeNumbers('Training/Negative')
 numbers_test_neg = getNegativeNumbers('Testing/Negative')
