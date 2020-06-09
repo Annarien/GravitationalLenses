@@ -311,18 +311,18 @@ def getUnknown(num, base_dir='KnownLenses'):
 
 
 def getTestSet():
-    data_des_2017 = getDES2017()
-    negative_47 = getUnknown(47)
+    # data_des_2017 = getDES2017()
+    # negative_47 = getUnknown(47)
 
     # data_jacobs = getJacobs()
     # data_known_131 = np.vstack((data_des_2017,data_jacobs))
     # negative_131 = getUnknown(131)
     #
-    images, labels = loadImage(data_des_2017, negative_47)
+    # images, labels = loadImage(data_des_2017, negative_47)
 
-    # data_pos_1000 = getPositiveSimulated1000()
-    # unknown_1000 = getUnknown(1000)
-    # images, labels = loadImage(data_pos_1000, unknown_1000)
+    data_pos_1000 = getPositiveSimulated1000()
+    unknown_1000 = getUnknown(1000)
+    images, labels = loadImage(data_pos_1000, unknown_1000)
 
     return images, labels
 
@@ -560,15 +560,37 @@ def makeKerasModel():
 
 
 def makeKerasCNNModel():
+    # https://medium.com/@randerson112358/classify-images-using-convolutional-neural-networks-python-a89cecc8c679
     model = Sequential()
-    model.add(Conv2D(64, kernel_size=(3, 3), activation='relu', input_shape=(3, 100, 100)))
-    model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(3, 100, 100)))
+    model.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
+    # model.add(Conv2D(32, (3, 3), activation='relu'))
+    # model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dense(100, activation='relu'))
+    model.add(Dense(100, activation='relu'))
+    model.add(Dense(100, activation='relu'))
     model.add(Flatten())
-    model.add(Dense(128))
-    model.add(Activation('relu'))
     model.add(Dense(1))
-    model.add(Activation('sigmoid'))
+
+    #
+    # model.add(Conv2D(64, kernel_size=(3, 3), activation='relu', input_shape=(3, 100, 100)))
+    # model.add(Dense(100, activation='relu', input_shape=(3, 100, 100)))  # change this to have a 2d shape
+    # model.add(Dense(100, activation='relu'))
+    # model.add(Dense(100, activation='relu'))
+    # model.add(Flatten())
+    # # model.add(Dense(100))
+    # # model.add(Activation('relu'))
+    # model.add(Dense(1))
+    # model.add(Activation('sigmoid'))  # THE KERAS WITHOUT ES PNG IMAGE, HAS SIGMOID
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+    # model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    # model.add(Flatten())
+    # model.add(Dense(128))
+    # model.add(Activation('relu'))
+    # model.add(Dense(1))
+    # model.add(Activation('sigmoid'))
+    # model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
 
 
@@ -579,18 +601,24 @@ def useKerasModel(positive_array, negative_array):
         positive_array, negative_array)
 
     es = EarlyStopping(monitor='val_loss', verbose=1, patience=3)
-    model = makeKerasModel()
+    model = makeKerasCNNModel()
     seq_model = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test), callbacks=[es])
     description = str(model)
 
     # Accuracy Testing
     y_pred = model.predict(x_test)
+    print("y_pred: " + str(y_pred[0]))
+    print("y_pred shape: "+str(y_pred.shape))
+    print("y_pred(type): "+str(type(y_pred)))
     y_test_index = np.round(y_pred)
-    Ones = np.count_nonzero(y_test_index == 1)
-    Zeroes = np.count_nonzero(y_test_index == 0)
+    ones = np.count_nonzero(y_test_index == 1)
+    zeroes = np.count_nonzero(y_test_index == 0)
 
-    print("Ones: %s / 1000" % (Ones))
-    print("Zeroes: %s / 1000" % (Zeroes))
+    print("Ones: %s / 1000" % ones)
+    print("Zeroes: %s / 1000" % zeroes)
+
+    # plt.plot(x_train[10])
+    display_activation(y_pred, 5, 5, 1)
 
     _, acc = model.evaluate(x_test, y_test, verbose=0)
     accuracy_score = acc * 100.0
@@ -622,7 +650,7 @@ def useKerasModel(positive_array, negative_array):
     # saving model weights in keras.
     model.save_weights('kerasModel.h5')
 
-    return (model, x_train, x_test, y_train, y_test, description, train_percent, test_percent, image_train_std,
+    return (model,y_pred, x_train, x_test, y_train, y_test, description, train_percent, test_percent, image_train_std,
             image_train_mean, image_train_shape, image_labels_shape, x_train_shape, x_test_shape, y_train_shape,
             y_test_shape, accuracy_score)
 
@@ -631,7 +659,7 @@ def getKerasKFold(x_train, x_test, y_train, y_test):
     # Stratified K fold Cross Validation
     # https://machinelearningmastery.com/use-keras-deep-learning-models-scikit-learn-python/
 
-    neural_network = KerasClassifier(build_fn=makeKerasModel,
+    neural_network = KerasClassifier(build_fn=makeKerasCNNModel,
                                      epochs=30,
                                      batch_size=200,
                                      verbose=0)
@@ -657,24 +685,26 @@ def getKerasKFold(x_train, x_test, y_train, y_test):
 def display_activation(activations, col_size, row_size, act_index):
     activation = activations[act_index]
     activation_index = 0
+
     fig, ax = plt.subplots(row_size, col_size, figsize=(row_size * 2.5, col_size * 1.5))
     for row in range(0, row_size):
         for col in range(0, col_size):
             ax[row][col].imshow(activation[0, :, :, activation_index], cmap='gray')
+            # ax[row][col].imshow(activation, cmap='gray')
             activation_index += 1
 
 
-def visualizeKeras(model, x_train):
+def visualizeKeras(model, x_train, y_pred):
     # https://www.kaggle.com/amarjeet007/visualize-cnn-with-keras
 
     # topLayer= model.layers[0]
     # plt.show(topLayer.get_weights())
 
     layer_outputs = [layer.output for layer in model.layers]
-    activation_model = Model(inputs=model.input, outputs=layer_outputs)
-    activations = activation_model.predict(x_train)  # 20000 images and 100X100 dimensions and 3 channels
+    # activation_model = model(inputs=model.input, outputs=layer_outputs)
+    activations = y_pred  # 20000 images and 100X100 dimensions and 3 channels
     plt.imshow(x_train[10][:, :, 0])
-    display_activation(activations, 100, 100, 3)
+    display_activation(activations, 5, 5, 1)
 
 
 # _________________________________________________________________________________________________________________________
@@ -683,14 +713,14 @@ def visualizeKeras(model, x_train):
 positive_array = getPositiveSimulated()
 negative_array = getNegativeDES()
 
-model, x_train, x_test, yTrain, y_test, description, train_percent, test_percent, image_train_std, image_train_mean, \
+model, y_pred, x_train, x_test, yTrain, y_test, description, train_percent, test_percent, image_train_std, image_train_mean, \
 image_train_shape, image_labels_shape, x_train_shape, x_test_shape, y_train_shape, y_test_shape, accuracy_score = \
     useKerasModel(positive_array, negative_array)
 print("DONE 1")
-# visualizeKeras(model, x_train)
+# visualizeKeras(model, x_train, y_pred)
 n_splits, random_state, k_fold_accuracy, k_fold_std, neural_network = getKerasKFold(x_train, x_test, yTrain, y_test)
 
-# calculating the amount of things accuractely identified
+# calculating the amount of things accurately identified
 # looking at Known131
 # 1 = gravitational lens
 # 0 = negative lens
