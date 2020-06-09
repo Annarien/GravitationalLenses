@@ -618,7 +618,7 @@ def useKerasModel(positive_array, negative_array):
     print("Zeroes: %s / 1000" % zeroes)
 
     # plt.plot(x_train[10])
-    display_activation(y_pred, 5, 5, 1)
+    # display_activation(y_pred, 5, 5, 1)
 
     _, acc = model.evaluate(x_test, y_test, verbose=0)
     accuracy_score = acc * 100.0
@@ -682,14 +682,14 @@ def getKerasKFold(x_train, x_test, y_train, y_test):
     # _____________________________________________________________________________________________________________________________
 
 
-def display_activation(activations, col_size, row_size, act_index):
-    activation = activations[act_index]
+def display_activation(activations, col_size, row_size, layer):
+    activation = activations[layer]
     activation_index = 0
 
     fig, ax = plt.subplots(row_size, col_size, figsize=(row_size * 2.5, col_size * 1.5))
     for row in range(0, row_size):
         for col in range(0, col_size):
-            ax[row][col].imshow(activation[0, :, :, activation_index], cmap='gray')
+            ax[row][col].imshow(activation[0, :, activation_index], cmap='gray')
             # ax[row][col].imshow(activation, cmap='gray')
             activation_index += 1
 
@@ -702,9 +702,9 @@ def visualizeKeras(model, x_train, y_pred):
 
     layer_outputs = [layer.output for layer in model.layers]
     # activation_model = model(inputs=model.input, outputs=layer_outputs)
-    activations = y_pred  # 20000 images and 100X100 dimensions and 3 channels
+    # activations = y_pred  # 20000 images and 100X100 dimensions and 3 channels
     plt.imshow(x_train[10][:, :, 0])
-    display_activation(activations, 5, 5, 1)
+    display_activation(y_pred, 5, 5, 1)
 
 
 # _________________________________________________________________________________________________________________________
@@ -717,7 +717,8 @@ model, y_pred, x_train, x_test, yTrain, y_test, description, train_percent, test
 image_train_shape, image_labels_shape, x_train_shape, x_test_shape, y_train_shape, y_test_shape, accuracy_score = \
     useKerasModel(positive_array, negative_array)
 print("DONE 1")
-# visualizeKeras(model, x_train, y_pred)
+visualizeKeras(model, x_train, y_pred)
+
 n_splits, random_state, k_fold_accuracy, k_fold_std, neural_network = getKerasKFold(x_train, x_test, yTrain, y_test)
 
 # calculating the amount of things accurately identified
