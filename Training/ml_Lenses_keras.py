@@ -11,7 +11,8 @@ from astropy.utils.data import get_pkg_data_filename
 from keras.callbacks import EarlyStopping
 from keras.callbacks import History
 from keras.layers import Flatten, Dense, Conv2D, MaxPooling2D, Activation
-from keras.models import Sequential
+from keras.models import Sequential, Model
+
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import LabelEncoder
@@ -689,22 +690,34 @@ def display_activation(activations, col_size, row_size, layer):
     fig, ax = plt.subplots(row_size, col_size, figsize=(row_size * 2.5, col_size * 1.5))
     for row in range(0, row_size):
         for col in range(0, col_size):
-            ax[row][col].imshow(activation[0, :, activation_index], cmap='gray')
+            # ax[row][col].imshow(activation[0, :, activation_index], cmap='gray')
+            ax[row][col].imshow(activation[0, :, :, activation_index], cmap='gray')
+
             # ax[row][col].imshow(activation, cmap='gray')
             activation_index += 1
 
 
 def visualizeKeras(model, x_train, y_pred):
     # https://www.kaggle.com/amarjeet007/visualize-cnn-with-keras
+    # https://towardsdatascience.com/visualizing-intermediate-activation-in-convolutional-neural-networks-with-keras
+    # -260b36d60d0
 
     # topLayer= model.layers[0]
     # plt.show(topLayer.get_weights())
 
-    layer_outputs = [layer.output for layer in model.layers]
-    # activation_model = model(inputs=model.input, outputs=layer_outputs)
+    layer_outputs = [layer.output for layer in model.layers[:1]]
+    activation_model = Model(inputs=model.input, outputs=layer_outputs)
+    # activations = activation_model.predict(x_train[10].reshape(1, 28, 28, 1))
+    activations = activation_model.predict(x_test[0].reshape(1, 98, 98, 32))
+    print("Activations: "+str(activations))
+    first_layer_activation = activations[0]
+    print("First Layer Shape: "+str(first_layer_activation.shape))
+    plt.matshow(first_layer_activation[0, :, :, 4], cmap = 'viridis')
+
     # activations = y_pred  # 20000 images and 100X100 dimensions and 3 channels
-    plt.imshow(x_train[10][:, :, 0])
-    display_activation(y_pred, 5, 5, 1)
+    # plt.imshow(x_train[10][:, :, 0])
+    # # display_activation(y_pred, 5, 5, 1)
+    # display_activation(activations, 5, 5, 1)
 
 
 # _________________________________________________________________________________________________________________________
