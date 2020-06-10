@@ -258,6 +258,7 @@ def getPositiveSimulated1000(base_dir='NewLenses/PositiveWithDESSky'):
         # just to run, and use less things
         # if counter > 1500:
         #     break
+
     return data_pos_1000
 
 
@@ -705,10 +706,17 @@ def visualizeKeras(model, x_train, y_pred):
     # topLayer= model.layers[0]
     # plt.show(topLayer.get_weights())
 
+    # get postive test image
+    data_pos_1000 = getPositiveSimulated1000()
+    image_tensor = data_pos_1000[0]  # image tensor of the first positive test image
+    plt.imshow(image_tensor[0])
+    plt.show()
+    print(image_tensor.shape)
+
+
     layer_outputs = [layer.output for layer in model.layers[:1]]
     activation_model = Model(inputs=model.input, outputs=layer_outputs)
-    # activations = activation_model.predict(x_train[10].reshape(1, 28, 28, 1))
-    activations = activation_model.predict(x_test[0].reshape(1, 98, 98, 32))
+    activations = activation_model.predict(image_tensor)
     print("Activations: "+str(activations))
     first_layer_activation = activations[0]
     print("First Layer Shape: "+str(first_layer_activation.shape))
@@ -722,7 +730,6 @@ def visualizeKeras(model, x_train, y_pred):
 
 # _________________________________________________________________________________________________________________________
 # MAIN
-
 positive_array = getPositiveSimulated()
 negative_array = getNegativeDES()
 
