@@ -1,6 +1,5 @@
-"""
-This is a draft of machine learning code, so that we can test how to do the machine learning algorithm of the gravitational lenses.
-"""
+"""This is a draft of machine learning code, so that we can test how to do the machine learning algorithm of the
+gravitational lenses. """
 # IMPORTS
 import os
 
@@ -8,15 +7,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
-from keras.callbacks import EarlyStopping
-from keras.callbacks import History
-from keras.layers import Flatten, Dense, Conv2D, MaxPooling2D, Activation
-from keras.models import Sequential, Model
-
-from keras.wrappers.scikit_learn import KerasClassifier
-from sklearn.model_selection import train_test_split, cross_val_score
+import tensorflow.python.keras as keras
+from tensorflow.python.keras import backend
+from tensorflow.python.keras.callbacks import EarlyStopping, History
+# from keras.callbacks import EarlyStopping
+# from keras.callbacks import History
+from tensorflow.python.keras.layers import Flatten, Dense, Conv2D, MaxPooling2D, Activation, Dropout
+from tensorflow.python.keras.models import Sequential, Model
+from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import shuffle
+from keract import get_activations, display_activations, display_heatmaps
+
+
 import makeExcelTable
 
 
@@ -71,6 +75,7 @@ def getPositiveSimulated(base_dir='PositiveWithDESSky'):
         # just to run, and use less things
         # if counter > 1500:
         #     break
+    print("GOT POSITIVE")
     return data_pos
 
 
@@ -111,6 +116,7 @@ def getNegativeDES(base_dir='DES/DES_Processed'):
         # just to run, and use less things
         # if var > 1500:
         #     break
+    print("GOT NEGATIVE")
     return data_neg
 
 
@@ -149,6 +155,8 @@ def loadImage(positive_array, negative_array):
         # label_neg = 'No Gravitational Lensing'
         label_neg = 0  # assign 0  for non gravitational lenses
         image_labels.append(label_neg)
+
+    print("LOADED POSITIVE AND NEGATIVE")
 
     return np.array(image_train), np.array(image_labels)
 
@@ -278,13 +286,13 @@ def getUnknown(num, base_dir='KnownLenses'):
     """
 
     if num == 47:
-        path_unknown = '%s/Unknown_Processed_47' % (base_dir)
+        path_unknown = '%s/Unknown_Processed_47' % base_dir
     elif num == 84:
-        path_unknown = '%s/Unknown_Processed_84' % (base_dir)
+        path_unknown = '%s/Unknown_Processed_84' % base_dir
     elif num == 131:
-        path_unknown = '%s/Unknown_Processed_131' % (base_dir)
+        path_unknown = '%s/Unknown_Processed_131' % base_dir
     elif num == 1000:
-        path_unknown = '%s/Unknown_Processed_1000' % (base_dir)
+        path_unknown = '%s/Unknown_Processed_1000' % base_dir
 
     folders_unknown = []
     for root, dirs, files in os.walk(path_unknown):
@@ -541,6 +549,7 @@ def makeTrainTest(positive_array, negative_array):
     print("y_test shape: " + str(y_train.shape))
 
     train_percent = (1 - test_percent)
+    print("MADE TRAIN TEST SET")
 
     return (x_train, x_test, y_train, y_test, train_percent, test_percent, image_train_std, image_train_mean,
             image_train_shape, image_labels_shape, x_train_shape, x_test_shape, y_train_shape, y_test_shape)
@@ -566,6 +575,7 @@ def makeKerasCNNModel():
     model = Sequential()
     model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(3, 100, 100)))
     model.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
+    # model.add(Dropout(0.5))
     # model.add(Conv2D(32, (3, 3), activation='relu'))
     # model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dense(100, activation='relu'))
@@ -574,7 +584,6 @@ def makeKerasCNNModel():
     model.add(Flatten())
     model.add(Dense(1))
 
-    #
     # model.add(Conv2D(64, kernel_size=(3, 3), activation='relu', input_shape=(3, 100, 100)))
     # model.add(Dense(100, activation='relu', input_shape=(3, 100, 100)))  # change this to have a 2d shape
     # model.add(Dense(100, activation='relu'))
@@ -597,7 +606,6 @@ def makeKerasCNNModel():
 
 
 def useKerasModel(positive_array, negative_array):
-
     x_train, x_test, y_train, y_test, train_percent, test_percent, image_train_std, image_train_mean, \
     image_train_shape, image_labels_shape, x_train_shape, x_test_shape, y_train_shape, y_test_shape = makeTrainTest(
         positive_array, negative_array)
@@ -610,8 +618,8 @@ def useKerasModel(positive_array, negative_array):
     # Accuracy Testing
     y_pred = model.predict(x_test)
     print("y_pred: " + str(y_pred[0]))
-    print("y_pred shape: "+str(y_pred.shape))
-    print("y_pred(type): "+str(type(y_pred)))
+    print("y_pred shape: " + str(y_pred.shape))
+    print("y_pred(type): " + str(type(y_pred)))
     y_test_index = np.round(y_pred)
     ones = np.count_nonzero(y_test_index == 1)
     zeroes = np.count_nonzero(y_test_index == 0)
@@ -629,8 +637,8 @@ def useKerasModel(positive_array, negative_array):
     History()
     train_loss = seq_model.history['loss']
     val_loss = seq_model.history['val_loss']
-    train_accuracy = seq_model.history['accuracy']
-    val_accuracy = seq_model.history['val_accuracy']
+    train_accuracy = seq_model.history['acc']
+    val_accuracy = seq_model.history['val_acc']
 
     # epochs = range(1,50)
     fig1 = plt.figure()
@@ -651,8 +659,9 @@ def useKerasModel(positive_array, negative_array):
 
     # saving model weights in keras.
     model.save_weights('kerasModel.h5')
+    print("USED KERAS MODEL")
 
-    return (model,y_pred, x_train, x_test, y_train, y_test, description, train_percent, test_percent, image_train_std,
+    return (model, y_pred, x_train, x_test, y_train, y_test, description, train_percent, test_percent, image_train_std,
             image_train_mean, image_train_shape, image_labels_shape, x_train_shape, x_test_shape, y_train_shape,
             y_test_shape, accuracy_score)
 
@@ -707,20 +716,35 @@ def visualizeKeras(model, x_train, y_pred):
     # plt.show(topLayer.get_weights())
 
     # get postive test image
-    data_pos_1000 = getPositiveSimulated1000()
-    image_tensor = data_pos_1000[0]  # image tensor of the first positive test image
-    plt.imshow(image_tensor[0])
+    img_tensor = getPositiveSimulated1000()[0]  # image tensor of the first positive test image
+    img_tensor = np.expand_dims(img_tensor, axis=0)
+    img_tensor /= 255.
+
+    # plt.figure()
+    plt.imshow(img_tensor[0])
     plt.show()
-    print(image_tensor.shape)
 
+    print("Image Tensor Shape: " + str(img_tensor.shape))
 
-    layer_outputs = [layer.output for layer in model.layers[:1]]
+    layer_outputs = [layer.output for layer in model.layers[:12]]
     activation_model = Model(inputs=model.input, outputs=layer_outputs)
-    activations = activation_model.predict(image_tensor)
-    print("Activations: "+str(activations))
+    # activations = activation_model.predict(img_tensor.reshape(1, 3, 100, 100))
+    activations = activation_model.predict(img_tensor)
+    print("Activations: " + str(activations))
     first_layer_activation = activations[0]
-    print("First Layer Shape: "+str(first_layer_activation.shape))
-    plt.matshow(first_layer_activation[0, :, :, 4], cmap = 'viridis')
+
+    print("First Layer Shape: " + str(first_layer_activation.shape))
+    # reshape_first_layer = first_layer_activation
+    # print(" Reshaped First Layer Activation: "+str(reshape_first_layer))
+    # print("Shape of Reshaped First Layer Activation: "+str(reshape_first_layer.shape))
+    #
+    # # plt.imshow(reshape_first_layer)
+    # # plt.show()
+    #
+
+    plt.imshow(first_layer_activation[0, :, 2])
+    # plt.imshow(first_layer_activation)
+    plt.show()
 
     # activations = y_pred  # 20000 images and 100X100 dimensions and 3 channels
     # plt.imshow(x_train[10][:, :, 0])
@@ -730,38 +754,109 @@ def visualizeKeras(model, x_train, y_pred):
 
 # _________________________________________________________________________________________________________________________
 # MAIN
+print("PAST IMPORTS")
 positive_array = getPositiveSimulated()
 negative_array = getNegativeDES()
 
-model, y_pred, x_train, x_test, yTrain, y_test, description, train_percent, test_percent, image_train_std, image_train_mean, \
-image_train_shape, image_labels_shape, x_train_shape, x_test_shape, y_train_shape, y_test_shape, accuracy_score = \
-    useKerasModel(positive_array, negative_array)
+model, \
+    y_pred, \
+    x_train, \
+    x_test, \
+    yTrain, \
+    y_test, \
+    description, \
+    train_percent, \
+    test_percent, \
+    image_train_std, \
+    image_train_mean, \
+    image_train_shape, \
+    image_labels_shape, \
+    x_train_shape, \
+    x_test_shape, \
+    y_train_shape, \
+    y_test_shape, \
+    accuracy_score = useKerasModel(positive_array, negative_array)
 print("DONE 1")
-visualizeKeras(model, x_train, y_pred)
+# visualizeKeras(model, x_train, y_pred)
 
-n_splits, random_state, k_fold_accuracy, k_fold_std, neural_network = getKerasKFold(x_train, x_test, yTrain, y_test)
+keract_input = getPositiveSimulated1000()[0]
+print("Keract Input Type: "+str(type(keract_input)))
+print("Keract Input Shape: "+str(keract_input.shape))
+reshaped_keract_input = keract_input.reshape(100, 100, 3)
+reshaped_keract_input = np.expand_dims(reshaped_keract_input, axis=0)
+print("Reshaped Keact Input: "+str(reshaped_keract_input))
+plt.figure()
+plt.imshow(reshaped_keract_input)
+plt.show() # Original image
 
-# calculating the amount of things accurately identified
-# looking at Known131
-# 1 = gravitational lens
-# 0 = negative lens
+activations = get_activations(model, reshaped_keract_input)
+display_activations(activations, cmap='gray')
+display_heatmaps(activations, reshaped_keract_input)
 
-# #______________________________________________________________________________________________________________________
-known_des_2017, accuracy_score_47, k_fold_accuracy_47, k_fold_std_47 = testDES2017(model, neural_network, n_splits)
-known_jacobs, accuracy_score_84, k_fold_accuracy_84, k_fold_std_84 = testJacobs(model, neural_network, n_splits)
-accuracy_score_131, k_fold_accuracy_131, k_fold_std_131 = testDES2017AndJacobs(known_des_2017, known_jacobs, model,
-                                                                               neural_network, n_splits)
+# layer_outputs = [layer.output for layer in model.layers]
+# activation_model = Model(inputs=model.input,
+#                          outputs=layer_outputs)
+# img_tensor = getPositiveSimulated1000()[0]
+# print(img_tensor.shape)
+# # img_tensor = np.expand_dims(img_tensor, axis=0)
+# # img_tensor /= 255.
+# img_tensor = img_tensor.reshape(1, 3, 100, 100)
+# print(img_tensor.shape)
+#
+# plt.figure()
+# plt.imshow(img_tensor[0])
+# plt.show()
+# print(img_tensor.shape)
+#
+# activations = activation_model.predict(img_tensor)
+# first_layer_activation = activations[0]
+# print(first_layer_activation.shape)
+#
+# plt.figure()
+# plt.imshow(first_layer_activation[0, 0, :, :], cmap='gray')
+# plt.show()
 
-# write to ml_Lenses_results.xlsx
-# makeExcelTable.makeInitialTable()
-element_list = makeExcelTable.getElementList(description, image_train_std, image_train_mean, image_train_shape,
-                                             image_labels_shape, train_percent, test_percent, x_train_shape,
-                                             x_test_shape,
-                                             y_train_shape, y_test_shape, n_splits, random_state, accuracy_score,
-                                             k_fold_accuracy,
-                                             k_fold_std, accuracy_score_47, k_fold_accuracy_47, k_fold_std_47,
-                                             accuracy_score_84,
-                                             k_fold_accuracy_84, k_fold_std_84, accuracy_score_131, k_fold_accuracy_131,
-                                             k_fold_std_131)
-file_name = '../Results/ml_Lenses_results.csv'
-makeExcelTable.appendRowAsList(file_name, element_list)
+
+#______________________________________________________________________________________________________________________
+# n_splits, random_state, k_fold_accuracy, k_fold_std, neural_network = getKerasKFold(x_train, x_test, yTrain, y_test)
+#
+# # calculating the amount of things accurately identified
+# # looking at Known131
+# # 1 = gravitational lens
+# # 0 = negative lens
+#
+# # #______________________________________________________________________________________________________________________
+# known_des_2017, accuracy_score_47, k_fold_accuracy_47, k_fold_std_47 = testDES2017(model, neural_network, n_splits)
+# known_jacobs, accuracy_score_84, k_fold_accuracy_84, k_fold_std_84 = testJacobs(model, neural_network, n_splits)
+# accuracy_score_131, k_fold_accuracy_131, k_fold_std_131 = testDES2017AndJacobs(known_des_2017, known_jacobs, model,
+#                                                                                neural_network, n_splits)
+#
+# # write to ml_Lenses_results.xlsx
+# # makeExcelTable.makeInitialTable()
+# element_list = makeExcelTable.getElementList(description,
+#                                              image_train_std,
+#                                              image_train_mean,
+#                                              image_train_shape,
+#                                              image_labels_shape,
+#                                              train_percent,
+#                                              test_percent,
+#                                              x_train_shape,
+#                                              x_test_shape,
+#                                              y_train_shape,
+#                                              y_test_shape,
+#                                              n_splits,
+#                                              random_state,
+#                                              accuracy_score,
+#                                              k_fold_accuracy,
+#                                              k_fold_std,
+#                                              accuracy_score_47,
+#                                              k_fold_accuracy_47,
+#                                              k_fold_std_47,
+#                                              accuracy_score_84,
+#                                              k_fold_accuracy_84,
+#                                              k_fold_std_84,
+#                                              accuracy_score_131,
+#                                              k_fold_accuracy_131,
+#                                              k_fold_std_131)
+# file_name = '../Results/ml_Lenses_results.csv'
+# makeExcelTable.appendRowAsList(file_name, element_list)
