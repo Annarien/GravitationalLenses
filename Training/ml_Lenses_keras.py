@@ -11,7 +11,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import shuffle
 from tensorflow.python.keras.callbacks import EarlyStopping, History
-from tensorflow.python.keras.layers import Flatten, Dense, Conv2D, MaxPooling2D, Activation
+from tensorflow.python.keras.layers import Flatten, Dense, Conv2D, MaxPooling2D, Activation, Dropout
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
 
@@ -65,7 +65,7 @@ def getPositiveSimulated(base_dir='PositiveWithDESSky'):
         data_pos[counter] = [g, r, i]
         counter += 1
         # just to run, and use less things
-        # if counter > 1500:
+        # if counter >= 1000:
         #     break
     print("GOT POSITIVE")
     return data_pos
@@ -106,7 +106,7 @@ def getNegativeDES(base_dir='DES/DES_Processed'):
 
         data_neg[var] = [g, r, i]
         # just to run, and use less things
-        # if var > 1500:
+        # if var >= 1000:
         #     break
     print("GOT NEGATIVE")
     return data_neg
@@ -558,6 +558,41 @@ def makeKerasModel():
     return model
 
 
+def makeModelFromTutorial():
+    # Initialising the CNN
+    classifier = Sequential()
+
+    # Step 1 - Convolution
+    classifier.add(Conv2D(32, (3, 3), padding='same', input_shape=(3, 100, 100), activation='relu'))
+    classifier.add(Conv2D(32, (3, 3), activation='relu'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(Dropout(0.5))  # antes era 0.25
+    # Adding a second convolutional layer
+    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    classifier.add(Conv2D(64, (3, 3), activation='relu'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))
+    classifier.add(Dropout(0.5))  # antes era 0.25
+    # Adding a third convolutional layer
+    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    classifier.add(Conv2D(64, (3, 3), activation='relu'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))
+    classifier.add(Dropout(0.5))  # antes era 0.25
+    # Step 3 - Flattening
+    classifier.add(Flatten())
+    # Step 4 - Full connection
+    classifier.add(Dense(units=512, activation='relu'))
+    classifier.add(Dropout(0.5))
+    classifier.add(Dense(units=3, activation='softmax'))
+    classifier.summary()
+
+    # Compiling the CNN
+    classifier.compile(optimizer='rmsprop',
+                       loss='categorical_crossentropy',
+                       metrics=['accuracy'])
+
+    return classifier
+
+
 def makeKerasCNNModel():
     # https://medium.com/@randerson112358/classify-images-using-convolutional-neural-networks-python-a89cecc8c679
     model = Sequential()
@@ -598,15 +633,15 @@ def useKerasModel(positive_array, negative_array):
         x_test, \
         y_train, \
         y_test, \
-        train_percent,\
-        test_percent,\
-        image_train_std,\
+        train_percent, \
+        test_percent, \
+        image_train_std, \
         image_train_mean, \
-        image_train_shape,\
-        image_labels_shape,\
-        x_train_shape,\
-        x_test_shape,\
-        y_train_shape,\
+        image_train_shape, \
+        image_labels_shape, \
+        x_train_shape, \
+        x_test_shape, \
+        y_train_shape, \
         y_test_shape = makeTrainTest(positive_array, negative_array)
 
     es = EarlyStopping(monitor='val_loss', verbose=1, patience=3)
@@ -713,19 +748,12 @@ def getKerasKFold(x_train, x_test, y_train, y_test):
     # _____________________________________________________________________________________________________________________________
 
 
-def display_activation(activations, row_size, col_size, layer):
-    activation = activations[layer]
-    activation_index = 0
-    # fig, ax = plt.subplots(row_size, col_size)
-    # for row in range(0, row_size):
-    #     for col in range(0, col_size):
-    #         ax[row][col].matshow(activation[0][activation_index, :, :])
-    #         activation_index += 1
-    plt.figure()
-    plt.title("Layer")
-    plt.matshow(activation[0][0, :, :])
-    plt.show()
-    # fig.save("layer.png")
+def displayActivation(activations):
+    for activation in activations:
+        if activation.ndim >= 3:
+            plt.figure()
+            plt.matshow(activation[0][0, :, :])
+            plt.show()
 
 
 def visualizeKeras(model):
@@ -739,13 +767,13 @@ def visualizeKeras(model):
     img_tensor = getPositiveSimulated1000()[0]
     img_tensor = img_tensor.reshape(1, 3, 100, 100)
 
-    # plt.figure()
-    # plt.title("Original image")
-    # plt.matshow(img_tensor[0][0, :, :])
-    # plt.show()
+    plt.figure()
+    plt.title("Original image")
+    plt.matshow(img_tensor[0][0, :, :])
+    plt.show()
 
     activations = activation_model.predict(img_tensor)
-    display_activation(activations, 1, 3, 0)
+    displayActivation(activations)
 
 
 # _________________________________________________________________________________________________________________________
