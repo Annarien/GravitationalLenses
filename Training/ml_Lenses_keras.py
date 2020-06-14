@@ -7,21 +7,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
-import tensorflow.python.keras as keras
-from tensorflow.python.keras import backend
-from tensorflow.python.keras.callbacks import EarlyStopping, History
-# from keras.callbacks import EarlyStopping
-# from keras.callbacks import History
-from tensorflow.python.keras.layers import Flatten, Dense, Conv2D, MaxPooling2D, Activation, Dropout
-from tensorflow.python.keras.models import Sequential, Model
-from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import shuffle
-from keract import get_activations, display_activations, display_heatmaps
-
-
-import makeExcelTable
+from tensorflow.python.keras.callbacks import EarlyStopping, History
+from tensorflow.python.keras.layers import Flatten, Dense, Conv2D, MaxPooling2D, Activation
+from tensorflow.python.keras.models import Sequential, Model
+from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
 
 
 # from keras.models import Model
@@ -82,7 +74,7 @@ def getPositiveSimulated(base_dir='PositiveWithDESSky'):
 def getNegativeDES(base_dir='DES/DES_Processed'):
     """
     This gets the g, r, and i  10 000 negative images from the 
-    DES/DES_Processedfolder, as well as returning the 
+    DES/DES_Processed folder, as well as returning the
     negative array,
 
     Args:
@@ -137,10 +129,6 @@ def loadImage(positive_array, negative_array):
                                         arrays added together to make a single array.
     """
 
-    positive_data = []
-    negative_data = []
-    positive_label = []
-    negative_label = []
     image_train = []
     image_labels = []
 
@@ -284,15 +272,15 @@ def getUnknown(num, base_dir='KnownLenses'):
     Returns:
         data_unknown (numpy array):  This is the numpy array of the unknown dataset.
     """
-
+    path_unknown = '%s' % base_dir
     if num == 47:
-        path_unknown = '%s/Unknown_Processed_47' % base_dir
+        path_unknown = '%s/Unknown_Processed_47' % path_unknown
     elif num == 84:
-        path_unknown = '%s/Unknown_Processed_84' % base_dir
+        path_unknown = '%s/Unknown_Processed_84' % path_unknown
     elif num == 131:
-        path_unknown = '%s/Unknown_Processed_131' % base_dir
+        path_unknown = '%s/Unknown_Processed_131' % path_unknown
     elif num == 1000:
-        path_unknown = '%s/Unknown_Processed_1000' % base_dir
+        path_unknown = '%s/Unknown_Processed_1000' % path_unknown
 
     folders_unknown = []
     for root, dirs, files in os.walk(path_unknown):
@@ -606,13 +594,30 @@ def makeKerasCNNModel():
 
 
 def useKerasModel(positive_array, negative_array):
-    x_train, x_test, y_train, y_test, train_percent, test_percent, image_train_std, image_train_mean, \
-    image_train_shape, image_labels_shape, x_train_shape, x_test_shape, y_train_shape, y_test_shape = makeTrainTest(
-        positive_array, negative_array)
+    x_train, \
+        x_test, \
+        y_train, \
+        y_test, \
+        train_percent,\
+        test_percent,\
+        image_train_std,\
+        image_train_mean, \
+        image_train_shape,\
+        image_labels_shape,\
+        x_train_shape,\
+        x_test_shape,\
+        y_train_shape,\
+        y_test_shape = makeTrainTest(positive_array, negative_array)
 
     es = EarlyStopping(monitor='val_loss', verbose=1, patience=3)
     model = makeKerasCNNModel()
-    seq_model = model.fit(x_train, y_train, epochs=30, batch_size=200, validation_data=(x_test, y_test), callbacks=[es])
+    seq_model = model.fit(
+        x_train,
+        y_train,
+        epochs=30,
+        batch_size=200,
+        validation_data=(x_test, y_test),
+        callbacks=[es])
     description = str(model)
 
     # Accuracy Testing
@@ -661,9 +666,24 @@ def useKerasModel(positive_array, negative_array):
     model.save_weights('kerasModel.h5')
     print("USED KERAS MODEL")
 
-    return (model, y_pred, x_train, x_test, y_train, y_test, description, train_percent, test_percent, image_train_std,
-            image_train_mean, image_train_shape, image_labels_shape, x_train_shape, x_test_shape, y_train_shape,
-            y_test_shape, accuracy_score)
+    return (model,
+            y_pred,
+            x_train,
+            x_test,
+            y_train,
+            y_test,
+            description,
+            train_percent,
+            test_percent,
+            image_train_std,
+            image_train_mean,
+            image_train_shape,
+            image_labels_shape,
+            x_train_shape,
+            x_test_shape,
+            y_train_shape,
+            y_test_shape,
+            accuracy_score)
 
 
 def getKerasKFold(x_train, x_test, y_train, y_test):
@@ -693,63 +713,39 @@ def getKerasKFold(x_train, x_test, y_train, y_test):
     # _____________________________________________________________________________________________________________________________
 
 
-def display_activation(activations, col_size, row_size, layer):
+def display_activation(activations, row_size, col_size, layer):
     activation = activations[layer]
     activation_index = 0
+    # fig, ax = plt.subplots(row_size, col_size)
+    # for row in range(0, row_size):
+    #     for col in range(0, col_size):
+    #         ax[row][col].matshow(activation[0][activation_index, :, :])
+    #         activation_index += 1
+    plt.figure()
+    plt.title("Layer")
+    plt.matshow(activation[0][0, :, :])
+    plt.show()
+    # fig.save("layer.png")
 
-    fig, ax = plt.subplots(row_size, col_size, figsize=(row_size * 2.5, col_size * 1.5))
-    for row in range(0, row_size):
-        for col in range(0, col_size):
-            # ax[row][col].imshow(activation[0, :, activation_index], cmap='gray')
-            ax[row][col].imshow(activation[0, :, :, activation_index], cmap='gray')
 
-            # ax[row][col].imshow(activation, cmap='gray')
-            activation_index += 1
-
-
-def visualizeKeras(model, x_train, y_pred):
+def visualizeKeras(model):
     # https://www.kaggle.com/amarjeet007/visualize-cnn-with-keras
     # https://towardsdatascience.com/visualizing-intermediate-activation-in-convolutional-neural-networks-with-keras
     # -260b36d60d0
 
-    # topLayer= model.layers[0]
-    # plt.show(topLayer.get_weights())
-
-    # get postive test image
-    img_tensor = getPositiveSimulated1000()[0]  # image tensor of the first positive test image
-    img_tensor = np.expand_dims(img_tensor, axis=0)
-    img_tensor /= 255.
+    layer_outputs = [layer.output for layer in model.layers]
+    activation_model = Model(inputs=model.input,
+                             outputs=layer_outputs)
+    img_tensor = getPositiveSimulated1000()[0]
+    img_tensor = img_tensor.reshape(1, 3, 100, 100)
 
     # plt.figure()
-    plt.imshow(img_tensor[0])
-    plt.show()
+    # plt.title("Original image")
+    # plt.matshow(img_tensor[0][0, :, :])
+    # plt.show()
 
-    print("Image Tensor Shape: " + str(img_tensor.shape))
-
-    layer_outputs = [layer.output for layer in model.layers[:12]]
-    activation_model = Model(inputs=model.input, outputs=layer_outputs)
-    # activations = activation_model.predict(img_tensor.reshape(1, 3, 100, 100))
     activations = activation_model.predict(img_tensor)
-    print("Activations: " + str(activations))
-    first_layer_activation = activations[0]
-
-    print("First Layer Shape: " + str(first_layer_activation.shape))
-    # reshape_first_layer = first_layer_activation
-    # print(" Reshaped First Layer Activation: "+str(reshape_first_layer))
-    # print("Shape of Reshaped First Layer Activation: "+str(reshape_first_layer.shape))
-    #
-    # # plt.imshow(reshape_first_layer)
-    # # plt.show()
-    #
-
-    plt.imshow(first_layer_activation[0, :, 2])
-    # plt.imshow(first_layer_activation)
-    plt.show()
-
-    # activations = y_pred  # 20000 images and 100X100 dimensions and 3 channels
-    # plt.imshow(x_train[10][:, :, 0])
-    # # display_activation(y_pred, 5, 5, 1)
-    # display_activation(activations, 5, 5, 1)
+    display_activation(activations, 1, 3, 0)
 
 
 # _________________________________________________________________________________________________________________________
@@ -777,47 +773,10 @@ model, \
     y_test_shape, \
     accuracy_score = useKerasModel(positive_array, negative_array)
 print("DONE 1")
-# visualizeKeras(model, x_train, y_pred)
 
-keract_input = getPositiveSimulated1000()[0]
-print("Keract Input Type: "+str(type(keract_input)))
-print("Keract Input Shape: "+str(keract_input.shape))
-reshaped_keract_input = keract_input.reshape(100, 100, 3)
-reshaped_keract_input = np.expand_dims(reshaped_keract_input, axis=0)
-print("Reshaped Keact Input: "+str(reshaped_keract_input))
-plt.figure()
-plt.imshow(reshaped_keract_input)
-plt.show() # Original image
+visualizeKeras(model)
 
-activations = get_activations(model, reshaped_keract_input)
-display_activations(activations, cmap='gray')
-display_heatmaps(activations, reshaped_keract_input)
-
-# layer_outputs = [layer.output for layer in model.layers]
-# activation_model = Model(inputs=model.input,
-#                          outputs=layer_outputs)
-# img_tensor = getPositiveSimulated1000()[0]
-# print(img_tensor.shape)
-# # img_tensor = np.expand_dims(img_tensor, axis=0)
-# # img_tensor /= 255.
-# img_tensor = img_tensor.reshape(1, 3, 100, 100)
-# print(img_tensor.shape)
-#
-# plt.figure()
-# plt.imshow(img_tensor[0])
-# plt.show()
-# print(img_tensor.shape)
-#
-# activations = activation_model.predict(img_tensor)
-# first_layer_activation = activations[0]
-# print(first_layer_activation.shape)
-#
-# plt.figure()
-# plt.imshow(first_layer_activation[0, 0, :, :], cmap='gray')
-# plt.show()
-
-
-#______________________________________________________________________________________________________________________
+# ______________________________________________________________________________________________________________________
 # n_splits, random_state, k_fold_accuracy, k_fold_std, neural_network = getKerasKFold(x_train, x_test, yTrain, y_test)
 #
 # # calculating the amount of things accurately identified
