@@ -65,8 +65,8 @@ def getPositiveSimulated(base_dir='PositiveWithDESSky'):
         data_pos[counter] = [g, r, i]
         counter += 1
         # just to run, and use less things
-        # if counter >= 1000:
-        #     break
+        if counter >= 1000:
+            break
     print("GOT POSITIVE")
     return data_pos
 
@@ -106,8 +106,8 @@ def getNegativeDES(base_dir='DES/DES_Processed'):
 
         data_neg[var] = [g, r, i]
         # just to run, and use less things
-        # if var >= 1000:
-        #     break
+        if var >= 1000:
+            break
     print("GOT NEGATIVE")
     return data_neg
 

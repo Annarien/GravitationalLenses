@@ -31,7 +31,7 @@ table_des = table_des[table_des['MAG_AUTO_G'] < 24]
 len_tab_des = len(table_des)
 
 training_size = 10000
-testing_size = 1000
+testing_size = 2000
 random_indices = []
 
 training = getRandomIndices(training_size, random_indices, len_tab_des)
