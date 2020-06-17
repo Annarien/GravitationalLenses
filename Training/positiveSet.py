@@ -7,11 +7,8 @@ These positive images which are now referred to as PositiveWithDESSky images.
 These images are normalised and also used to create a RGB composite image. 
 """
 import random
-import sys
-
 import astropy.table as atpy
 import numpy as np
-
 from positiveSetUtils import cutCosmosTable, makeModelImage, addSky, normalise, getNegativeNumbers
 #_______________________________________________________________________________________________________________
 

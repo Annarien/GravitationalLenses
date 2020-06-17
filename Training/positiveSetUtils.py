@@ -13,11 +13,11 @@ import glob
 import os
 import re
 
-import numpy as np
 import matplotlib
+import numpy as np
+
 matplotlib.use('Agg')
 
-import pylab as plt
 from astLib import *
 from astropy.io import fits
 
