@@ -6,11 +6,14 @@ to create a more realistic positively simulated image, whereas without it, the i
 These positive images which are now referred to as PositiveWithDESSky images. 
 These images are normalised and also used to create a RGB composite image. 
 """
+
 import random
 import astropy.table as atpy
 import numpy as np
 from positiveSetUtils import cutCosmosTable, makeModelImage, addSky, normalise, getNegativeNumbers
-#_______________________________________________________________________________________________________________
+
+# _______________________________________________________________________________________________________________
+# MAIN
 
 # Get the amount of data from the negative training and testing sets and use the same DESSky that was made by
 # negativeDES.py, and add it to the positive simulated lenses.

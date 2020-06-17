@@ -12,15 +12,12 @@ These images are normalised and also used to create a RGB composite image.
 import glob
 import os
 import re
-
 import matplotlib
 import numpy as np
-
 matplotlib.use('Agg')
 
 from astLib import *
 from astropy.io import fits
-
 from __init__ import *
 
 
@@ -91,9 +88,11 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseles
                             with the positive simulated data.
         survey(str):        Name of survey (as defined by LensPop), and is set to default of DESc.
                             "DESc" corresponds to optimally stacked DES images.
-    Returns:
-       Saved images and psf images in each band g, r, and i for the source number as well as saving these fits images.
-
+    Saves:
+       img(fits image):     The images of each band g, r, and i for the source number are created and saved as fits
+                            images.
+       psf(fits image):     The psf images of each band g, r, and i for the source number are created and saved as fits
+                            images.
     """
 
     S = FastLensSim(survey, fractionofseeing=1)
@@ -142,10 +141,10 @@ def addSky(num, positive_noiseless, sky_path, positive_path):
 
     Args:
         num(integer):   This is the source number of the positively simulated data.
-    Returns:
-        Save images under 'PositiveWithDESSky/num/', with the _posSky_band.fits path names.
-        This is to ensure that the simulated images have background noise, so that the positive
-        images are realistic.
+    Saves:
+        with_sky(fits image):   This is the clipped sky added to the positively simulated images added together, so that
+                                the simulated images have background noise, so that the positive images are realistic.
+                                This is saved under the directory: positive_path/num/num_band_posSky.fits
     """
 
     if not os.path.exists('%s/%i' % (positive_path, num)):
@@ -167,8 +166,8 @@ def normalise(num, positive_path):
 
     Args:
         num(integer):   This is the source number of the positively simulated data.
-    Returns:
-        Saves normalised images with the wcs as headers.
+    Saves:
+        The normalised images with the wcs as headers.
         These normalised images are saved under 'PositiveWithDESSky/num/'.
         The rgb composite images are created and saved under 'PositiveWithDESSky/num/'.
     """
@@ -200,6 +199,16 @@ def normalise(num, positive_path):
 
 
 def getNegativeNumbers(base_dir):
+    """
+    This is used to get the numbers of the sources, as seen in the directories of the negative training and testing set.
+    This is creates an list of these numbers.
+
+    Args:
+        base_dir(string):   This is the root path name in which the directories in question are found.
+    Returns:
+        Numbers(list):      This is the list of the indexes of the directories, in question.
+    """
+
     folders = {}
     numbers = []
 

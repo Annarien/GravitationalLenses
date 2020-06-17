@@ -39,7 +39,7 @@ def clipWCS(tile_name, num, ra, dec, path_processed, des_tile='', base_dir='DES/
         des_tile(string):           This is the DESJ2000 name given for these sources in the DES2017 paper.
         base_dir(string):          This is the root directory of the DES Original images, for each source 
                                    which are clipped in this clipWCS function.
-    Returns:
+    Saves:
         wcs_clipped (numpy array):   A numpy array of the WCSclipped, with its wcs coordinates.
                                     The g, r, and i wcs_clipped images are saved under '
                                     KnownLense/table/num_source/', with the revelant astronomical

@@ -35,9 +35,9 @@ def loadDES(source, base_dir='DES/DES_Original'):
     Args:
         source(string):     This is the tilename given in the DR1 database, and this is name of each source.
         base_dir(string):   This is the base directory in which the folders are made.
-    Returns:
-        Downloads the images from DES for g, r, and i .fits files of each source.
-        These images are downloaded to 'DES/DES_Original'.
+    Saves:
+        The 10 000 * 10 000 pixel, DES Original Images for the g, r, and i fits images of each source.
+
     """
     if not os.path.exists('%s' % base_dir):
         os.mkdir('%s' % base_dir)
@@ -117,10 +117,9 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, dessky_file, base_dir
         image(float):       The magnitude of the i band of the orignal images from DES.
         base_dir(string):   The root directory of the orignal DES images, which are
                             used to be clipped into the sky images.
-    Returns:
-        Saves these randomly clipped 100*100 g, r, and i images to the folder called
-        'DESSky/', and saves the revelant headers, for later use or to check these
-        astronomical parameters.
+    Saves:
+        clipped_sky[band](dictionary):   This is 100 * 100 pixels of the g, r, and i images of the DES images at the random
+                                         coordinates. This is saved under the folder of 'DESSky/'.
     """
 
     paths = {'gBandPath': glob.glob('%s/%s/%s*_g.fits.fz' % (base_dir, source, source))[0],
@@ -179,9 +178,8 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_new, base_dir='DES/DES_
         base_new(string):   The root directory in which the wcs_clipped images are saved,
                             this is defaulted to 'DES/DES_Processed'.
     Returns:
-        wcs_clipped (numpy array):   A numpy array of the WCSclipped, with its wcs coordinates.
-        The g, r, and i wcs_clipped images are saved under 'DES/DES_Processed', with the revelant
-        astronomical parameters in the header of these images.
+        wcs_clipped (numpy array):   A numpy array of the WCSclipped, with its wcs coordinates, and is saved under
+                                     'DES/DES_Processed'.
     """
     # Getting the RA and Dec of each source
     size_wcs = [0.0073125, 0.0073125]  # 100*100 pixels in degrees
@@ -222,11 +220,11 @@ def normaliseRGB(num, source, base_dir):
         source(string):     This is the tilename of the original images from DES.
         base_dir(string):   The root directory in which the normalised images and the rgb compostie images are saved,
                             this is defaulted to 'DES/DES_Processed'.
-    Returns:
-        Saves normalised images with the wcs as headers.
-        These normalised images are saved under 'DES/DES_Processed/num_source/'.
-        The rgb composite images are created and saved under 'DES/DES_Processed/num_source/'.
+    Saves:
+        norm_image(numpy array): This is the wcs clipped images normalised, and saved under 'DES/DES_Processed/num/source/
+        rgb(png):                This is a rgb composite image created and saved under 'DES/DES_Processed/num_source/'.
     """
+
     paths = {'iBandPath': glob.glob('%s/%s_%s/i_WCSClipped.fits' % (base_dir, num, source))[0],
              'rBandPath': glob.glob('%s/%s_%s/r_WCSClipped.fits' % (base_dir, num, source))[0],
              'gBandPath': glob.glob('%s/%s_%s/g_WCSClipped.fits' % (base_dir, num, source))[0]}
