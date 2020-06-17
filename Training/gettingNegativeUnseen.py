@@ -20,6 +20,9 @@ import pylab as plt
 from astropy.io import fits
 from astLib import *
 from bs4 import BeautifulSoup
+from negativeDESUtils import getRandomIndices
+from positiveSetUtils import getNegativeNumbers
+
 
 def loadDES(source, base_dir = 'DES/DES_Original'):
     """
@@ -66,6 +69,7 @@ def loadDES(source, base_dir = 'DES/DES_Original'):
                         print()
         print()
 
+
 def randomXY(source, base_dir = 'DES/DES_Original'):
     """
     This gets random x, y coordinates in the original g band of DES images. 
@@ -95,6 +99,7 @@ def randomXY(source, base_dir = 'DES/DES_Original'):
         print("x: " + str(xRandom))
         print("y: " + str(yRandom))
         return (xRandom, yRandom)
+
 
 def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_Original'):
     """
@@ -152,8 +157,9 @@ def randomSkyClips(num, source, ra, dec, gmag, rmag, imag, base_dir = 'DES/DES_O
         header['I_MAG'] = imag
         header['R_MAG'] = rmag
         fits.writeto('DESSky/%i_%s_sky.fits' % (num, band), clippedSky[band], header = header, overwrite = True)
-        
-def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original', base_new = 'KnownLenses/Unknown_Processed'):
+
+
+def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original', base_new = 'UnseenData/Negative/'):
     """
     Clips the g, r, i original .fits images for each source from DES to have 100*100 pixel size or 0.0073125*0.007315 degrees.
     The WCS coordinates are used, to maintain the necessary information that may be needed in future.
@@ -184,11 +190,12 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original
     paths['rBandPath'] = glob.glob('%s/%s/%s*_r.fits.fz' % (base_dir, source, source))[0]
     paths['iBandPath'] = glob.glob('%s/%s/%s*_i.fits.fz' % (base_dir, source, source))[0]
 
-    if not os.path.exists('%s' % (base_new)):
-        os.mkdir('%s' % (base_new))
+    if not os.path.exists('%s' % base_new):
+        os.mkdir('%s' % base_new)
 
-    newPath = {}
     newPath = ('%s/%s_%s' % (base_new, num, source))
+    print('NewPath: '+ str(newPath))
+
     if not os.path.exists(newPath):
         os.mkdir('%s/%s_%s' % (base_new, num, source))
     
@@ -207,7 +214,8 @@ def clipWCS(source, num, gmag, rmag, imag, ra, dec, base_dir = 'DES/DES_Original
 
     return(WCSClipped)
 
-def normaliseRGB(num, source, base_dir = 'KnownLenses/Unknown_Processed'):
+
+def normaliseRGB(num, source, base_dir = 'UnseenData/Negative/'):
     """
     This is to normalise the g, r, and i WCSClipped images and to make a rgb composite image of the three band together. 
     
@@ -222,9 +230,9 @@ def normaliseRGB(num, source, base_dir = 'KnownLenses/Unknown_Processed'):
         The rgb composite images are created and saved under 'DES/DES_Processed/num_source/'.
     """
     paths = {}
-    paths['iBandPath'] = glob.glob('%s/%s_%s/i_WCSClipped.fits' % (base_dir, num,source))[0]
-    paths['rBandPath'] = glob.glob('%s/%s_%s/r_WCSClipped.fits' % (base_dir, num,source))[0]   
-    paths['gBandPath'] = glob.glob('%s/%s_%s/g_WCSClipped.fits' % (base_dir, num,source))[0]   
+    paths['iBandPath'] = glob.glob('%s/%s_%s/i_WCSClipped.fits' % (base_dir, num, source))[0]
+    paths['rBandPath'] = glob.glob('%s/%s_%s/r_WCSClipped.fits' % (base_dir, num, source))[0]
+    paths['gBandPath'] = glob.glob('%s/%s_%s/g_WCSClipped.fits' % (base_dir, num, source))[0]
 
     rgbDict = {}
     wcs = None
@@ -256,35 +264,28 @@ Its is then clipped using the clipImages function.
 And we write these images to a file in .fits format using writeClippedImagesToFile function.
 """ 
 
-# knownTable = ''
-# numSources = 0
-# while knownTable != 'Jacobs' and knownTable != 'DES2017':
-#     table = raw_input("Which table did you use to get the known lenses: Jacobs or DES2017?")
-#     print ("You have chosen the table: " + str (table))
+used_negative_train = getNegativeNumbers('Training/Negative')
+used_negative_test = getNegativeNumbers('Testing/Negative')
 
-#     if table == 'Jacobs': 
-#         numSources = 84
-#         break
-#     elif table == 'DES2017':
-#         numSources = 47
-#         break
+used_list = used_negative_train +used_negative_test
+print('Length of Used Negative List: '+str(len(used_list)))
 
+targetNegativeKnownSize = 2000
 
 tableDES = atpy.Table().read("DES/DESGalaxies_18_I_22.fits")
 
 # ensuring there is no none numbers in the gmag, rmag, and imag in the DES table. 
-# ensuring that there is no Gmag with values of 99.
-numSources = int(sys.argv[1])
-
 for key in ['MAG_AUTO_G','MAG_AUTO_R','MAG_AUTO_I']:
     tableDES = tableDES[np.isnan(tableDES[key]) == False] 
 
 tableDES = tableDES[tableDES['MAG_AUTO_G']< 24]
 lenTabDES = len(tableDES)
 
-numStart = 99000 - numSources
+negativeKnown = getRandomIndices(targetNegativeKnownSize, used_list, lenTabDES)
 
-for num in range(numStart, 99000):
+
+for i in range(0, len(negativeKnown)):
+    num = negativeKnown[i]
     
     tileName = tableDES['TILENAME'][num]
     print(type(tileName))
@@ -298,6 +299,6 @@ for num in range(numStart, 99000):
     print('Rmag: ' + str(rmag))
 
     loadDES(tileName) 
-    randomSkyClips(num, tileName, ra, dec, gmag, rmag, imag)  
+    # randomSkyClips(num, tileName, ra, dec, gmag, rmag, imag)
     clipWCS(tileName, num, gmag, rmag, imag,ra, dec) # takes DES images and clips it with RA, and DEC
     normaliseRGB(num, tileName)

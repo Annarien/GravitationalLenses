@@ -30,7 +30,7 @@ for key in ['MAG_AUTO_G', 'MAG_AUTO_R', 'MAG_AUTO_I']:
 table_des = table_des[table_des['MAG_AUTO_G'] < 24]
 len_tab_des = len(table_des)
 
-training_size = 10000
+training_size = 12659
 testing_size = 2000
 random_indices = []
 
