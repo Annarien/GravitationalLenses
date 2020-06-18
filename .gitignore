@@ -23,6 +23,7 @@ Results/
 *.fits
 *.fits.fz
 *.docx
+*.h5
 model_baseline.h5
 DESa_lsst_lists.pkl
 DESb_lsst_lists.pkl
