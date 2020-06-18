@@ -10,6 +10,7 @@ from astropy.utils.data import get_pkg_data_filename
 from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import shuffle
+import makeExcelTable
 from tensorflow.python.keras.callbacks import EarlyStopping, History
 from tensorflow.python.keras.layers import Flatten, Dense, Conv2D, MaxPooling2D, Activation, Dropout
 from tensorflow.python.keras.models import Sequential, Model
@@ -661,7 +662,7 @@ def useKerasModel(positive_array, negative_array):
         y_test_shape = makeTrainTest(positive_array, negative_array)
 
     es = EarlyStopping(monitor='val_loss', verbose=1, patience=3)
-    model = makeKerasCNNModel()
+    model = makeKerasModel()
     seq_model = model.fit(
         x_train,
         y_train,
@@ -741,7 +742,7 @@ def getKerasKFold(x_train, x_test, y_train, y_test):
     # Stratified K fold Cross Validation
     # https://machinelearningmastery.com/use-keras-deep-learning-models-scikit-learn-python/
 
-    neural_network = KerasClassifier(build_fn=makeKerasCNNModel,
+    neural_network = KerasClassifier(build_fn=makeKerasModel,
                                      epochs=30,
                                      batch_size=200,
                                      verbose=0)
@@ -816,12 +817,12 @@ model, \
     y_train_shape, \
     y_test_shape, \
     accuracy_score = useKerasModel(positive_array, negative_array)
-print("DONE 1")
+print("DONE")
 
-visualizeKeras(model)
+# visualizeKeras(model)
 
 # ______________________________________________________________________________________________________________________
-# n_splits, random_state, k_fold_accuracy, k_fold_std, neural_network = getKerasKFold(x_train, x_test, yTrain, y_test)
+n_splits, random_state, k_fold_accuracy, k_fold_std, neural_network = getKerasKFold(x_train, x_test, yTrain, y_test)
 #
 # # calculating the amount of things accurately identified
 # # looking at Known131
@@ -829,10 +830,10 @@ visualizeKeras(model)
 # # 0 = negative lens
 #
 # # #______________________________________________________________________________________________________________________
-# known_des_2017, accuracy_score_47, k_fold_accuracy_47, k_fold_std_47 = testDES2017(model, neural_network, n_splits)
-# known_jacobs, accuracy_score_84, k_fold_accuracy_84, k_fold_std_84 = testJacobs(model, neural_network, n_splits)
-# accuracy_score_131, k_fold_accuracy_131, k_fold_std_131 = testDES2017AndJacobs(known_des_2017, known_jacobs, model,
-#                                                                                neural_network, n_splits)
+known_des_2017, accuracy_score_47, k_fold_accuracy_47, k_fold_std_47 = testDES2017(model, neural_network, n_splits)
+known_jacobs, accuracy_score_84, k_fold_accuracy_84, k_fold_std_84 = testJacobs(model, neural_network, n_splits)
+accuracy_score_131, k_fold_accuracy_131, k_fold_std_131 = testDES2017AndJacobs(known_des_2017, known_jacobs, model,
+                                                                               neural_network, n_splits)
 #
 # # write to ml_Lenses_results.xlsx
 # # makeExcelTable.makeInitialTable()

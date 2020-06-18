@@ -16,9 +16,8 @@ from sklearn import model_selection
 from sklearn.utils import shuffle
 
 
-
 # FUNCTIONS
-def getPositiveSimulated(base_dir='PositiveWithDESSky'):
+def getPositiveSimulatedTrain(base_dir='Training/Positive'):
     """
     This gets the g, r, and i of the 10 000 positively simulated images from the 
     PositiveWithDESSky, as well as returning the positively simulate array.
@@ -63,11 +62,11 @@ def getPositiveSimulated(base_dir='PositiveWithDESSky'):
         # just to run, and use less things
         # if counter > 1500:
         #     break
-    print("DONE 1")
+    print("GOT POSITIVE TRAINING DATA")
     return data_pos
 
 
-def getNegativeDES(base_dir='DES/DES_Processed'):
+def getNegativeDESTrain(base_dir='Training/Negative'):
     """
     This gets the g, r, and i  10 000 negative images from the 
     DES/DES_Processed folder, as well as returning the 
@@ -104,6 +103,86 @@ def getNegativeDES(base_dir='DES/DES_Processed'):
         #     break
     print("DONE 2")
     return data_neg
+
+
+def getPositiveSimulatedTest(base_dir='Testing/Positive'):
+    folders = {}
+    for root, dirs, files in os.walk(base_dir):
+        for folder in dirs:
+            key = folder
+            value = os.path.join(root, folder)
+            folders[key] = value
+
+    # number of Positive DataPoints
+    num_data_target = len(folders)
+
+    positive_test = np.zeros([num_data_target, 3, 100, 100])
+
+    # key is name of folder number
+    # value is the number of the folder to be added to the file name
+
+    counter = 0
+    for key, value in folders.items():
+        g_name = get_pkg_data_filename(value + '/' + str(key) + '_g_norm.fits')
+        r_name = get_pkg_data_filename(value + '/' + str(key) + '_r_norm.fits')
+        i_name = get_pkg_data_filename(value + '/' + str(key) + '_i_norm.fits')
+
+        # g_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_g.fits')
+        # r_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_r.fits')
+        # i_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_i.fits')
+
+        g = fits.open(g_name)[0].data[0:100, 0:100]
+        r = fits.open(r_name)[0].data[0:100, 0:100]
+        i = fits.open(i_name)[0].data[0:100, 0:100]
+
+        positive_test[counter] = [g, r, i]
+        counter += 1
+        # just to run, and use less things
+        # if counter > 1500:
+        #     break
+    print("GOT POSITIVE TESTING DATA")
+    return positive_test
+
+
+def getNegativeDESTest(base_dir='Testing/Negative'):
+    """
+    This gets the g, r, and i  10 000 negative images from the
+    DES/DES_Processed folder, as well as returning the
+    negative array,
+
+    Args:
+        base_dir (string):      This the root file path of the negative images.
+    Returns:
+        negative_test (numpy array):  This is the array of negative images.
+    """
+    folders_neg = []
+    for root, dirs, files in os.walk(base_dir):
+        for folder in dirs:
+            folders_neg.append(os.path.join(root, folder))
+    num_data_target = len(folders_neg)
+    negative_test = np.zeros([num_data_target, 3, 100, 100])
+
+    for var in range(len(folders_neg)):
+        # if var > 1500:
+        # break
+        # g_name = get_pkg_data_filename(folders_neg[var]+'/g_WCSClipped.fits')
+        # r_name = get_pkg_data_filename(folders_neg[var]+'/r_WCSClipped.fits')
+        # i_name = get_pkg_data_filename(folders_neg[var]+'/i_WCSClipped.fits')
+
+        g_name = get_pkg_data_filename(folders_neg[var] + '/g_norm.fits')
+        r_name = get_pkg_data_filename(folders_neg[var] + '/r_norm.fits')
+        i_name = get_pkg_data_filename(folders_neg[var] + '/i_norm.fits')
+
+        g = fits.open(g_name)[0].data[0:100, 0:100]
+        r = fits.open(r_name)[0].data[0:100, 0:100]
+        i = fits.open(i_name)[0].data[0:100, 0:100]
+
+        negative_test[var] = [g, r, i]
+        # just to run, and use less things
+        # if var >= 1000:
+        #     break
+    print("GOT NEGATIVE TESTING DATA")
+    return negative_test
 
 
 def loadImage(positive_array, negative_array):
@@ -143,6 +222,60 @@ def loadImage(positive_array, negative_array):
         image_labels.append(label_neg)
     print("DONE 3")
     return np.array(image_train), np.array(image_labels)
+
+
+def getUnseenNegative(num, base_dir='UnseenData'):
+    """
+    This gets the unseen g, r, and i unknown/negative images, according to the number specified.
+    This is so that the correct number of unknown images, is retrieved, according to the
+    unseen known lenses.
+
+    Args:
+        num (integer):              This is the number specified, which equates to how many unseen known
+                                    gravitational lenses.
+                                    This indicates how many unseen negative images is to be retrieved.
+        base_dir (string):          This is the root directory file path of where the unknown lenses are situated in.
+    Returns:
+        data_unknown (numpy array):  This is the numpy array of the unknown dataset.
+    """
+    path_unknown = '%s' % base_dir
+    if num == 47:
+        path_unknown = '%s/Negative47' % path_unknown
+    elif num == 84:
+        path_unknown = '%s/Negative84' % path_unknown
+    elif num == 131:
+        path_unknown = '%s/Negative131' % path_unknown
+
+    folders_unknown = []
+    for root, dirs, files in os.walk(path_unknown):
+        for folder in dirs:
+            folders_unknown.append(os.path.join(root, folder))
+
+    num_data_target = len(folders_unknown)
+    data_unknown = np.zeros([num_data_target, 3, 100, 100])
+
+    for var in range(len(folders_unknown)):
+        # gName = get_pkg_data_filename(folders_unknown[var]+'/g_WCSClipped.fits')
+        # rName = get_pkg_data_filename(folders_unknown[var]+'/r_WCSClipped.fits')
+        # iName = get_pkg_data_filename(folders_unknown[var]+'/i_WCSClipped.fits')
+
+        gName = get_pkg_data_filename(folders_unknown[var] + '/g_norm.fits')
+        rName = get_pkg_data_filename(folders_unknown[var] + '/r_norm.fits')
+        iName = get_pkg_data_filename(folders_unknown[var] + '/i_norm.fits')
+
+        g = fits.open(gName)[0].data[0:100, 0:100]
+        r = fits.open(rName)[0].data[0:100, 0:100]
+        i = fits.open(iName)[0].data[0:100, 0:100]
+
+        data_unknown[var] = [g, r, i]
+    return data_unknown
+
+
+def getTestSet():
+    positive_test = getPositiveSimulatedTest()
+    negative_test = getNegativeDESTest()
+    images_test, labels_test = loadImage(positive_test, negative_test)
+    return images_test, labels_test
 
 
 def getDES2017(base_dir='KnownLenses/DES2017/'):
@@ -512,7 +645,7 @@ def makeTrainTest(positive_array, negative_array):
 # _____________________________________________________________________________________________________________________________
 # MAIN
 
-positive_array = getPositiveSimulated()
+positive_array = getPositiveSimulatedTrain()
 negative_array = getNegativeDES()
 
 x_train, x_test, y_train, yTest, trainPercent, test_percent, image_train_std, image_train_mean, image_train_shape, \
