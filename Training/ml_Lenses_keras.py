@@ -65,8 +65,8 @@ def getPositiveSimulatedTrain(base_dir='Training/Positive'):
         data_pos[counter] = [g, r, i]
         counter += 1
         # just to run, and use less things
-        if counter >= 1000:
-            break
+        # if counter >= 1000:
+        #     break
     print("GOT POSITIVE TRAINING DATA")
     return data_pos
 
@@ -90,8 +90,7 @@ def getNegativeDESTrain(base_dir='Training/Negative'):
     data_neg = np.zeros([num_data_target, 3, 100, 100])
 
     for var in range(len(folders_neg)):
-        # if var > 1500:
-        # break
+
         # g_name = get_pkg_data_filename(folders_neg[var]+'/g_WCSClipped.fits')
         # r_name = get_pkg_data_filename(folders_neg[var]+'/r_WCSClipped.fits')
         # i_name = get_pkg_data_filename(folders_neg[var]+'/i_WCSClipped.fits')
@@ -106,8 +105,8 @@ def getNegativeDESTrain(base_dir='Training/Negative'):
 
         data_neg[var] = [g, r, i]
         # just to run, and use less things
-        if var >= 1000:
-            break
+        # if var >= 1000:
+        #     break
     print("GOT NEGATIVE TRAINING DATA")
     return data_neg
 
@@ -147,7 +146,6 @@ def getPositiveSimulatedTest(base_dir='Testing/Positive'):
         # just to run, and use less things
         # if counter > 1500:
         #     break
-
     print("GOT POSITIVE TESTING DATA")
     return positive_test
 
@@ -187,8 +185,8 @@ def getNegativeDESTest(base_dir='Testing/Negative'):
 
         negative_test[var] = [g, r, i]
         # just to run, and use less things
-        if var >= 1000:
-            break
+        # if var >= 1000:
+        #     break
     print("GOT NEGATIVE TESTING DATA")
     return negative_test
 
@@ -226,7 +224,6 @@ def loadImage(positive_array, negative_array):
         image_labels.append(label_neg)
 
     print("LOADED POSITIVE AND NEGATIVE")
-
     return np.array(image_train), np.array(image_labels)
 
 
@@ -315,7 +312,6 @@ def getUnseenDES2017(base_dir='UnseenData/Known47'):
         i = fits.open(i_name)[0].data[0:100, 0:100]
 
         data_known_des[var] = [g, r, i]
-
     return data_known_des
 
 
@@ -386,8 +382,6 @@ def testUnseenDES2017(model, neural_network, n_splits):
     # print('y_image_labels Shape: '+str(y_image_labels.shape()))
 
     # Get Accuracy Score tests DES2017 on the mlpclassifier:
-    y_pred = model.predict(image_test)
-    # print('y_pred Shape: '+str(y_pred.shape()))
     _, acc = model.evaluate(image_test, y_image_labels, verbose=0)
     accuracy_score_47 = acc * 100
     print("Accuracy Score_47: " + str(accuracy_score_47))
@@ -433,7 +427,6 @@ def testUnseenJacobs(model, neural_network, n_splits):
     y_image_labels = encoder.fit_transform(labels_jacobs_test)
 
     # Get Accuracy Score tests Jacobs on the mlp classifier:
-    y_pred = model.predict(image_jacobs_test)
     _, acc = model.evaluate(image_jacobs_test, y_image_labels, verbose=0)
     accuracy_score_84 = acc * 100
     print("Accuracy Score_84: " + str(accuracy_score_84))
@@ -445,7 +438,6 @@ def testUnseenJacobs(model, neural_network, n_splits):
     k_fold_std_84 = scores.std()
     print("kFold84 Scores Std: " + str(k_fold_std_84))
     k_fold_accuracy_84 = scores_mean
-
     return known_jacobs_array, accuracy_score_84, k_fold_accuracy_84, k_fold_std_84
 
 
@@ -480,7 +472,6 @@ def testUnseenDES2017AndJacobs(known_des2017_array, known_jacobs_array, model, n
     y_image_labels = encoder.fit_transform(labels_known_test)
 
     # Get Accuracy Score tests DES2017 on the mlp classifier:
-    y_pred = model.predict(image_known_test)
     _, acc = model.evaluate(image_known_test, y_image_labels, verbose=0)
     accuracy_score_131 = acc * 100
     print("Accuracy Score _131: " + str(accuracy_score_131))
@@ -492,7 +483,6 @@ def testUnseenDES2017AndJacobs(known_des2017_array, known_jacobs_array, model, n
     k_fold_std_131 = scores.std()
     print("kFold131 Scores Std: " + str(k_fold_std_131))
     k_fold_accuracy_131 = scores_mean
-
     return accuracy_score_131, k_fold_accuracy_131, k_fold_std_131
 
 
@@ -566,7 +556,6 @@ def makeTrainTest(positive_array, negative_array):
 
     train_percent = (1 - test_percent)
     print("MADE TRAIN TEST SET")
-
     return (x_train, x_test, y_train, y_test, train_percent, test_percent, image_train_std, image_train_mean,
             image_train_shape, image_labels_shape, x_train_shape, x_test_shape, y_train_shape, y_test_shape)
 
@@ -617,7 +606,6 @@ def makeModelFromTutorial():
     classifier.compile(optimizer='rmsprop',
                        loss='categorical_crossentropy',
                        metrics=['accuracy'])
-
     return classifier
 
 
