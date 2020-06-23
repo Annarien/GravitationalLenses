@@ -12,6 +12,11 @@ from tensorflow.python.keras.callbacks import EarlyStopping, History
 from tensorflow.python.keras.layers import Flatten, Dense, Conv2D, MaxPooling2D, Activation, Dropout
 from tensorflow.python.keras.models import Sequential, Model, Input
 from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
+# from tensorflow.python.keras import backend as K
+
+
+# from tensorflow.python.keras import backend as K
+# K.common.image_dim_ordering()=='th'
 
 
 # from tensorflow.python.keras import backend as K
@@ -579,6 +584,7 @@ def makeTrainTest(positive_train, negative_train, positive_test, negative_test):
     return (x_train, x_test, y_train, y_test, train_percent, test_percent, image_train_std, image_train_mean,
             image_train_shape, labels_train_shape, x_train_shape, x_test_shape, y_train_shape, y_test_shape)
 
+
 def makeKerasModel():
     # mlp classifier without cnn
     model = Sequential()
@@ -629,15 +635,17 @@ def makeModelFromTutorial():
     return classifier
 
 
-def makeKerasCNNModel():
+def makeKerasCNNModel(input_shape):
     # https://medium.com/@randerson112358/classify-images-using-convolutional-neural-networks-python-a89cecc8c679
     # https: // keras.io / guides / sequential_model /
 
     model = Sequential()
-    model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(3, 100, 100)))
+    # model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(3, 100, 100), padding = 'same'))
+    model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding ='same'))
+
     model.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
     # model.add(Dropout(0.5))
-    # model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(Conv2D(32, (3, 3), activation='relu'))
     # model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dense(100, activation='relu'))
     model.add(Dense(100, activation='relu'))
@@ -668,7 +676,7 @@ def makeKerasCNNModel():
     return model
 
 
-def useKerasModel(x_train, x_test, y_train, y_test):
+def useKerasModel(x_train, x_test, y_train, y_test, input_shape):
     # Changing shape of x_train and y_train from num, channels, height, width (num, 3, 100, 100) to num, widht,
     # # height, channels (num, 100, 100, 3)
     # x_train = x_train.reshape(x_train.shape[0], x_train.shape[2], x_train.shape[3], x_train.shape[1])
@@ -685,8 +693,8 @@ def useKerasModel(x_train, x_test, y_train, y_test):
     # print("y_test shape Reshaped: " + str(y_test_shape))
 
     es = EarlyStopping(monitor='val_loss', verbose=1, patience=3)
-    model = makeKerasCNNModel()
-    # model = makeKerasModel()
+    model = makeKerasCNNModel(input_shape)
+    # model = makeKerasModel(input_shape)
     seq_model = model.fit(
         x_train,
         y_train,

@@ -3,6 +3,7 @@ gravitational lenses. """
 # IMPORTS
 from cnnUtils import getPositiveSimulatedTrain, getNegativeDESTrain, getPositiveSimulatedTest, getNegativeDESTest, \
     makeTrainTest, useKerasModel, plotModel
+from tensorflow.python.keras import backend as K
 
 print("PAST IMPORTS")
 
@@ -33,8 +34,23 @@ x_train, \
  y_train_shape, \
  y_test_shape = makeTrainTest(positive_train, negative_train, positive_test, negative_test)
 
+# Deal with format issues between different backends.  Some put the # of channels in the image before the width and
+# height of image.
+img_rows = 100
+img_cols = 100
+
+if K.image_data_format() == 'channels_first':
+    x_train = x_train.reshape(x_train.shape[0], 3, img_rows, img_cols)
+    x_test = x_test.reshape(x_test.shape[0], 3, img_rows, img_cols)
+    input_shape = (3, img_rows, img_cols)
+else:
+    x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 3)
+    x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 3)
+    input_shape = (img_rows, img_cols, 3)
+
+
 # use the Keras model
-seq_model, model, accuracy_score = useKerasModel(x_train, x_test, y_train, y_test)
+seq_model, model, accuracy_score = useKerasModel(x_train, x_test, y_train, y_test, input_shape)
 plotModel(seq_model)
 
 print("DONE")
