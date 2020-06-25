@@ -417,7 +417,7 @@ def testUnseenJacobs(model, neural_network, n_splits, input_shape):
 
     image_jacobs_test, labels_jacobs_test = loadImage(known_jacobs_array, unknown_array)
     print("Image Jacobs test shape: ", str(image_jacobs_test.shape))
-    image_jacobs_test = image_jacobs_test.reshape(input_shape[0], input_shape[1], input_shape[2])
+    image_jacobs_test = image_jacobs_test.reshape(image_jacobs_test.shape[0], input_shape[0], input_shape[1], input_shape[2])
 
     encoder = LabelEncoder()
     y_image_labels = encoder.fit_transform(labels_jacobs_test)
@@ -468,8 +468,8 @@ def testUnseenDES2017AndJacobs(known_des2017_array, known_jacobs_array, model, n
     unknown_array = getUnseenNegative(num)
 
     image_known_test, labels_known_test = loadImage(all_known_array, unknown_array)
-    print("Image known test shape: " + str(image_known_test))
-    image_known_test = image_known_test.reshape(input_shape[0], input_shape[1], input_shape[2])
+    # print("Image known test shape: " + str(image_known_test))
+    image_known_test = image_known_test.reshape(image_known_test.shape[0], input_shape[0], input_shape[1], input_shape[2])
 
     encoder = LabelEncoder()
     y_image_labels = encoder.fit_transform(labels_known_test)
@@ -597,12 +597,12 @@ def makeKerasModel():
     return model
 
 
-def makeModelFromTutorial():
+def makeModelFromTutorial(input_shape = (100,100,3)):
     # Initialising the CNN
     classifier = Sequential()
 
     # Step 1 - Convolution
-    classifier.add(Conv2D(32, (3, 3), padding='same', input_shape=(3, 100, 100), activation='relu'))
+    classifier.add(Conv2D(32, (3, 3), padding='same', input_shape=input_shape, activation='relu'))
     classifier.add(Conv2D(32, (3, 3), activation='relu'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Dropout(0.5))  # antes era 0.25
@@ -637,16 +637,21 @@ def makeKerasCNNModel(input_shape=(100, 100, 3)):
 
     model = Sequential()
     # model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(3, 100, 100), padding='same'))
-    model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
+    # Adding a second convolutional layer
+    model.add(Conv2D(64, (3, 3), padding='same', activation='relu', input_shape=input_shape))
+    model.add(Conv2D(64, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.5))  # antes era 0.25
+    # model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
 
     model.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
     # model.add(Dropout(0.5))
     model.add(Conv2D(32, (3, 3), activation='relu'))
-    # model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dense(100, activation='relu'))
     model.add(Dense(100, activation='relu'))
     model.add(Dense(100, activation='relu'))
-    model.add(Flatten())
+    model.add(Flatten()) # makes multiple arrays into a single vector
     model.add(Dense(1))
     print("MODEL 1 SUMMARY" + str(model.summary()))
     model.summary()
@@ -674,6 +679,7 @@ def useKerasModel(x_train, x_test, y_train, y_test, input_shape):
     es = EarlyStopping(monitor='val_loss', verbose=1, patience=3)
     # model = makeKerasCNNModel()
     model = makeKerasCNNModel(input_shape)
+    # model = makeModelFromTutorial(input_shape)
     seq_model = model.fit(
         x_train,
         y_train,
@@ -681,6 +687,8 @@ def useKerasModel(x_train, x_test, y_train, y_test, input_shape):
         batch_size=225,  # power of 2 , 100, 121, etc... 225
         validation_data=(x_test, y_test),
         callbacks=[es])
+
+
     description = str(model)
 
     loss, accuracy = model.evaluate(x_test, y_test, verbose=0)
@@ -749,16 +757,18 @@ def getKerasKFold(x_train, x_test, y_train, y_test, input_shape):
 
 
 def displayActivation(activations):
-    # for activation in activations:
-    #     if activation.ndim >= 3:
-    #         plt.figure()
-    #         plt.matshow(activation[0, :, :, 4])
-    #         plt.show()
+    for num in range(len(activations)):
+        activation = activations[num]
+        if activation.ndim >= 3:
+            plt.figure()
+            plt.matshow(activation[0, :, :, 4])
+            plt.show()
     first_layer_activation = activations[0]
-    print(first_layer_activation.shape)
-    plt.figure()
-    plt.matshow(first_layer_activation[0, :, :, 4], cmap='viridis')
-    plt.show()
+    # print(first_layer_activation.shape)
+    # plt.figure()
+    # plt.title("First Layer Activation")
+    # plt.matshow(first_layer_activation[0, :, :, 4], cmap='viridis')
+    # plt.show()
 
 
 def visualizeKeras(model, input_shape):
@@ -776,5 +786,10 @@ def visualizeKeras(model, input_shape):
     plt.show()
 
     img_tensor = img_tensor.reshape(1, input_shape[0], input_shape[1], input_shape[2])
+    plt.figure()
+    plt.title("Reshaped Image")
+    plt.imshow(img_tensor[0])
+    plt.show()
+
     activations = activation_model.predict(img_tensor)
     displayActivation(activations)
