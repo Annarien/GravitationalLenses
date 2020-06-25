@@ -12,6 +12,8 @@ from tensorflow.python.keras.callbacks import EarlyStopping, History
 from tensorflow.python.keras.layers import Flatten, Dense, Conv2D, MaxPooling2D, Activation, Dropout
 from tensorflow.python.keras.models import Sequential, Model, Input
 from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
+
+
 # from tensorflow.python.keras import backend as K
 
 
@@ -93,7 +95,6 @@ def getNegativeDESTrain(base_dir='Training/Negative'):
     data_neg = np.zeros([num_data_target, 3, 100, 100])
 
     for var in range(len(folders_neg)):
-
         # g_name = get_pkg_data_filename(folders_neg[var]+'/g_WCSClipped.fits')
         # r_name = get_pkg_data_filename(folders_neg[var]+'/r_WCSClipped.fits')
         # i_name = get_pkg_data_filename(folders_neg[var]+'/i_WCSClipped.fits')
@@ -173,8 +174,6 @@ def getNegativeDESTest(base_dir='Testing/Negative'):
     negative_test = np.zeros([num_data_target, 3, 100, 100])
 
     for var in range(len(folders_neg)):
-        # if var > 1500:
-        # break
         # g_name = get_pkg_data_filename(folders_neg[var]+'/g_WCSClipped.fits')
         # r_name = get_pkg_data_filename(folders_neg[var]+'/r_WCSClipped.fits')
         # i_name = get_pkg_data_filename(folders_neg[var]+'/i_WCSClipped.fits')
@@ -344,7 +343,7 @@ def getUnseenJacobs(base_dir='UnseenData/Known84'):
     return data_known_jacobs
 
 
-def testUnseenDES2017(model, neural_network, n_splits):
+def testUnseenDES2017(model, neural_network, n_splits, input_shape):
     """
     This tests the unseen DES2017 images and unknown 47 images, to get the accuracy rate
     of these unseen images that aren't used in training.
@@ -365,16 +364,11 @@ def testUnseenDES2017(model, neural_network, n_splits):
     unknown_array = getUnseenNegative(num)
 
     image_test, labels_test = loadImage(known_des2017_array, unknown_array)
-    x_image_test = image_test.reshape(image_test.shape[0], image_test.shape[1] * image_test.shape[2] * image_test.shape[
-        3])  # batchsize, height*width*3channels
-
-    # print('x_image_test length: '+str(len(x_image_test)))
-    # print('image_test shape: '+str(image_test.shape()))
-    # print('labels_test Shape: '+str(labels_test.shape()))
+    print("Image test shape: ", str(image_test.shape))
+    image_test = image_test.reshape(image_test.shape[0], input_shape[0], input_shape[1], input_shape[2])
 
     encoder = LabelEncoder()
     y_image_labels = encoder.fit_transform(labels_test)
-    # print('y_image_labels Shape: '+str(y_image_labels.shape()))
 
     y_pred = model.predict(image_test)
 
@@ -401,7 +395,7 @@ def testUnseenDES2017(model, neural_network, n_splits):
     return known_des2017_array, accuracy_score_47, k_fold_accuracy_47, k_fold_std_47
 
 
-def testUnseenJacobs(model, neural_network, n_splits):
+def testUnseenJacobs(model, neural_network, n_splits, input_shape):
     """
     This tests the unseen Jacobs images and unknown 84 images, to get the accuracy rate
     of these unseen images that aren't used in training.
@@ -422,10 +416,8 @@ def testUnseenJacobs(model, neural_network, n_splits):
     unknown_array = getUnseenNegative(num)
 
     image_jacobs_test, labels_jacobs_test = loadImage(known_jacobs_array, unknown_array)
-    x_image_test = image_jacobs_test.reshape(image_jacobs_test.shape[0],
-                                             image_jacobs_test.shape[1] * image_jacobs_test.shape[2] *
-                                             image_jacobs_test.shape[
-                                                 3])  # batchsize, height*width*3channels
+    print("Image Jacobs test shape: ", str(image_jacobs_test.shape))
+    image_jacobs_test = image_jacobs_test.reshape(input_shape[0], input_shape[1], input_shape[2])
 
     encoder = LabelEncoder()
     y_image_labels = encoder.fit_transform(labels_jacobs_test)
@@ -454,7 +446,7 @@ def testUnseenJacobs(model, neural_network, n_splits):
     return known_jacobs_array, accuracy_score_84, k_fold_accuracy_84, k_fold_std_84
 
 
-def testUnseenDES2017AndJacobs(known_des2017_array, known_jacobs_array, model, neural_network, n_splits):
+def testUnseenDES2017AndJacobs(known_des2017_array, known_jacobs_array, model, neural_network, n_splits, input_shape):
     """
     This tests the unseen DES2017 and Jacobs images together with the unknown 131 images, to get the accuracy rate
     of these unseen images that aren't used in training.
@@ -476,10 +468,8 @@ def testUnseenDES2017AndJacobs(known_des2017_array, known_jacobs_array, model, n
     unknown_array = getUnseenNegative(num)
 
     image_known_test, labels_known_test = loadImage(all_known_array, unknown_array)
-    x_image_test = image_known_test.reshape(image_known_test.shape[0],
-                                            image_known_test.shape[1] * image_known_test.shape[2] *
-                                            image_known_test.shape[
-                                                3])  # batch size, height*width*3channels
+    print("Image known test shape: " + str(image_known_test))
+    image_known_test = image_known_test.reshape(input_shape[0], input_shape[1], input_shape[2])
 
     encoder = LabelEncoder()
     y_image_labels = encoder.fit_transform(labels_known_test)
@@ -551,10 +541,16 @@ def makeTrainTest(positive_train, negative_train, positive_test, negative_test):
     print("Train Shape: " + str(image_train_shape))
 
     labels_train_shape = labels_train.shape
-    print("Image Labels Shape: " + str(labels_train_shape))
+    print("Train Labels Shape: " + str(labels_train_shape))
 
-    print("Image Test Shape: " + str(image_test.shape))
-    print("Labels Test Shape: " + str(labels_test.shape))
+    image_test_std = image_test.std()
+    image_test_mean = image_test.mean()
+    image_test_shape = image_test.shape
+
+    print("Test Std: " + str(image_test_std))
+    print("Test Mean: " + str(image_test_mean))
+    print("Test Shape: " + str(image_test_shape))
+    print("Test Labels Shape: " + str(labels_test.shape))
 
     # Encoding y now
     encoder = LabelEncoder()
@@ -635,13 +631,13 @@ def makeModelFromTutorial():
     return classifier
 
 
-def makeKerasCNNModel(input_shape):
+def makeKerasCNNModel(input_shape=(100, 100, 3)):
     # https://medium.com/@randerson112358/classify-images-using-convolutional-neural-networks-python-a89cecc8c679
     # https: // keras.io / guides / sequential_model /
 
     model = Sequential()
-    # model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(3, 100, 100), padding = 'same'))
-    model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding ='same'))
+    # model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(3, 100, 100), padding='same'))
+    model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
 
     model.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
     # model.add(Dropout(0.5))
@@ -655,24 +651,7 @@ def makeKerasCNNModel(input_shape):
     print("MODEL 1 SUMMARY" + str(model.summary()))
     model.summary()
 
-    # model.add(Conv2D(64, kernel_size=(3, 3), activation='relu', input_shape=(3, 100, 100)))
-    # model.add(Dense(100, activation='relu', input_shape=(3, 100, 100)))  # change this to have a 2d shape
-    # model.add(Dense(100, activation='relu'))
-    # model.add(Dense(100, activation='relu'))
-    # model.add(Flatten())
-    # # model.add(Dense(100))
-    # # model.add(Activation('relu'))
-    # model.add(Dense(1))
-    # model.add(Activation('sigmoid'))  # THE KERAS WITHOUT ES PNG IMAGE, HAS SIGMOID
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-    # model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    # model.add(Flatten())
-    # model.add(Dense(128))
-    # model.add(Activation('relu'))
-    # model.add(Dense(1))
-    # model.add(Activation('sigmoid'))
-    # model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
 
 
@@ -693,8 +672,8 @@ def useKerasModel(x_train, x_test, y_train, y_test, input_shape):
     # print("y_test shape Reshaped: " + str(y_test_shape))
 
     es = EarlyStopping(monitor='val_loss', verbose=1, patience=3)
+    # model = makeKerasCNNModel()
     model = makeKerasCNNModel(input_shape)
-    # model = makeKerasModel(input_shape)
     seq_model = model.fit(
         x_train,
         y_train,
@@ -704,20 +683,9 @@ def useKerasModel(x_train, x_test, y_train, y_test, input_shape):
         callbacks=[es])
     description = str(model)
 
-    # Accuracy Testing
-    y_pred = model.predict(x_test)
-    print("y_pred: " + str(y_pred))
-    print("y_pred shape: " + str(y_pred.shape))
-    print("y_pred(type): " + str(type(y_pred)))
-    y_test_index = np.round(y_pred)
-    ones = np.count_nonzero(y_test_index == 1)
-    zeroes = np.count_nonzero(y_test_index == 0)
-
-    print("Ones: %s / 1000" % ones)
-    print("Zeroes: %s / 1000" % zeroes)
-
-    _, acc = model.evaluate(x_test, y_test, verbose=0)
-    accuracy_score = acc * 100.0
+    loss, accuracy = model.evaluate(x_test, y_test, verbose=0)
+    print("Test loss: " + str(loss) + " / Test accuracy: " + str(accuracy))
+    accuracy_score = accuracy * 100
     print("Accuracy Score: " + str(accuracy_score))
     model.save_weights('kerasModel.h5')
 
@@ -752,7 +720,7 @@ def plotModel(seq_model):
     print("USED KERAS MODEL")
 
 
-def getKerasKFold(x_train, x_test, y_train, y_test):
+def getKerasKFold(x_train, x_test, y_train, y_test, input_shape):
     # Stratified K fold Cross Validation
     # https://machinelearningmastery.com/use-keras-deep-learning-models-scikit-learn-python/
 
@@ -781,14 +749,19 @@ def getKerasKFold(x_train, x_test, y_train, y_test):
 
 
 def displayActivation(activations):
-    for activation in activations:
-        if activation.ndim >= 3:
-            plt.figure()
-            plt.matshow(activation[0][0, :, :])
-            plt.show()
+    # for activation in activations:
+    #     if activation.ndim >= 3:
+    #         plt.figure()
+    #         plt.matshow(activation[0, :, :, 4])
+    #         plt.show()
+    first_layer_activation = activations[0]
+    print(first_layer_activation.shape)
+    plt.figure()
+    plt.matshow(first_layer_activation[0, :, :, 4], cmap='viridis')
+    plt.show()
 
 
-def visualizeKeras(model):
+def visualizeKeras(model, input_shape):
     # https://www.kaggle.com/amarjeet007/visualize-cnn-with-keras
     # https://towardsdatascience.com/visualizing-intermediate-activation-in-convolutional-neural-networks-with-keras
     # -260b36d60d0
@@ -797,12 +770,11 @@ def visualizeKeras(model):
     activation_model = Model(inputs=model.input,
                              outputs=layer_outputs)
     img_tensor = getPositiveSimulatedTest()[0]
-    img_tensor = img_tensor.reshape(1, 3, 100, 100)
-
     plt.figure()
     plt.title("Original image")
-    plt.matshow(img_tensor[0][0, :, :])
+    plt.imshow(img_tensor[0])
     plt.show()
 
+    img_tensor = img_tensor.reshape(1, input_shape[0], input_shape[1], input_shape[2])
     activations = activation_model.predict(img_tensor)
     displayActivation(activations)
