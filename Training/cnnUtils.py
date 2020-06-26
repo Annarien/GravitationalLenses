@@ -14,17 +14,6 @@ from tensorflow.python.keras.models import Sequential, Model, Input
 from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
 
 
-# from tensorflow.python.keras import backend as K
-
-
-# from tensorflow.python.keras import backend as K
-# K.common.image_dim_ordering()=='th'
-
-
-# from tensorflow.python.keras import backend as K
-# K.set_image_dim_ordering('th')
-
-
 def getPositiveSimulatedTrain(base_dir='Training/Positive'):
     """
     This gets the g, r, and i of the 10 000 positively simulated images from the
@@ -48,7 +37,8 @@ def getPositiveSimulatedTrain(base_dir='Training/Positive'):
     # number of Positive DataPoints
     num_data_target = len(folders)
 
-    data_pos = np.zeros([num_data_target, 3, 100, 100])
+    data_pos = np.zeros([num_data_target, 3, 100, 100])  # this is the original
+    # data_pos = np.zeros([num_data_target, 100, 100, 3])
 
     # key is name of folder number
     # value is the number of the folder to be added to the file name
@@ -92,7 +82,8 @@ def getNegativeDESTrain(base_dir='Training/Negative'):
                 break
 
     num_data_target = len(folders_neg)
-    data_neg = np.zeros([num_data_target, 3, 100, 100])
+    data_neg = np.zeros([num_data_target, 3, 100, 100])  # original
+    # data_neg = np.zeros([num_data_target, 100, 100, 3])
 
     for var in range(len(folders_neg)):
         # g_name = get_pkg_data_filename(folders_neg[var]+'/g_WCSClipped.fits')
@@ -127,8 +118,8 @@ def getPositiveSimulatedTest(base_dir='Testing/Positive'):
     # number of Positive DataPoints
     num_data_target = len(folders)
 
-    positive_test = np.zeros([num_data_target, 3, 100, 100])
-
+    positive_test = np.zeros([num_data_target, 3, 100, 100])  # original
+    # positive_test = np.zeros([num_data_target, 100, 100, 3])
     # key is name of folder number
     # value is the number of the folder to be added to the file name
 
@@ -171,8 +162,8 @@ def getNegativeDESTest(base_dir='Testing/Negative'):
             if len(folders_neg) >= 1000:
                 break
     num_data_target = len(folders_neg)
-    negative_test = np.zeros([num_data_target, 3, 100, 100])
-
+    negative_test = np.zeros([num_data_target, 3, 100, 100])  # original
+    # negative_test = np.zeros([num_data_target, 100, 100, 3])
     for var in range(len(folders_neg)):
         # g_name = get_pkg_data_filename(folders_neg[var]+'/g_WCSClipped.fits')
         # r_name = get_pkg_data_filename(folders_neg[var]+'/r_WCSClipped.fits')
@@ -275,6 +266,13 @@ def getUnseenNegative(num, base_dir='UnseenData'):
     return data_unknown
 
 
+def getTestSet():
+    positive_test = getPositiveSimulatedTest()
+    negative_test = getNegativeDESTest()
+    images_test, labels_test = loadImage(positive_test, negative_test)
+    return images_test, labels_test
+
+
 def getUnseenDES2017(base_dir='UnseenData/Known47'):
     """
     This is used to get g, r, and i images of the DES2017 array, which contains 47 unseen known lenses.
@@ -343,7 +341,9 @@ def getUnseenJacobs(base_dir='UnseenData/Known84'):
     return data_known_jacobs
 
 
-def testUnseenDES2017(model, neural_network, n_splits, input_shape):
+def testUnseenDES2017(model, neural_network, n_splits):  # from last time everything worked
+
+    # def testUnseenDES2017(model, neural_network, n_splits, input_shape):
     """
     This tests the unseen DES2017 images and unknown 47 images, to get the accuracy rate
     of these unseen images that aren't used in training.
@@ -417,7 +417,8 @@ def testUnseenJacobs(model, neural_network, n_splits, input_shape):
 
     image_jacobs_test, labels_jacobs_test = loadImage(known_jacobs_array, unknown_array)
     print("Image Jacobs test shape: ", str(image_jacobs_test.shape))
-    image_jacobs_test = image_jacobs_test.reshape(image_jacobs_test.shape[0], input_shape[0], input_shape[1], input_shape[2])
+    image_jacobs_test = image_jacobs_test.reshape(image_jacobs_test.shape[0], input_shape[0], input_shape[1],
+                                                  input_shape[2])
 
     encoder = LabelEncoder()
     y_image_labels = encoder.fit_transform(labels_jacobs_test)
@@ -469,7 +470,8 @@ def testUnseenDES2017AndJacobs(known_des2017_array, known_jacobs_array, model, n
 
     image_known_test, labels_known_test = loadImage(all_known_array, unknown_array)
     # print("Image known test shape: " + str(image_known_test))
-    image_known_test = image_known_test.reshape(image_known_test.shape[0], input_shape[0], input_shape[1], input_shape[2])
+    image_known_test = image_known_test.reshape(image_known_test.shape[0], input_shape[0], input_shape[1],
+                                                input_shape[2])
 
     encoder = LabelEncoder()
     y_image_labels = encoder.fit_transform(labels_known_test)
@@ -530,6 +532,12 @@ def makeTrainTest(positive_train, negative_train, positive_test, negative_test):
 
     image_train, labels_train = loadImage(positive_train, negative_train)
     image_test, labels_test = loadImage(positive_test, negative_test)
+
+    print("Labels Train = 1: " + str(np.count_nonzero(labels_train == 1)))
+    print("Labels Train = 0: " + str(np.count_nonzero(labels_train == 0)))
+
+    print("Labels Test = 1: " + str(np.count_nonzero(labels_test == 1)))
+    print("Labels Test = 0: " + str(np.count_nonzero(labels_test == 0)))
 
     # getting parameters of training data
     image_train_std = image_train.std()
@@ -597,61 +605,72 @@ def makeKerasModel():
     return model
 
 
-def makeModelFromTutorial(input_shape = (100,100,3)):
+def makeModelFromTutorial(input_shape=(3, 100, 100)):
     # Initialising the CNN
-    classifier = Sequential()
+    model = Sequential()
 
     # Step 1 - Convolution
-    classifier.add(Conv2D(32, (3, 3), padding='same', input_shape=input_shape, activation='relu'))
-    classifier.add(Conv2D(32, (3, 3), activation='relu'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Dropout(0.5))  # antes era 0.25
+    model.add(Conv2D(32, (3, 3), padding='same', input_shape=input_shape, activation='relu'))
+    model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    model.add(Dropout(0.5))  # antes era 0.25
     # Adding a second convolutional layer
-    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
-    classifier.add(Conv2D(64, (3, 3), activation='relu'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2)))
-    classifier.add(Dropout(0.5))  # antes era 0.25
+    model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    model.add(Conv2D(64, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.5))  # antes era 0.25
     # Adding a third convolutional layer
-    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
-    classifier.add(Conv2D(64, (3, 3), activation='relu'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2)))
-    classifier.add(Dropout(0.5))  # antes era 0.25
+    model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    model.add(Conv2D(64, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.5))  # antes era 0.25
     # Step 3 - Flattening
-    classifier.add(Flatten())
+    model.add(Flatten())
     # Step 4 - Full connection
-    classifier.add(Dense(units=512, activation='relu'))
-    classifier.add(Dropout(0.5))
-    classifier.add(Dense(units=3, activation='softmax'))
-    classifier.summary()
+    model.add(Dense(units=512, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(units=3, activation='softmax'))
+    model.summary()
 
     # Compiling the CNN
-    classifier.compile(optimizer='rmsprop',
-                       loss='categorical_crossentropy',
-                       metrics=['accuracy'])
-    return classifier
+    model.compile(optimizer='rmsprop',
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
+    return model
 
 
-def makeKerasCNNModel(input_shape=(100, 100, 3)):
+def makeKerasCNNModel(input_shape=(3, 100, 100)):
     # https://medium.com/@randerson112358/classify-images-using-convolutional-neural-networks-python-a89cecc8c679
     # https: // keras.io / guides / sequential_model /
 
     model = Sequential()
-    # model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(3, 100, 100), padding='same'))
-    # Adding a second convolutional layer
-    model.add(Conv2D(64, (3, 3), padding='same', activation='relu', input_shape=input_shape))
-    model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.5))  # antes era 0.25
-    # model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
-
+    #
+    # model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    # model.add(Conv2D(64, (3, 3), activation='relu'))
+    model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
+    # model.add(Dense(100, activation='relu'))
+    # model.add(Dense(100, activation='relu'))
+    # model.add(Dense(100, activation='relu'))
     model.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
-    # model.add(Dropout(0.5))
-    model.add(Conv2D(32, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dense(100, activation='relu'))
-    model.add(Dense(100, activation='relu'))
-    model.add(Dense(100, activation='relu'))
-    model.add(Flatten()) # makes multiple arrays into a single vector
+    model.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
+    model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    model.add(Dropout(0.5))  # antes era 0.25
+    # Adding a third convolutional layer
+    model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    model.add(Dropout(0.5))  # antes era 0.25
+    # Step 3 - Flattening
+    model.add(Flatten())
+    # Step 4 - Full connection
+    model.add(Dense(units=512, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(units=3, activation='softmax'))
+
+    # model.add(Flatten()) # makes multiple arrays into a single vector
     model.add(Dense(1))
     print("MODEL 1 SUMMARY" + str(model.summary()))
     model.summary()
@@ -660,7 +679,8 @@ def makeKerasCNNModel(input_shape=(100, 100, 3)):
     return model
 
 
-def useKerasModel(x_train, x_test, y_train, y_test, input_shape):
+def useKerasModel(x_train, x_test, y_train, y_test):
+    # def useKerasModel(x_train, x_test, y_train, y_test, input_shape):
     # Changing shape of x_train and y_train from num, channels, height, width (num, 3, 100, 100) to num, widht,
     # # height, channels (num, 100, 100, 3)
     # x_train = x_train.reshape(x_train.shape[0], x_train.shape[2], x_train.shape[3], x_train.shape[1])
@@ -677,8 +697,9 @@ def useKerasModel(x_train, x_test, y_train, y_test, input_shape):
     # print("y_test shape Reshaped: " + str(y_test_shape))
 
     es = EarlyStopping(monitor='val_loss', verbose=1, patience=3)
-    # model = makeKerasCNNModel()
-    model = makeKerasCNNModel(input_shape)
+    model = makeKerasCNNModel()
+    # model = makeKerasModel()
+    # model = makeKerasCNNModel(input_shape)
     # model = makeModelFromTutorial(input_shape)
     seq_model = model.fit(
         x_train,
@@ -688,8 +709,19 @@ def useKerasModel(x_train, x_test, y_train, y_test, input_shape):
         validation_data=(x_test, y_test),
         callbacks=[es])
 
-
     description = str(model)
+
+    y_pred = model.predict(x_test)
+    print("y_pred: " + str(y_pred))
+    print("y_pred shape: " + str(y_pred.shape))
+    print("y_pred(type): " + str(type(y_pred)))
+    y_test_index = np.round(y_pred)
+    print("y_test_index: " + str(y_test_index))
+    ones = np.count_nonzero(y_test_index == 1)
+    zeroes = np.count_nonzero(y_test_index == 0)
+
+    print("Ones: %s / 1000" % ones)
+    print("Zeroes: %s / 1000" % zeroes)
 
     loss, accuracy = model.evaluate(x_test, y_test, verbose=0)
     print("Test loss: " + str(loss) + " / Test accuracy: " + str(accuracy))
@@ -728,7 +760,8 @@ def plotModel(seq_model):
     print("USED KERAS MODEL")
 
 
-def getKerasKFold(x_train, x_test, y_train, y_test, input_shape):
+# def getKerasKFold(x_train, x_test, y_train, y_test, input_shape):
+def getKerasKFold(x_train, x_test, y_train, y_test):
     # Stratified K fold Cross Validation
     # https://machinelearningmastery.com/use-keras-deep-learning-models-scikit-learn-python/
 
@@ -771,11 +804,12 @@ def displayActivation(activations):
     # plt.show()
 
 
-def visualizeKeras(model, input_shape):
-    # https://www.kaggle.com/amarjeet007/visualize-cnn-with-keras
-    # https://towardsdatascience.com/visualizing-intermediate-activation-in-convolutional-neural-networks-with-keras
-    # -260b36d60d0
-
+# def visualizeKeras(model, input_shape):
+def visualizeKeras(model):
+    #     # https://www.kaggle.com/amarjeet007/visualize-cnn-with-keras
+    #     # https://towardsdatascience.com/visualizing-intermediate-activation-in-convolutional-neural-networks-with-keras
+    #     # -260b36d60d0
+    #
     layer_outputs = [layer.output for layer in model.layers]
     activation_model = Model(inputs=model.input,
                              outputs=layer_outputs)
@@ -785,11 +819,7 @@ def visualizeKeras(model, input_shape):
     plt.imshow(img_tensor[0])
     plt.show()
 
+    input_shape = (3, 100, 100)
     img_tensor = img_tensor.reshape(1, input_shape[0], input_shape[1], input_shape[2])
-    plt.figure()
-    plt.title("Reshaped Image")
-    plt.imshow(img_tensor[0])
-    plt.show()
-
     activations = activation_model.predict(img_tensor)
     displayActivation(activations)

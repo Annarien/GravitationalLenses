@@ -41,20 +41,20 @@ y_test_shape = makeTrainTest(positive_train, negative_train, positive_test, nega
 img_rows = 100
 img_cols = 100
 
-if K.image_data_format() == 'channels_first':
-    x_train = x_train.reshape(x_train.shape[0], 3, img_rows, img_cols)
-    x_test = x_test.reshape(x_test.shape[0], 3, img_rows, img_cols)
-    input_shape = (3, img_rows, img_cols)
-else:
-    x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 3)
-    x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 3)
-    input_shape = (img_rows, img_cols, 3)
+# if K.image_data_format() == 'channels_first':
+#     x_train = x_train.reshape(x_train.shape[0], 3, img_rows, img_cols)
+#     x_test = x_test.reshape(x_test.shape[0], 3, img_rows, img_cols)
+#     input_shape = (3, img_rows, img_cols)
+# else:
+#     x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 3)
+#     x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 3)
+#     input_shape = (img_rows, img_cols, 3)
 
-print("TRAIN X SHAPE: " + str(x_train.shape))
-print("TEST X SHAPE: " + str(x_test.shape))
-print("x_train original type: " + str(type(x_train[0])))
-
-print("x_test original type: " + str(type(x_test[0])))
+# print("TRAIN X SHAPE: " + str(x_train.shape))
+# print("TEST X SHAPE: " + str(x_test.shape))
+# print("x_train original type: " + str(type(x_train[0])))
+#
+# print("x_test original type: " + str(type(x_test[0])))
 #   Type convert and scale the test and training data
 # x_train = x_train.astype('float32')
 # x_test = x_test.astype('float32')
@@ -75,21 +75,21 @@ print("x_test processed type: " + str(type(x_test[0])))
 # print("Y TEST SHAPE: " +str(y_test.shape))
 # print(y_train[:4])   # verify one-hot encoding
 
+# input_shape = [100, 100, 3]
 # use the Keras model
-seq_model, model, accuracy_score = useKerasModel(x_train, x_test, y_train, y_test, input_shape)
-# seq_model, model, accuracy_score = useKerasModel(x_train, x_test, y_train, y_test)
+# seq_model, model, accuracy_score = useKerasModel(x_train, x_test, y_train, y_test, input_shape)
+seq_model, model, accuracy_score = useKerasModel(x_train, x_test, y_train, y_test)
 plotModel(seq_model)
 
 print("DONE")
-
-visualizeKeras(model, input_shape)
-
+# input_shape = [100, 100, 3]
+# visualizeKeras(model, input_shape)
+visualizeKeras(model)
 # ______________________________________________________________________________________________________________________
 n_splits, random_state, k_fold_accuracy, k_fold_std, neural_network = getKerasKFold(x_train,
                                                                                     x_test,
                                                                                     y_train,
-                                                                                    y_test,
-                                                                                    input_shape)
+                                                                                    y_test)
 #
 # # calculating the amount of things accurately identified
 # # looking at Known131
@@ -98,20 +98,20 @@ n_splits, random_state, k_fold_accuracy, k_fold_std, neural_network = getKerasKF
 #
 # #
 # #_____________________________________________________________________________________________________________________
-known_des_2017, accuracy_score_47, k_fold_accuracy_47, k_fold_std_47 = testUnseenDES2017(model,
-                                                                                         neural_network,
-                                                                                         n_splits,
-                                                                                         input_shape)
-known_jacobs, accuracy_score_84, k_fold_accuracy_84, k_fold_std_84 = testUnseenJacobs(model,
-                                                                                      neural_network,
-                                                                                      n_splits,
-                                                                                      input_shape)
-accuracy_score_131, k_fold_accuracy_131, k_fold_std_131 = testUnseenDES2017AndJacobs(known_des_2017,
-                                                                                     known_jacobs,
-                                                                                     model,
-                                                                                     neural_network,
-                                                                                     n_splits,
-                                                                                     input_shape)
+# known_des_2017, accuracy_score_47, k_fold_accuracy_47, k_fold_std_47 = testUnseenDES2017(model,
+#                                                                                          neural_network,
+#                                                                                          n_splits,
+#                                                                                          input_shape)
+# known_jacobs, accuracy_score_84, k_fold_accuracy_84, k_fold_std_84 = testUnseenJacobs(model,
+#                                                                                       neural_network,
+#                                                                                       n_splits,
+#                                                                                       input_shape)
+# accuracy_score_131, k_fold_accuracy_131, k_fold_std_131 = testUnseenDES2017AndJacobs(known_des_2017,
+#                                                                                      known_jacobs,
+#                                                                                      model,
+#                                                                                      neural_network,
+#                                                                                      n_splits,
+#                                                                                      input_shape)
 
 # write to ml_Lenses_results.xlsx
 # makeExcelTable.makeInitialTable()

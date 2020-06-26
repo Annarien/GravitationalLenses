@@ -281,7 +281,6 @@ def getTestSet():
     images_test, labels_test = loadImage(positive_test, negative_test)
     return images_test, labels_test
 
-
 def getUnseenDES2017(base_dir='UnseenData/Known47'):
     """
     This is used to get g, r, and i images of the DES2017 array, which contains 47 unseen known lenses.
@@ -382,15 +381,6 @@ def testUnseenDES2017(model, neural_network, n_splits):
     y_image_labels = encoder.fit_transform(labels_test)
     # print('y_image_labels Shape: '+str(y_image_labels.shape()))
 
-    y_pred = model.predict(image_test)
-
-    y_test_index = np.round(y_pred)
-    ones = np.count_nonzero(y_test_index == 1)
-    zeroes = np.count_nonzero(y_test_index == 0)
-
-    print("Ones: %s / 47" % ones)
-    print("Zeroes: %s / 47" % zeroes)
-
     # Get Accuracy Score tests DES2017 on the mlpclassifier:
     _, acc = model.evaluate(image_test, y_image_labels, verbose=0)
     accuracy_score_47 = acc * 100
@@ -436,15 +426,6 @@ def testUnseenJacobs(model, neural_network, n_splits):
     encoder = LabelEncoder()
     y_image_labels = encoder.fit_transform(labels_jacobs_test)
 
-    y_pred = model.predict(image_jacobs_test)
-
-    y_test_index = np.round(y_pred)
-    ones = np.count_nonzero(y_test_index == 1)
-    zeroes = np.count_nonzero(y_test_index == 0)
-
-    print("Ones: %s / 84" % ones)
-    print("Zeroes: %s / 84" % zeroes)
-
     # Get Accuracy Score tests Jacobs on the mlp classifier:
     _, acc = model.evaluate(image_jacobs_test, y_image_labels, verbose=0)
     accuracy_score_84 = acc * 100
@@ -489,15 +470,6 @@ def testUnseenDES2017AndJacobs(known_des2017_array, known_jacobs_array, model, n
 
     encoder = LabelEncoder()
     y_image_labels = encoder.fit_transform(labels_known_test)
-
-    y_pred = model.predict(image_known_test)
-
-    y_test_index = np.round(y_pred)
-    ones = np.count_nonzero(y_test_index == 1)
-    zeroes = np.count_nonzero(y_test_index == 0)
-
-    print("Ones: %s / 131" % ones)
-    print("Zeroes: %s / 131" % zeroes)
 
     # Get Accuracy Score tests DES2017 on the mlp classifier:
     _, acc = model.evaluate(image_known_test, y_image_labels, verbose=0)
@@ -689,7 +661,7 @@ def useKerasModel(positive_array, negative_array):
         y_test_shape = makeTrainTest(positive_array, negative_array)
 
     es = EarlyStopping(monitor='val_loss', verbose=1, patience=3)
-    model = makeKerasCNNModel()
+    model = makeKerasModel()
     seq_model = model.fit(
         x_train,
         y_train,
@@ -701,7 +673,7 @@ def useKerasModel(positive_array, negative_array):
 
     # Accuracy Testing
     y_pred = model.predict(x_test)
-    # print("y_pred: " + str(y_pred))
+    print("y_pred: " + str(y_pred))
     print("y_pred shape: " + str(y_pred.shape))
     print("y_pred(type): " + str(type(y_pred)))
     y_test_index = np.round(y_pred)
@@ -769,7 +741,7 @@ def getKerasKFold(x_train, x_test, y_train, y_test):
     # Stratified K fold Cross Validation
     # https://machinelearningmastery.com/use-keras-deep-learning-models-scikit-learn-python/
 
-    neural_network = KerasClassifier(build_fn=makeKerasCNNModel,
+    neural_network = KerasClassifier(build_fn=makeKerasModel,
                                      epochs=30,
                                      batch_size=200,
                                      verbose=0)
@@ -857,10 +829,10 @@ n_splits, random_state, k_fold_accuracy, k_fold_std, neural_network = getKerasKF
 # # 0 = negative lens
 #
 # # #______________________________________________________________________________________________________________________
-known_des_2017, accuracy_score_47, k_fold_accuracy_47, k_fold_std_47 = testUnseenDES2017(model, neural_network, n_splits)
-known_jacobs, accuracy_score_84, k_fold_accuracy_84, k_fold_std_84 = testUnseenJacobs(model, neural_network, n_splits)
-accuracy_score_131, k_fold_accuracy_131, k_fold_std_131 = testUnseenDES2017AndJacobs(known_des_2017, known_jacobs, model,
-                                                                                     neural_network, n_splits)
+known_des_2017, accuracy_score_47, k_fold_accuracy_47, k_fold_std_47 = testDES2017(model, neural_network, n_splits)
+known_jacobs, accuracy_score_84, k_fold_accuracy_84, k_fold_std_84 = testJacobs(model, neural_network, n_splits)
+accuracy_score_131, k_fold_accuracy_131, k_fold_std_131 = testDES2017AndJacobs(known_des_2017, known_jacobs, model,
+                                                                               neural_network, n_splits)
 #
 # # write to ml_Lenses_results.xlsx
 # # makeExcelTable.makeInitialTable()
