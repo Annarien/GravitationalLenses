@@ -243,7 +243,7 @@ print("%s/47 known images correctly predicted" % correctly_predicted_count_47)
 # Collect & test known 84
 correctly_predicted_count_84 = 0
 known_84_images = getUnseenData('UnseenData/Known84', max_num_prediction, input_shape=image_shape)
-for known_image in known_47_images:
+for known_image in known_84_images:
     known_image = known_image.reshape(1, known_image.shape[0], known_image.shape[1], known_image.shape[2])
     # Run prediction on that image
     predicted_class = classifier.predict_classes(known_image, batch_size=10)
