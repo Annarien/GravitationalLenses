@@ -205,7 +205,7 @@ layer_names = []
 for layer in classifier.layers[:12]:
     layer_names.append(layer.name)
 
-images_per_row = 3
+images_per_row = 1
 for layer_name, layer_activation in zip(layer_names, activations):
     number_of_features = layer_activation.shape[-1]
     size = layer_activation.shape[1]
