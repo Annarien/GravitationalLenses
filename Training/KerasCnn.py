@@ -13,7 +13,7 @@ from tensorflow.python.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatte
 max_num_training = 1000  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.1  # A float value between 0 and 1 that determines what percentage of the training data is used
-                        # for validation.
+# for validation.
 image_shape = (100, 100, 3)
 
 
@@ -201,11 +201,32 @@ print("Predicted class is: ", predicted_class)
 layer_outputs = [layer.output for layer in classifier.layers[:12]]
 activation_model = Model(inputs=classifier.input, outputs=layer_outputs)
 activations = activation_model.predict(img_tensor)
-first_layer_activation = activations[0]
-print(first_layer_activation.shape)
-plt.figure()
-plt.matshow(first_layer_activation[0, :, :, 4], cmap='viridis')
-plt.show()
+layer_names = []
+for layer in classifier.layers[:12]:
+    layer_names.append(layer.name)
+
+images_per_row = 3
+for layer_name, layer_activation in zip(layer_names, activations):
+    number_of_features = layer_activation.shape[-1]
+    size = layer_activation.shape[1]
+    number_of_columns = number_of_features // images_per_row
+    display_grid = numpy.zeros((size * number_of_columns, images_per_row * size))
+    for col in range(number_of_columns):
+        for row in range(images_per_row):
+            channel_image = layer_activation[0, :, :, col * images_per_row + row]
+            channel_image -= channel_image.mean()
+            channel_image /= channel_image.std()
+            channel_image *= 64
+            channel_image += 128
+            channel_image = numpy.clip(channel_image, 0, 255).astype('uint8')
+            display_grid[col * size: (col + 1) * size, row * size: (row + 1) * size] = channel_image
+    scale = 1. / size
+    plt.figure(figsize=(scale * display_grid.shape[1],
+                        scale * display_grid.shape[0]))
+    plt.title(layer_name)
+    plt.grid(False)
+    plt.imshow(display_grid, aspect='auto', cmap='viridis')
+    plt.show()
 
 # Collect & test known 47
 correctly_predicted_count_47 = 0
