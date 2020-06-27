@@ -208,7 +208,7 @@ plt.matshow(first_layer_activation[0, :, :, 4], cmap='viridis')
 plt.show()
 
 # Collect & test known 47
-correctly_predicted_count = 0
+correctly_predicted_count_47 = 0
 known_47_images = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=image_shape)
 for known_image in known_47_images:
     known_image = known_image.reshape(1, known_image.shape[0], known_image.shape[1], known_image.shape[2])
@@ -216,11 +216,11 @@ for known_image in known_47_images:
     predicted_class = classifier.predict_classes(known_image, batch_size=10)
     print("Predicted class is: ", predicted_class)
     if predicted_class[0] == 1:
-        correctly_predicted_count += 1
-print("%s/47 known images correctly predicted" % correctly_predicted_count)
+        correctly_predicted_count_47 += 1
+print("%s/47 known images correctly predicted" % correctly_predicted_count_47)
 
 # Collect & test known 84
-correctly_predicted_count = 0
+correctly_predicted_count_84 = 0
 known_84_images = getUnseenData('UnseenData/Known84', max_num_prediction, input_shape=image_shape)
 for known_image in known_47_images:
     known_image = known_image.reshape(1, known_image.shape[0], known_image.shape[1], known_image.shape[2])
@@ -228,5 +228,5 @@ for known_image in known_47_images:
     predicted_class = classifier.predict_classes(known_image, batch_size=10)
     print("Predicted class is: ", predicted_class)
     if predicted_class[0] == 1:
-        correctly_predicted_count += 1
-print("%s/84 known images correctly predicted" % correctly_predicted_count)
+        correctly_predicted_count_84 += 1
+print("%s/84 known images correctly predicted" % correctly_predicted_count_84)
