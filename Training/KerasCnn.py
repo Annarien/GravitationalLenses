@@ -9,14 +9,20 @@ from tensorflow.python.keras import Sequential
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.python.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense
+from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
 
 # Globals
-max_num_training = 1000  # Set to sys.maxsize when running entire data set
-max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
-validation_split = 0.1  # A float value between 0 and 1 that determines what percentage of the training data is used
-# for validation.
-k_fold_num = 10
-image_shape = (100, 100, 3)
+max_num_training = 1000             # Set to sys.maxsize when running entire data set
+max_num_testing = sys.maxsize       # Set to sys.maxsize when running entire data set
+max_num_prediction = sys.maxsize    # Set to sys.maxsize when running entire data set
+validation_split = 0.1              # A float value between 0 and 1 that determines what percentage of the training
+                                    # data is used for validation.
+k_fold_num = 5                      # A number between 1 and 10 that determines how many times the k-fold classifier
+                                    # is trained.
+epochs = 20                         # A number that dictates how many iterations should be run to train the classifier
+batch_size = 100                    # The number of items batched together during training.
+run_k_fold_validation = False       # Set this to True if you want to run K-Fold validation as well.
+image_shape = (100, 100, 3)         # The shape of the images being learned & evaluated.
 
 
 # Helper methods
@@ -90,7 +96,9 @@ def getUnseenData(images_dir, max_num, input_shape):
         return unseen_images.reshape(num_of_images, input_shape[0], input_shape[1], input_shape[2])
 
 
-def makeImageSet(positive_images, negative_images):
+def makeImageSet(positive_images, negative_images=None):
+    if negative_images is None:
+        negative_images = []
     image_set = []
     label_set = []
 
@@ -136,6 +144,18 @@ def buildClassifier(input_shape=(100, 100, 3)):
     return classifier
 
 
+def executeKFoldValidation(data, labels, num_of_epochs, classifier_batch_size, should_run_k_fold):
+    if should_run_k_fold:
+        neural_network = KerasClassifier(build_fn=buildClassifier,
+                                         epochs=num_of_epochs,
+                                         batch_size=classifier_batch_size)
+        k_fold_scores = cross_val_score(neural_network, data, labels, scoring='accuracy', cv=k_fold_num)
+        score_mean = k_fold_scores.mean() * 100
+        print("kFold Scores Mean: " + str(score_mean))
+        k_fold_std = k_fold_scores.std()
+        print("kFold Scores Std: " + str(k_fold_std))
+
+
 # __________________________________________________________________________
 # MAIN
 
@@ -158,7 +178,7 @@ early_stopping = EarlyStopping(monitor='val_acc', patience=2)
 
 history = classifier.fit(training_data,
                          training_labels,
-                         epochs=20,
+                         epochs=epochs,
                          steps_per_epoch=100,
                          callbacks=[model_checkpoint, early_stopping],
                          validation_split=validation_split,
@@ -168,12 +188,8 @@ history = classifier.fit(training_data,
 classifier.load_weights('best_weights.hdf5')
 classifier.save_weights('galaxies_cnn.h5')
 
-# Run K-fold validation
-scores = cross_val_score(classifier, training_data, training_labels, scoring='accuracy', cv=k_fold_num)
-score_mean = scores.mean() * 100
-print("kFold Scores Mean: " + str(score_mean))
-k_fold_std = scores.std()
-print("kFold Scores Std: " + str(k_fold_std))
+# K fold for training data
+executeKFoldValidation(training_data, training_labels, epochs, batch_size, run_k_fold_validation)
 
 # Plot run metrics
 acc = history.history['acc']
@@ -190,7 +206,6 @@ plt.title('Training and validation accuracy')
 plt.legend()
 plt.show()
 train_val_accuracy_figure.savefig('../Results/TrainingValidationAccuracy.png')
-
 
 # Losses
 train_val_loss_figure = plt.figure()
@@ -221,7 +236,7 @@ layer_names = []
 for layer in classifier.layers[:12]:
     layer_names.append(layer.name)
 
-images_per_row = 1
+images_per_row = 3
 for layer_name, layer_activation in zip(layer_names, activations):
     number_of_features = layer_activation.shape[-1]
     size = layer_activation.shape[1]
@@ -238,12 +253,20 @@ for layer_name, layer_activation in zip(layer_names, activations):
             display_grid[col * size: (col + 1) * size, row * size: (row + 1) * size] = channel_image
     scale = 1. / size
     activations_figure = plt.figure(figsize=(scale * display_grid.shape[1],
-                        scale * display_grid.shape[0]))
+                                             scale * display_grid.shape[0]))
     plt.title(layer_name)
     plt.grid(False)
     plt.imshow(display_grid, aspect='auto', cmap='viridis')
     plt.show()
     activations_figure.savefig('../Results/Activation_%s.png' % layer_name)
+
+# Classifier evaluation
+test_pos = getPositiveImages('Testing/Positive', max_num_testing, image_shape)
+test_neg = getNegativeImages('Testing/Negative', max_num_testing, image_shape)
+testing_data, testing_labels = makeImageSet(test_pos, test_neg)
+scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
+print("Test loss: %s" % scores[0])
+print("Test accuracy: %s" % scores[1])
 
 # Collect & test known 47
 correctly_predicted_count_47 = 0
@@ -268,3 +291,11 @@ for known_image in known_84_images:
     if predicted_class[0] == 1:
         correctly_predicted_count_84 += 1
 print("%s/84 known images correctly predicted" % correctly_predicted_count_84)
+
+# K-Fold for known 47
+known_47_data, known_47_labels = makeImageSet(known_47_images)
+executeKFoldValidation(known_47_data, known_47_labels, epochs, batch_size, run_k_fold_validation)
+
+# K-Fold for known 84
+known_84_data, known_84_labels = makeImageSet(known_84_images)
+executeKFoldValidation(known_84_data, known_84_labels, epochs, batch_size, run_k_fold_validation)
