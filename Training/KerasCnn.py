@@ -15,6 +15,7 @@ max_num_training = 1000  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.1  # A float value between 0 and 1 that determines what percentage of the training data is used
 # for validation.
+k_fold_num = 10
 image_shape = (100, 100, 3)
 
 
@@ -167,10 +168,9 @@ history = classifier.fit(training_data,
 classifier.load_weights('best_weights.hdf5')
 classifier.save_weights('galaxies_cnn.h5')
 
-k_fold_num = 10
-random_state = 0
+# Run K-fold validation
 scores = cross_val_score(classifier, training_data, training_labels, scoring='accuracy', cv=k_fold_num)
-score_mean = scores.mean()*100
+score_mean = scores.mean() * 100
 print("kFold Scores Mean: " + str(score_mean))
 k_fold_std = scores.std()
 print("kFold Scores Std: " + str(k_fold_std))
@@ -183,27 +183,31 @@ val_loss = history.history['val_loss']
 epochs = range(1, len(acc) + 1)
 
 # Accuracies
-plt.figure()
+train_val_accuracy_figure = plt.figure()
 plt.plot(epochs, acc, 'bo', label='Training acc')
 plt.plot(epochs, val_acc, 'b', label='Validation acc')
 plt.title('Training and validation accuracy')
 plt.legend()
 plt.show()
+train_val_accuracy_figure.savefig('../Results/TrainingValidationAccuracy.png')
+
 
 # Losses
-plt.figure()
+train_val_loss_figure = plt.figure()
 plt.plot(epochs, loss, 'bo', label='Training loss')
 plt.plot(epochs, val_loss, 'b', label='Validation loss')
 plt.title('Training and validation loss')
 plt.legend()
 plt.show()
+train_val_loss_figure.savefig('../Results/TrainingValidationLoss.png')
 
 # Plot original image
 img_tensor = getPositiveImages('Training/Positive', 1, input_shape=image_shape)
-plt.figure()
+positive_train_figure = plt.figure()
 plt.imshow(img_tensor[0])
 plt.show()
 print(img_tensor.shape)
+positive_train_figure.savefig('../Results/PositiveTrainingFigure.png')
 
 # Run prediction on that image
 predicted_class = classifier.predict_classes(img_tensor, batch_size=10)
@@ -233,12 +237,13 @@ for layer_name, layer_activation in zip(layer_names, activations):
             channel_image = numpy.clip(channel_image, 0, 255).astype('uint8')
             display_grid[col * size: (col + 1) * size, row * size: (row + 1) * size] = channel_image
     scale = 1. / size
-    plt.figure(figsize=(scale * display_grid.shape[1],
+    activations_figure = plt.figure(figsize=(scale * display_grid.shape[1],
                         scale * display_grid.shape[0]))
     plt.title(layer_name)
     plt.grid(False)
     plt.imshow(display_grid, aspect='auto', cmap='viridis')
     plt.show()
+    activations_figure.savefig('../Results/Activation_%s.png' % layer_name)
 
 # Collect & test known 47
 correctly_predicted_count_47 = 0
@@ -263,7 +268,3 @@ for known_image in known_84_images:
     if predicted_class[0] == 1:
         correctly_predicted_count_84 += 1
 print("%s/84 known images correctly predicted" % correctly_predicted_count_84)
-
-# neural_network = KerasClassifier(build_fn=buildClassifier,
-#                                  epochs=20,
-#                                  verbose=0)
