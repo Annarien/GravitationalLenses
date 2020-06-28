@@ -4,6 +4,7 @@ import numpy
 from matplotlib import pyplot as plt
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
+from sklearn.model_selection import cross_val_score
 from tensorflow.python.keras import Sequential
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.callbacks import ModelCheckpoint, EarlyStopping
@@ -103,6 +104,41 @@ def makeImageSet(positive_images, negative_images):
     return numpy.array(image_set), numpy.array(label_set)
 
 
+def buildClassifier(input_shape=(100, 100, 3)):
+    # Initialising the CNN
+    classifier = Sequential()
+    classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
+    classifier.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(Dropout(0.5))  # antes era 0.25
+    # Adding a third convolutional layer
+    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(Dropout(0.5))  # antes era 0.25
+    # Step 3 - Flattening
+    classifier.add(Flatten())
+    # Step 4 - Full connection
+    classifier.add(Dense(units=512, activation='relu'))
+    classifier.add(Dropout(0.5))
+    classifier.add(Dense(units=1, activation='softmax'))
+    classifier.summary()
+
+    # Compiling the CNN
+    classifier.compile(optimizer='rmsprop',
+                       loss='binary_crossentropy',
+                       metrics=['accuracy'])
+    return classifier
+
+
+# __________________________________________________________________________
+# MAIN
+
+
 # Get positive training data
 train_pos = getPositiveImages('Training/Positive', max_num_training, input_shape=image_shape)
 
@@ -111,39 +147,7 @@ train_neg = getNegativeImages('Training/Negative', max_num_training, input_shape
 
 training_data, training_labels = makeImageSet(train_pos, train_neg)
 
-# Initialising the CNN
-classifier = Sequential()
-
-# Step 1 - Convolution
-classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=image_shape, padding='same'))
-classifier.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
-classifier.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
-classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
-classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-classifier.add(Dropout(0.5))  # antes era 0.25
-
-# Adding a third convolutional layer
-classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
-classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-classifier.add(Dropout(0.5))  # antes era 0.25
-
-# Step 3 - Flattening
-classifier.add(Flatten())
-
-# Step 4 - Full connection
-classifier.add(Dense(units=512, activation='relu'))
-classifier.add(Dropout(0.5))
-classifier.add(Dense(units=1, activation='softmax'))
-
-classifier.summary()
-
-# Compiling the CNN
-classifier.compile(optimizer='rmsprop',
-                   loss='binary_crossentropy',
-                   metrics=['accuracy'])
+classifier = buildClassifier()
 
 model_checkpoint = ModelCheckpoint(filepath="best_weights.hdf5",
                                    monitor='val_acc',
@@ -162,6 +166,14 @@ history = classifier.fit(training_data,
 
 classifier.load_weights('best_weights.hdf5')
 classifier.save_weights('galaxies_cnn.h5')
+
+k_fold_num = 10
+random_state = 0
+scores = cross_val_score(classifier, training_data, training_labels, scoring='accuracy', cv=k_fold_num)
+score_mean = scores.mean()*100
+print("kFold Scores Mean: " + str(score_mean))
+k_fold_std = scores.std()
+print("kFold Scores Std: " + str(k_fold_std))
 
 # Plot run metrics
 acc = history.history['acc']
@@ -251,3 +263,7 @@ for known_image in known_84_images:
     if predicted_class[0] == 1:
         correctly_predicted_count_84 += 1
 print("%s/84 known images correctly predicted" % correctly_predicted_count_84)
+
+# neural_network = KerasClassifier(build_fn=buildClassifier,
+#                                  epochs=20,
+#                                  verbose=0)
