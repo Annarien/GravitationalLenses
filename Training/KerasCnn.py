@@ -213,7 +213,9 @@ def visualiseActivations(img_tensor, base_dir):
 
 
 # Get positive training data
-train_pos = getPositiveImages('Training/Positive', max_num_training, input_shape=image_shape)
+# train_pos = getPositiveImages('Training/Positive', max_num_training, input_shape=image_shape)
+train_pos = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
+
 # excel_headers = excel_headers.append("Train_Positive_Shape")
 # excel_dictionary = excel_dictionary.append({'Train_Positive_Shape': train_pos.shape})
 excel_headers.append("Train_Positive_Shape")
@@ -313,7 +315,7 @@ if not os.path.exists('../Results/NegativeResults/'):
     os.mkdir('../Results/NegativeResults/')
 
 # Plot original positive image
-img_positive_tensor = getPositiveImages('Training/Positive', 1, input_shape=image_shape)
+img_positive_tensor = getPositiveImages('Training/Positive3000', 1, input_shape=image_shape)
 positive_train_figure = plt.figure()
 plt.imshow(img_positive_tensor[0])
 plt.show()
