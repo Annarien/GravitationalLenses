@@ -43,7 +43,8 @@ rs = 0
 
 source_random_table, lens_random_table = cutCosmosTable(cosmos)
 
-for i in range(0, len(numbers_train_neg)):
+for i in range(0,0):
+# for i in range(0, len(numbers_train_neg)):
     num = numbers_train_neg[i]
 
     random_row = np.random.randint(0, len(lens_random_table))
