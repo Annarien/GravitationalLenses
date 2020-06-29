@@ -48,9 +48,9 @@ for i in range(0, len(numbers_train_neg)):
 
     random_row = np.random.randint(0, len(lens_random_table))
     print('Random row number was %i' % random_row)
-    g_ml = (lens_random_table['Gmag'][random_row]) - 2  # ml in g band
-    r_ml = (lens_random_table['Rmag'][random_row]) - 2  # ml in r band
-    i_ml = (lens_random_table['Imag'][random_row]) - 2  # ml in i band
+    g_ml = (lens_random_table['Gmag'][random_row])  # ml in g band, changed this from -2 to 0
+    r_ml = (lens_random_table['Rmag'][random_row])  # ml in r band
+    i_ml = (lens_random_table['Imag'][random_row])  # ml in i band
 
     random_row = np.random.randint(0, len(source_random_table))
     print('Random row number was %i' % random_row)
@@ -76,21 +76,23 @@ for i in range(0, len(numbers_train_neg)):
     rs = float(random.uniform(1, 2))  # Half-light radius of the source, in arcsec.
 
     train_sky = 'Training/DESSky'
-    train_positive_noiseless = 'Training/PositiveNoiseless'
-    train_positive = 'Training/Positive'
+    train_positive_noiseless = 'Training/PositiveNoiseless3000'
+    train_positive = 'Training/Positive3000'
 
     makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, train_positive_noiseless)
     addSky(num, train_positive_noiseless, train_sky, train_positive)
     normalise(num, train_positive)
 
-for i in range(0, len(numbers_test_neg)):
+
+# for i in range(0, len(numbers_test_neg)):
+for i in range(0, 3000):
     num = numbers_test_neg[i]
 
     random_row = np.random.randint(0, len(lens_random_table))
     print('Random row number was %i' % random_row)
-    g_ml = (lens_random_table['Gmag'][random_row]) - 2  # ml in g band
-    r_ml = (lens_random_table['Rmag'][random_row]) - 2  # ml in r band
-    i_ml = (lens_random_table['Imag'][random_row]) - 2  # ml in i band
+    g_ml = (lens_random_table['Gmag'][random_row])   # ml in g band
+    r_ml = (lens_random_table['Rmag'][random_row])   # ml in r band
+    i_ml = (lens_random_table['Imag'][random_row])   # ml in i band
 
     random_row = np.random.randint(0, len(source_random_table))
     print('Random row number was %i' % random_row)
@@ -116,8 +118,8 @@ for i in range(0, len(numbers_test_neg)):
     rs = float(random.uniform(1, 2))  # Half-light radius of the source, in arcsec.
 
     test_sky = 'Testing/DESSky'
-    test_positive_noiseless = 'Testing/PositiveNoiseless'
-    test_positive = 'Testing/Positive'
+    test_positive_noiseless = 'Testing/PositiveNoiseless3000'
+    test_positive = 'Testing/Positive3000'
 
     makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, test_positive_noiseless)
     addSky(num, test_positive_noiseless, test_sky, test_positive)
