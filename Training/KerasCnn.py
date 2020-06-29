@@ -17,10 +17,10 @@ from ExcelUtils import createExcelSheet, writeToFile
 excel_headers = []
 excel_dictionary = []
 
-max_num_training = 1000  # Set to sys.maxsize when running entire data set
+max_num_training = 3000  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
-validation_split = 0.1  # A float value between 0 and 1 that determines what percentage of the training
+validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
 k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
@@ -137,8 +137,8 @@ def buildClassifier(input_shape=(100, 100, 3)):
     # Step 3 - Flattening
     classifier.add(Flatten())
     # Step 4 - Full connection
-    # classifier.add(Dense(units=512, activation='relu'))
-    # classifier.add(Dropout(0.5))
+    classifier.add(Dense(units=512, activation='relu'))
+    classifier.add(Dropout(0.5))
     classifier.add(Dense(units=1, activation='sigmoid'))
     classifier.summary()
 
@@ -222,8 +222,8 @@ excel_headers.append("Train_Positive_Shape")
 excel_dictionary.append({'Train_Positive_Shape': train_pos.shape})
 
 
-real_pos = getUnseenData('UnseenData/Known47', 1, input_shape=image_shape)
-train_pos = numpy.vstack((train_pos, real_pos))
+# real_pos = getUnseenData('UnseenData/Known47', 1, input_shape=image_shape)
+# train_pos = numpy.vstack((train_pos, real_pos))
 
 # Get negative training data
 train_neg = getNegativeImages('Training/Negative', max_num_training, input_shape=image_shape)
@@ -350,9 +350,9 @@ excel_headers.append("Test_Accuracy")
 excel_dictionary.append({'Test_Accuracy': scores[1]})
 
 # Evaluate 1 known 47 from above
-image_47, _ = makeImageSet(real_pos)
-predicted_class = classifier.predict_classes(image_47, batch_size=batch_size)
-print("Predicted class for real image from 47 is: %s" % predicted_class)
+# image_47, _ = makeImageSet(real_pos)
+# predicted_class = classifier.predict_classes(image_47, batch_size=batch_size)
+# print("Predicted class for real image from 47 is: %s" % predicted_class)
 
 # Evaluate known 47 with negative 47
 known_47_images = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=image_shape)
