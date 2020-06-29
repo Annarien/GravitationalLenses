@@ -1,28 +1,35 @@
 import os
 import sys
 import numpy
+from csv import writer
 from matplotlib import pyplot as plt
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, train_test_split
 from tensorflow.python.keras import Sequential
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.callbacks import ModelCheckpoint, EarlyStopping
-from tensorflow.python.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense
+# from tensorflow.python.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense
 from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
+from tensorflow.python.keras.layers.core import Dense, Dropout, Flatten
+from tensorflow.python.keras.layers.convolutional import Conv2D, MaxPooling2D
+from ExcelUtils import createExcelSheet, writeToFile
 
 # Globals
-max_num_training = 1000             # Set to sys.maxsize when running entire data set
-max_num_testing = sys.maxsize       # Set to sys.maxsize when running entire data set
-max_num_prediction = sys.maxsize    # Set to sys.maxsize when running entire data set
-validation_split = 0.1              # A float value between 0 and 1 that determines what percentage of the training
-                                    # data is used for validation.
-k_fold_num = 5                      # A number between 1 and 10 that determines how many times the k-fold classifier
-                                    # is trained.
-epochs = 20                         # A number that dictates how many iterations should be run to train the classifier
-batch_size = 100                    # The number of items batched together during training.
-run_k_fold_validation = False       # Set this to True if you want to run K-Fold validation as well.
-image_shape = (100, 100, 3)         # The shape of the images being learned & evaluated.
+excel_headers = []
+excel_dictionary = []
+
+max_num_training = 1000  # Set to sys.maxsize when running entire data set
+max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
+validation_split = 0.1  # A float value between 0 and 1 that determines what percentage of the training
+# data is used for validation.
+k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
+# is trained.
+epochs = 20  # A number that dictates how many iterations should be run to train the classifier
+batch_size = 10  # The number of items batched together during training.
+run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
+image_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 
 
 # Helper methods
@@ -132,19 +139,21 @@ def buildClassifier(input_shape=(100, 100, 3)):
     # Step 3 - Flattening
     classifier.add(Flatten())
     # Step 4 - Full connection
-    classifier.add(Dense(units=512, activation='relu'))
-    classifier.add(Dropout(0.5))
-    classifier.add(Dense(units=1, activation='softmax'))
+    # classifier.add(Dense(units=512, activation='relu'))
+    # classifier.add(Dropout(0.5))
+    classifier.add(Dense(units=1, activation='sigmoid'))
     classifier.summary()
 
     # Compiling the CNN
-    classifier.compile(optimizer='rmsprop',
+    classifier.compile(optimizer='adam',
                        loss='binary_crossentropy',
                        metrics=['accuracy'])
     return classifier
 
 
-def executeKFoldValidation(data, labels, num_of_epochs, classifier_batch_size, should_run_k_fold):
+def executeKFoldValidation(data, labels, num_of_epochs, classifier_batch_size, should_run_k_fold, excel_headers,
+                           excel_dictionary):
+    global k_fold_std
     if should_run_k_fold:
         neural_network = KerasClassifier(build_fn=buildClassifier,
                                          epochs=num_of_epochs,
@@ -155,6 +164,51 @@ def executeKFoldValidation(data, labels, num_of_epochs, classifier_batch_size, s
         k_fold_std = k_fold_scores.std()
         print("kFold Scores Std: " + str(k_fold_std))
 
+        excel_headers.append("K-Fold_Mean")
+        excel_dictionary.append({'K-Fold_Mean': score_mean})
+        excel_headers.append("K-Fold_Std")
+        excel_dictionary.append({'K-Fold_Std': k_fold_std})
+
+
+def visualiseActivations(img_tensor, base_dir):
+    global predicted_class, size
+    # Run prediction on that image
+    predicted_class = classifier.predict_classes(img_tensor, batch_size=10)
+    # predicted_prob = classifier.predict(img_tensor)
+    print("Predicted class is: ", predicted_class)
+    # print("Predicted Prob is: ", predicted_prob)
+    # Visualize activations
+    layer_outputs = [layer.output for layer in classifier.layers[:12]]
+    activation_model = Model(inputs=classifier.input, outputs=layer_outputs)
+    activations = activation_model.predict(img_tensor)
+    layer_names = []
+    for layer in classifier.layers[:12]:
+        layer_names.append(layer.name)
+    images_per_row = 3
+    count = 0
+    for layer_name, layer_activation in zip(layer_names, activations):
+        number_of_features = layer_activation.shape[-1]
+        size = layer_activation.shape[1]
+        number_of_columns = number_of_features // images_per_row
+        display_grid = numpy.zeros((size * number_of_columns, images_per_row * size))
+        for col in range(number_of_columns):
+            for row in range(images_per_row):
+                channel_image = layer_activation[0, :, :, col * images_per_row + row]
+                channel_image -= channel_image.mean()
+                channel_image /= channel_image.std()
+                channel_image *= 64
+                channel_image += 128
+                channel_image = numpy.clip(channel_image, 0, 255).astype('uint8')
+                display_grid[col * size: (col + 1) * size, row * size: (row + 1) * size] = channel_image
+        scale = 1. / size
+        activations_figure = plt.figure(figsize=(scale * display_grid.shape[1],
+                                                 scale * display_grid.shape[0]))
+        plt.title(layer_name)
+        plt.grid(False)
+        plt.imshow(display_grid, aspect='auto', cmap='viridis')
+        plt.show()
+        activations_figure.savefig('%s/%s_Activation_%s.png' % (base_dir, count, layer_name))
+        count += 1
 
 # __________________________________________________________________________
 # MAIN
@@ -162,11 +216,29 @@ def executeKFoldValidation(data, labels, num_of_epochs, classifier_batch_size, s
 
 # Get positive training data
 train_pos = getPositiveImages('Training/Positive', max_num_training, input_shape=image_shape)
+# excel_headers = excel_headers.append("Train_Positive_Shape")
+# excel_dictionary = excel_dictionary.append({'Train_Positive_Shape': train_pos.shape})
+excel_headers.append("Train_Positive_Shape")
+excel_dictionary.append({'Train_Positive_Shape': train_pos.shape})
+
+
+real_pos = getUnseenData('UnseenData/Known47', 1, input_shape=image_shape)
+train_pos = numpy.vstack((train_pos, real_pos))
 
 # Get negative training data
 train_neg = getNegativeImages('Training/Negative', max_num_training, input_shape=image_shape)
+excel_headers.append("Train_Negative_Shape")
+excel_dictionary.append({'Train_Negative_Shape': train_neg.shape})
 
-training_data, training_labels = makeImageSet(train_pos, train_neg)
+all_training_data, all_training_labels = makeImageSet(train_pos, train_neg)
+training_data, val_data, training_labels, val_labels = train_test_split(all_training_data,
+                                                                        all_training_labels,
+                                                                        test_size=validation_split,
+                                                                        shuffle=True)
+excel_headers.append("All_Training_Data_Shape")
+excel_dictionary.append({'All_Training_Data_Shape': all_training_labels.shape})
+excel_headers.append("All_Training_Labels_Shape")
+excel_dictionary.append({'All_Training_Labels_Shape': all_training_labels.shape})
 
 classifier = buildClassifier()
 
@@ -174,22 +246,32 @@ model_checkpoint = ModelCheckpoint(filepath="best_weights.hdf5",
                                    monitor='val_acc',
                                    save_best_only=True)
 
-early_stopping = EarlyStopping(monitor='val_acc', patience=2)
+early_stopping = EarlyStopping(monitor='val_loss', patience=3)
 
 history = classifier.fit(training_data,
                          training_labels,
                          epochs=epochs,
-                         steps_per_epoch=100,
-                         callbacks=[model_checkpoint, early_stopping],
-                         validation_split=validation_split,
-                         validation_steps=50,
-                         shuffle=True)
+                         batch_size=batch_size,
+                         validation_data=(val_data, val_labels),
+                         callbacks=[model_checkpoint, early_stopping])
 
 classifier.load_weights('best_weights.hdf5')
 classifier.save_weights('galaxies_cnn.h5')
 
+excel_headers.append("Epochs")
+excel_dictionary.append({'Epochs': epochs})
+excel_headers.append("Batch_size")
+excel_dictionary.append({'Batch_size': batch_size})
+
+
 # K fold for training data
-executeKFoldValidation(training_data, training_labels, epochs, batch_size, run_k_fold_validation)
+executeKFoldValidation(training_data,
+                       training_labels,
+                       epochs,
+                       batch_size,
+                       run_k_fold_validation,
+                       excel_headers,
+                       excel_dictionary)
 
 # Plot run metrics
 acc = history.history['acc']
@@ -200,8 +282,8 @@ epochs = range(1, len(acc) + 1)
 
 # Accuracies
 train_val_accuracy_figure = plt.figure()
-plt.plot(epochs, acc, 'bo', label='Training acc')
-plt.plot(epochs, val_acc, 'b', label='Validation acc')
+plt.plot(epochs, acc, label='Training acc')
+plt.plot(epochs, val_acc, label='Validation acc')
 plt.title('Training and validation accuracy')
 plt.legend()
 plt.show()
@@ -209,56 +291,41 @@ train_val_accuracy_figure.savefig('../Results/TrainingValidationAccuracy.png')
 
 # Losses
 train_val_loss_figure = plt.figure()
-plt.plot(epochs, loss, 'bo', label='Training loss')
-plt.plot(epochs, val_loss, 'b', label='Validation loss')
+plt.plot(epochs, loss, label='Training loss')
+plt.plot(epochs, val_loss, label='Validation loss')
 plt.title('Training and validation loss')
 plt.legend()
 plt.show()
 train_val_loss_figure.savefig('../Results/TrainingValidationLoss.png')
 
-# Plot original image
-img_tensor = getPositiveImages('Training/Positive', 1, input_shape=image_shape)
+# make positive and negative directory
+if not os.path.exists('../Results/PositiveResults/'):
+    os.mkdir('../Results/PositiveResults/')
+
+if not os.path.exists('../Results/NegativeResults/'):
+    os.mkdir('../Results/NegativeResults/')
+
+# Plot original positive image
+img_positive_tensor = getPositiveImages('Training/Positive', 1, input_shape=image_shape)
 positive_train_figure = plt.figure()
-plt.imshow(img_tensor[0])
+plt.imshow(img_positive_tensor[0])
 plt.show()
-print(img_tensor.shape)
-positive_train_figure.savefig('../Results/PositiveTrainingFigure.png')
+print(img_positive_tensor.shape)
+positive_train_figure.savefig('../Results/PositiveResults/PositiveTrainingFigure.png')
 
-# Run prediction on that image
-predicted_class = classifier.predict_classes(img_tensor, batch_size=10)
-print("Predicted class is: ", predicted_class)
+# Visualise Activations of positive image
+visualiseActivations(img_positive_tensor, base_dir='../Results/PositiveResults/')
 
-# Visualize activations
-layer_outputs = [layer.output for layer in classifier.layers[:12]]
-activation_model = Model(inputs=classifier.input, outputs=layer_outputs)
-activations = activation_model.predict(img_tensor)
-layer_names = []
-for layer in classifier.layers[:12]:
-    layer_names.append(layer.name)
+# Plot original negative image
+img_negative_tensor = getNegativeImages('Training/Negative', 1, input_shape=image_shape)
+negative_train_figure = plt.figure()
+plt.imshow(img_negative_tensor[0])
+plt.show()
+print(img_negative_tensor.shape)
+negative_train_figure.savefig('../Results/NegativeResults/NegativeTrainingFigure.png')
 
-images_per_row = 3
-for layer_name, layer_activation in zip(layer_names, activations):
-    number_of_features = layer_activation.shape[-1]
-    size = layer_activation.shape[1]
-    number_of_columns = number_of_features // images_per_row
-    display_grid = numpy.zeros((size * number_of_columns, images_per_row * size))
-    for col in range(number_of_columns):
-        for row in range(images_per_row):
-            channel_image = layer_activation[0, :, :, col * images_per_row + row]
-            channel_image -= channel_image.mean()
-            channel_image /= channel_image.std()
-            channel_image *= 64
-            channel_image += 128
-            channel_image = numpy.clip(channel_image, 0, 255).astype('uint8')
-            display_grid[col * size: (col + 1) * size, row * size: (row + 1) * size] = channel_image
-    scale = 1. / size
-    activations_figure = plt.figure(figsize=(scale * display_grid.shape[1],
-                                             scale * display_grid.shape[0]))
-    plt.title(layer_name)
-    plt.grid(False)
-    plt.imshow(display_grid, aspect='auto', cmap='viridis')
-    plt.show()
-    activations_figure.savefig('../Results/Activation_%s.png' % layer_name)
+# Visualise Activations of negative image
+visualiseActivations(img_negative_tensor, base_dir='../Results/NegativeResults/')
 
 # Classifier evaluation
 test_pos = getPositiveImages('Testing/Positive', max_num_testing, image_shape)
@@ -268,34 +335,74 @@ scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size
 print("Test loss: %s" % scores[0])
 print("Test accuracy: %s" % scores[1])
 
-# Collect & test known 47
-correctly_predicted_count_47 = 0
-known_47_images = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=image_shape)
-for known_image in known_47_images:
-    known_image = known_image.reshape(1, known_image.shape[0], known_image.shape[1], known_image.shape[2])
-    # Run prediction on that image
-    predicted_class = classifier.predict_classes(known_image, batch_size=10)
-    print("Predicted class is: ", predicted_class)
-    if predicted_class[0] == 1:
-        correctly_predicted_count_47 += 1
-print("%s/47 known images correctly predicted" % correctly_predicted_count_47)
+excel_headers.append("Test_Loss")
+excel_dictionary.append({'Test_Loss': scores[0]})
+excel_headers.append("Test_Accuracy")
+excel_dictionary.append({'Test_Accuracy': scores[1]})
 
-# Collect & test known 84
-correctly_predicted_count_84 = 0
+# Evaluate 1 known 47 from above
+image_47, _ = makeImageSet(real_pos)
+predicted_class = classifier.predict_classes(image_47, batch_size=batch_size)
+print("Predicted class for real image from 47 is: %s" % predicted_class)
+
+# Evaluate known 47 with negative 47
+known_47_images = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=image_shape)
+negative_47_images = getUnseenData('UnseenData/Negative', 47, input_shape=image_shape)
+images_47, _ = makeImageSet(known_47_images, negative_47_images)
+
+predicted_class_probabilities_47 = classifier.predict_classes(images_47, batch_size=batch_size)
+print("Predicted classes: %s", predicted_class_probabilities_47)
+# predicted_class_probabilities_47 = numpy.round(predicted_class_probabilities_47)
+lens_predicted_count_47 = numpy.count_nonzero(predicted_class_probabilities_47 == 1)
+non_lens_predicted_count_47 = numpy.count_nonzero(predicted_class_probabilities_47 == 0)
+print("%s/47 known images correctly predicted" % lens_predicted_count_47)
+print("%s/47 non lensed images correctly predicted" % non_lens_predicted_count_47)
+
+
+excel_headers.append("Predicted_Lens_47")
+excel_dictionary.append({'Predicted_Lens_47': lens_predicted_count_47})
+excel_headers.append("Predicted_No_Lens_47")
+excel_dictionary.append({'Predicted_No_Lens_47': non_lens_predicted_count_47})
+
+# Evaluate known 84 with negative 84
 known_84_images = getUnseenData('UnseenData/Known84', max_num_prediction, input_shape=image_shape)
-for known_image in known_84_images:
-    known_image = known_image.reshape(1, known_image.shape[0], known_image.shape[1], known_image.shape[2])
-    # Run prediction on that image
-    predicted_class = classifier.predict_classes(known_image, batch_size=10)
-    print("Predicted class is: ", predicted_class)
-    if predicted_class[0] == 1:
-        correctly_predicted_count_84 += 1
-print("%s/84 known images correctly predicted" % correctly_predicted_count_84)
+negative_84_images = getUnseenData('UnseenData/Negative', 84, input_shape=image_shape)
+images_84, _ = makeImageSet(known_84_images, negative_84_images)
+
+predicted_class_probabilities_84 = classifier.predict_classes(images_84, batch_size=batch_size)
+print("Predicted classes: %s", predicted_class_probabilities_84)
+# predicted_class_probabilities_84 = numpy.round(predicted_class_probabilities_84)
+lens_predicted_count_84 = numpy.count_nonzero(predicted_class_probabilities_84 == 1)
+non_lens_predicted_count_84 = numpy.count_nonzero(predicted_class_probabilities_84 == 0)
+print("%s/84 known images correctly predicted" % lens_predicted_count_84)
+print("%s/84 non lensed images correctly predicted" % non_lens_predicted_count_84)
+
+
+excel_headers.append("Predicted_Lens_84")
+excel_dictionary.append({'Predicted_Lens_84': lens_predicted_count_84})
+excel_headers.append("Predicted_No_Lens_84")
+excel_dictionary.append({'Predicted_No_Lens_84': non_lens_predicted_count_84})
 
 # K-Fold for known 47
 known_47_data, known_47_labels = makeImageSet(known_47_images)
-executeKFoldValidation(known_47_data, known_47_labels, epochs, batch_size, run_k_fold_validation)
+executeKFoldValidation(known_47_data,
+                       known_47_labels,
+                       epochs,
+                       batch_size,
+                       run_k_fold_validation,
+                       excel_headers,
+                       excel_dictionary)
 
 # K-Fold for known 84
 known_84_data, known_84_labels = makeImageSet(known_84_images)
-executeKFoldValidation(known_84_data, known_84_labels, epochs, batch_size, run_k_fold_validation)
+executeKFoldValidation(known_84_data,
+                       known_84_labels,
+                       epochs,
+                       batch_size,
+                       run_k_fold_validation,
+                       excel_headers,
+                       excel_dictionary)
+
+# add row to excel table
+createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
+writeToFile('../Results/kerasCNN_Results.csv', excel_dictionary)
