@@ -1,7 +1,6 @@
 import os
 import sys
 import numpy
-from csv import writer
 from matplotlib import pyplot as plt
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
@@ -9,7 +8,6 @@ from sklearn.model_selection import cross_val_score, train_test_split
 from tensorflow.python.keras import Sequential
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.callbacks import ModelCheckpoint, EarlyStopping
-# from tensorflow.python.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense
 from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
 from tensorflow.python.keras.layers.core import Dense, Dropout, Flatten
 from tensorflow.python.keras.layers.convolutional import Conv2D, MaxPooling2D
@@ -239,6 +237,16 @@ excel_headers.append("All_Training_Data_Shape")
 excel_dictionary.append({'All_Training_Data_Shape': all_training_labels.shape})
 excel_headers.append("All_Training_Labels_Shape")
 excel_dictionary.append({'All_Training_Labels_Shape': all_training_labels.shape})
+excel_headers.append("Training_Data_Shape")
+excel_dictionary.append({'Training_Data_Shape': training_data.shape})
+excel_headers.append("Validation_Data_Shape")
+excel_dictionary.append({'Validation_Data_Shape': val_data.shape})
+excel_headers.append("Training_Labels_Shape")
+excel_dictionary.append({'Training_Labels_Shape': training_labels.shape})
+excel_headers.append("Validation_Labels_Shape")
+excel_dictionary.append({'Validation_Labels_Shape': val_labels.shape})
+excel_headers.append("Validation_Split")
+excel_dictionary.append({'Validation_Split': validation_split})
 
 classifier = buildClassifier()
 
@@ -262,7 +270,6 @@ excel_headers.append("Epochs")
 excel_dictionary.append({'Epochs': epochs})
 excel_headers.append("Batch_size")
 excel_dictionary.append({'Batch_size': batch_size})
-
 
 # K fold for training data
 executeKFoldValidation(training_data,
