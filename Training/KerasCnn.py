@@ -220,8 +220,8 @@ def visualiseActivations(img_tensor, base_dir):
 # Get positive training data
 # train_pos = getPositiveImages('Training/Positive', max_num_training, input_shape=image_shape)
 train_positive = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
-train_47 = getUnseenData('UnseenData/Known47', 5, input_shape=image_shape)
-train_84 = getUnseenData('UnseenData/Known84', 5, input_shape=image_shape)
+train_47 = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=image_shape)
+train_84 = getUnseenData('UnseenData/Known84', max_num_prediction, input_shape=image_shape)
 
 train_pos = np.vstack((train_positive, train_47, train_84))
 
@@ -368,7 +368,6 @@ images_47, _ = makeImageSet(known_47_images, negative_47_images)
 
 predicted_class_probabilities_47 = classifier.predict_classes(images_47, batch_size=batch_size)
 print("Predicted classes: %s", predicted_class_probabilities_47)
-# predicted_class_probabilities_47 = np.round(predicted_class_probabilities_47)
 lens_predicted_count_47 = np.count_nonzero(predicted_class_probabilities_47 == 1)
 non_lens_predicted_count_47 = np.count_nonzero(predicted_class_probabilities_47 == 0)
 print("%s/47 known images correctly predicted" % lens_predicted_count_47)
@@ -387,7 +386,6 @@ images_84, _ = makeImageSet(known_84_images, negative_84_images)
 
 predicted_class_probabilities_84 = classifier.predict_classes(images_84, batch_size=batch_size)
 print("Predicted classes: %s", predicted_class_probabilities_84)
-# predicted_class_probabilities_84 = np.round(predicted_class_probabilities_84)
 lens_predicted_count_84 = np.count_nonzero(predicted_class_probabilities_84 == 1)
 non_lens_predicted_count_84 = np.count_nonzero(predicted_class_probabilities_84 == 0)
 print("%s/84 known images correctly predicted" % lens_predicted_count_84)
