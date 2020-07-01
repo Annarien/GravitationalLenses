@@ -149,7 +149,12 @@ def buildClassifier(input_shape=(100, 100, 3)):
     return classifier
 
 
-def executeKFoldValidation(data, labels, num_of_epochs, classifier_batch_size, should_run_k_fold, excel_headers,
+def executeKFoldValidation(data,
+                           labels,
+                           num_of_epochs,
+                           classifier_batch_size,
+                           should_run_k_fold,
+                           excel_headers,
                            excel_dictionary):
     global k_fold_std
     if should_run_k_fold:
