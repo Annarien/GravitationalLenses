@@ -1,6 +1,6 @@
 import os
 import sys
-import numpy
+import numpy as np
 from matplotlib import pyplot as plt
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
@@ -34,7 +34,7 @@ image_shape = (100, 100, 3)  # The shape of the images being learned & evaluated
 def getPositiveImages(images_dir, max_num, input_shape):
     for root, dirs, _ in os.walk(images_dir):
         num_of_images = min(max_num, len(dirs))
-        positive_images = numpy.zeros([num_of_images, 3, 100, 100])
+        positive_images = np.zeros([num_of_images, 3, 100, 100])
         index = 0
         for folder in dirs:
             g_img_path = get_pkg_data_filename('%s/%s_g_norm.fits' % (os.path.join(root, folder), folder))
@@ -57,7 +57,7 @@ def getPositiveImages(images_dir, max_num, input_shape):
 def getNegativeImages(images_dir, max_num, input_shape):
     for root, dirs, _ in os.walk(images_dir):
         num_of_images = min(max_num, len(dirs))
-        negative_images = numpy.zeros([num_of_images, 3, 100, 100])
+        negative_images = np.zeros([num_of_images, 3, 100, 100])
         index = 0
         for folder in dirs:
             g_img_path = get_pkg_data_filename('%s/g_norm.fits' % (os.path.join(root, folder)))
@@ -81,7 +81,7 @@ def getUnseenData(images_dir, max_num, input_shape):
     for root, dirs, _ in os.walk(images_dir):
         num_of_images = min(max_num, len(dirs))
 
-        unseen_images = numpy.zeros([num_of_images, 3, 100, 100])
+        unseen_images = np.zeros([num_of_images, 3, 100, 100])
         index = 0
         for folder in dirs:
             g_img_path = get_pkg_data_filename('%s/g_norm.fits' % (os.path.join(root, folder)))
@@ -115,7 +115,7 @@ def makeImageSet(positive_images, negative_images=None):
         image_set.append(negative_images[index])
         label_set.append(0)
 
-    return numpy.array(image_set), numpy.array(label_set)
+    return np.array(image_set), np.array(label_set)
 
 
 def buildClassifier(input_shape=(100, 100, 3)):
@@ -193,7 +193,7 @@ def visualiseActivations(img_tensor, base_dir):
         number_of_features = layer_activation.shape[-1]
         size = layer_activation.shape[1]
         number_of_columns = number_of_features // images_per_row
-        display_grid = numpy.zeros((size * number_of_columns, images_per_row * size))
+        display_grid = np.zeros((size * number_of_columns, images_per_row * size))
         for col in range(number_of_columns):
             for row in range(images_per_row):
                 channel_image = layer_activation[0, :, :, col * images_per_row + row]
@@ -201,7 +201,7 @@ def visualiseActivations(img_tensor, base_dir):
                 channel_image /= channel_image.std()
                 channel_image *= 64
                 channel_image += 128
-                channel_image = numpy.clip(channel_image, 0, 255).astype('uint8')
+                channel_image = np.clip(channel_image, 0, 255).astype('uint8')
                 display_grid[col * size: (col + 1) * size, row * size: (row + 1) * size] = channel_image
         scale = 1. / size
         activations_figure = plt.figure(figsize=(scale * display_grid.shape[1],
@@ -219,16 +219,18 @@ def visualiseActivations(img_tensor, base_dir):
 
 # Get positive training data
 # train_pos = getPositiveImages('Training/Positive', max_num_training, input_shape=image_shape)
-train_pos = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
+train_positive = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
+train_47 = getUnseenData('UnseenData/Known47', 5, input_shape=image_shape)
+train_84 = getUnseenData('UnseenData/Known84', 5, input_shape=image_shape)
 
-# excel_headers = excel_headers.append("Train_Positive_Shape")
-# excel_dictionary = excel_dictionary.append({'Train_Positive_Shape': train_pos.shape})
+train_pos = np.vstack((train_positive, train_47, train_84))
+
 excel_headers.append("Train_Positive_Shape")
 excel_dictionary.append({'Train_Positive_Shape': train_pos.shape})
 
 
 # real_pos = getUnseenData('UnseenData/Known47', 1, input_shape=image_shape)
-# train_pos = numpy.vstack((train_pos, real_pos))
+# train_pos = np.vstack((train_pos, real_pos))
 
 # Get negative training data
 train_neg = getNegativeImages('Training/Negative', max_num_training, input_shape=image_shape)
@@ -366,9 +368,9 @@ images_47, _ = makeImageSet(known_47_images, negative_47_images)
 
 predicted_class_probabilities_47 = classifier.predict_classes(images_47, batch_size=batch_size)
 print("Predicted classes: %s", predicted_class_probabilities_47)
-# predicted_class_probabilities_47 = numpy.round(predicted_class_probabilities_47)
-lens_predicted_count_47 = numpy.count_nonzero(predicted_class_probabilities_47 == 1)
-non_lens_predicted_count_47 = numpy.count_nonzero(predicted_class_probabilities_47 == 0)
+# predicted_class_probabilities_47 = np.round(predicted_class_probabilities_47)
+lens_predicted_count_47 = np.count_nonzero(predicted_class_probabilities_47 == 1)
+non_lens_predicted_count_47 = np.count_nonzero(predicted_class_probabilities_47 == 0)
 print("%s/47 known images correctly predicted" % lens_predicted_count_47)
 print("%s/47 non lensed images correctly predicted" % non_lens_predicted_count_47)
 
@@ -385,9 +387,9 @@ images_84, _ = makeImageSet(known_84_images, negative_84_images)
 
 predicted_class_probabilities_84 = classifier.predict_classes(images_84, batch_size=batch_size)
 print("Predicted classes: %s", predicted_class_probabilities_84)
-# predicted_class_probabilities_84 = numpy.round(predicted_class_probabilities_84)
-lens_predicted_count_84 = numpy.count_nonzero(predicted_class_probabilities_84 == 1)
-non_lens_predicted_count_84 = numpy.count_nonzero(predicted_class_probabilities_84 == 0)
+# predicted_class_probabilities_84 = np.round(predicted_class_probabilities_84)
+lens_predicted_count_84 = np.count_nonzero(predicted_class_probabilities_84 == 1)
+non_lens_predicted_count_84 = np.count_nonzero(predicted_class_probabilities_84 == 0)
 print("%s/84 known images correctly predicted" % lens_predicted_count_84)
 print("%s/84 non lensed images correctly predicted" % non_lens_predicted_count_84)
 
