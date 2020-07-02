@@ -219,10 +219,11 @@ def visualiseActivations(img_tensor, base_dir):
 
 # Get positive training data
 # train_pos = getPositiveImages('Training/Positive', max_num_training, input_shape=image_shape)
-train_positive = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
-train_47 = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=image_shape)
-train_84 = getUnseenData('UnseenData/Known84', max_num_prediction, input_shape=image_shape)
-
+train_positive = getPositiveImages('Training/Positive2000_ChangedRIMags', max_num_training, input_shape=image_shape)
+# train_positive = getPositiveImages('Training/Positive2000', max_num_training, input_shape=image_shape)
+train_47 = getUnseenData('UnseenData/Known47', max_num_training, input_shape=image_shape)
+train_84 = getUnseenData('UnseenData/Known84', max_num_training, input_shape=image_shape)
+#
 train_pos = np.vstack((train_positive, train_47, train_84))
 
 excel_headers.append("Train_Positive_Shape")
