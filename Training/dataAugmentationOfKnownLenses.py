@@ -5,10 +5,12 @@
 # get Unseen set
 import os
 import sys
-
+import tensorflow as tf
 from astropy.io import fits
+from matplotlib import pyplot as plt
 from astropy.utils.data import get_pkg_data_filename
 from pandas import np
+from keras.preprocessing.image import ImageDataGenerator
 
 # variable
 max_num_training = 3000  # Set to sys.maxsize when running entire data set
@@ -40,11 +42,21 @@ def getUnseenData(images_dir, max_num, input_shape):
         return unseen_images.reshape(num_of_images, input_shape[0], input_shape[1], input_shape[2])
 
 
+def viewOriginalImage(array_known, file_name):
+    first_original_image = array_known[0]
+    original_image = plt.figure()
+    plt.imshow(first_original_image[0])
+    plt.show()
+    print(first_original_image.shape)
+    original_image.savefig('Training/Original_Image/Original_%s' % file_name)
 
-
-
+def augmentImages():
+    print('Augmenting some stuff')
 
 # ______________________________________________________________________________________________________
 # MAIN
 known_47 = getUnseenData('UnseenData/Known47', max_num_training, input_shape=image_shape)
 known_84 = getUnseenData('UnseenData/Known84', max_num_training, input_shape=image_shape)
+
+viewOriginalImage(known_47, 'known_47')
+viewOriginalImage(known_84, 'known_84')
