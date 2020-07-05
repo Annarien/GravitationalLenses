@@ -27,7 +27,7 @@ k_fold_num = 5  # A number between 1 and 10 that determines how many times the k
 # is trained.
 epochs = 20  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 10  # The number of items batched together during training.
-run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
 image_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 
 
@@ -102,7 +102,7 @@ def getUnseenData(images_dir, max_num, input_shape):
         return unseen_images.reshape(num_of_images, input_shape[0], input_shape[1], input_shape[2])
 
 
-def makeImageSet(positive_images, negative_images=None, shuffle_needed='False'):
+def makeImageSet(positive_images, negative_images=None, shuffle_needed=False):
     if negative_images is None:
         negative_images = []
     image_set = []
@@ -116,7 +116,7 @@ def makeImageSet(positive_images, negative_images=None, shuffle_needed='False'):
         image_set.append(negative_images[index])
         label_set.append(0)
 
-    if shuffle_needed == 'True':
+    if shuffle_needed:
         image_set, label_set = shuffle(image_set, label_set)
 
     return np.array(image_set), np.array(label_set)
@@ -224,12 +224,12 @@ def visualiseActivations(img_tensor, base_dir):
 
 # Get positive training data
 # train_pos = getPositiveImages('Training/Positive', max_num_training, input_shape=image_shape)
-train_pos = getPositiveImages('Training/Positive2000_ChangedIMags', max_num_training, input_shape=image_shape)
-# train_positive = getPositiveImages('Training/Positive2000', max_num_training, input_shape=image_shape)
-# train_47 = getUnseenData('UnseenData/Known47', max_num_training, input_shape=image_shape)
-# train_84 = getUnseenData('UnseenData/Known84', max_num_training, input_shape=image_shape)
+# train_pos = getPositiveImages('Training/Positive2000_ChangedIMags', max_num_training, input_shape=image_shape)
+train_positive = getPositiveImages('Training/Positive2000_ChangedIMags', max_num_training, input_shape=image_shape)
+train_47 = getUnseenData('UnseenData/Known47', 20, input_shape=image_shape)
+train_84 = getUnseenData('UnseenData/Known84', 40, input_shape=image_shape)
 # #
-# train_pos = np.vstack((train_positive, train_47, train_84))
+train_pos = np.vstack((train_positive, train_47, train_84))
 
 excel_headers.append("Train_Positive_Shape")
 excel_dictionary.append({'Train_Positive_Shape': train_pos.shape})
@@ -242,7 +242,7 @@ train_neg = getNegativeImages('Training/Negative', max_num_training, input_shape
 excel_headers.append("Train_Negative_Shape")
 excel_dictionary.append({'Train_Negative_Shape': train_neg.shape})
 
-all_training_data, all_training_labels = makeImageSet(train_pos, train_neg, shuffle_needed='False')
+all_training_data, all_training_labels = makeImageSet(train_pos, train_neg)
 training_data, val_data, training_labels, val_labels = train_test_split(all_training_data,
                                                                         all_training_labels,
                                                                         test_size=validation_split,
@@ -351,7 +351,7 @@ visualiseActivations(img_negative_tensor, base_dir='../Results/NegativeResults/'
 # Classifier evaluation
 test_pos = getPositiveImages('Testing/Positive', max_num_testing, image_shape)
 test_neg = getNegativeImages('Testing/Negative', max_num_testing, image_shape)
-testing_data, testing_labels = makeImageSet(test_pos, test_neg, shuffle_needed='True')
+testing_data, testing_labels = makeImageSet(test_pos, test_neg, shuffle_needed=True)
 # scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
 scores = classifier.evaluate(val_data, val_labels, batch_size=batch_size)
 print("Test loss: %s" % scores[0])
@@ -373,7 +373,7 @@ negative_47_images = getUnseenData('UnseenData/Negative', 47, input_shape=image_
 images_47, _ = makeImageSet(known_47_images, negative_47_images)
 
 predicted_class_probabilities_47 = classifier.predict_classes(images_47, batch_size=batch_size)
-print("Predicted classes: %s", predicted_class_probabilities_47)
+# print("Predicted classes:", predicted_class_probabilities_47)
 lens_predicted_count_47 = np.count_nonzero(predicted_class_probabilities_47 == 1)
 non_lens_predicted_count_47 = np.count_nonzero(predicted_class_probabilities_47 == 0)
 print("%s/47 known images correctly predicted" % lens_predicted_count_47)
@@ -390,7 +390,7 @@ negative_84_images = getUnseenData('UnseenData/Negative', 84, input_shape=image_
 images_84, _ = makeImageSet(known_84_images, negative_84_images)
 
 predicted_class_probabilities_84 = classifier.predict_classes(images_84, batch_size=batch_size)
-print("Predicted classes: %s", predicted_class_probabilities_84)
+# print("Predicted classes:", predicted_class_probabilities_84)
 lens_predicted_count_84 = np.count_nonzero(predicted_class_probabilities_84 == 1)
 non_lens_predicted_count_84 = np.count_nonzero(predicted_class_probabilities_84 == 0)
 print("%s/84 known images correctly predicted" % lens_predicted_count_84)
