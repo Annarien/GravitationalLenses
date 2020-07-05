@@ -12,6 +12,7 @@ from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
 from tensorflow.python.keras.layers.core import Dense, Dropout, Flatten
 from tensorflow.python.keras.layers.convolutional import Conv2D, MaxPooling2D
 from ExcelUtils import createExcelSheet, writeToFile
+from sklearn.utils import shuffle
 
 # Globals
 excel_headers = []
@@ -26,7 +27,7 @@ k_fold_num = 5  # A number between 1 and 10 that determines how many times the k
 # is trained.
 epochs = 20  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 10  # The number of items batched together during training.
-run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 image_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 
 
@@ -101,7 +102,7 @@ def getUnseenData(images_dir, max_num, input_shape):
         return unseen_images.reshape(num_of_images, input_shape[0], input_shape[1], input_shape[2])
 
 
-def makeImageSet(positive_images, negative_images=None):
+def makeImageSet(positive_images, negative_images=None, shuffle_needed='False'):
     if negative_images is None:
         negative_images = []
     image_set = []
@@ -114,6 +115,9 @@ def makeImageSet(positive_images, negative_images=None):
     for index in range(0, len(negative_images)):
         image_set.append(negative_images[index])
         label_set.append(0)
+
+    if shuffle_needed == 'True':
+        image_set, label_set = shuffle(image_set, label_set)
 
     return np.array(image_set), np.array(label_set)
 
@@ -156,7 +160,7 @@ def executeKFoldValidation(data,
                            should_run_k_fold,
                            excel_headers,
                            excel_dictionary):
-    global k_fold_std
+    # global k_fold_std
     if should_run_k_fold:
         neural_network = KerasClassifier(build_fn=buildClassifier,
                                          epochs=num_of_epochs,
@@ -213,6 +217,7 @@ def visualiseActivations(img_tensor, base_dir):
         activations_figure.savefig('%s/%s_Activation_%s.png' % (base_dir, count, layer_name))
         count += 1
 
+
 # __________________________________________________________________________
 # MAIN
 
@@ -229,7 +234,6 @@ train_pos = getPositiveImages('Training/Positive2000_ChangedIMags', max_num_trai
 excel_headers.append("Train_Positive_Shape")
 excel_dictionary.append({'Train_Positive_Shape': train_pos.shape})
 
-
 # real_pos = getUnseenData('UnseenData/Known47', 1, input_shape=image_shape)
 # train_pos = np.vstack((train_pos, real_pos))
 
@@ -238,7 +242,7 @@ train_neg = getNegativeImages('Training/Negative', max_num_training, input_shape
 excel_headers.append("Train_Negative_Shape")
 excel_dictionary.append({'Train_Negative_Shape': train_neg.shape})
 
-all_training_data, all_training_labels = makeImageSet(train_pos, train_neg)
+all_training_data, all_training_labels = makeImageSet(train_pos, train_neg, shuffle_needed='False')
 training_data, val_data, training_labels, val_labels = train_test_split(all_training_data,
                                                                         all_training_labels,
                                                                         test_size=validation_split,
@@ -347,8 +351,9 @@ visualiseActivations(img_negative_tensor, base_dir='../Results/NegativeResults/'
 # Classifier evaluation
 test_pos = getPositiveImages('Testing/Positive', max_num_testing, image_shape)
 test_neg = getNegativeImages('Testing/Negative', max_num_testing, image_shape)
-testing_data, testing_labels = makeImageSet(test_pos, test_neg)
-scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
+testing_data, testing_labels = makeImageSet(test_pos, test_neg, shuffle_needed='True')
+# scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
+scores = classifier.evaluate(val_data, val_labels, batch_size=batch_size)
 print("Test loss: %s" % scores[0])
 print("Test accuracy: %s" % scores[1])
 
@@ -374,7 +379,6 @@ non_lens_predicted_count_47 = np.count_nonzero(predicted_class_probabilities_47 
 print("%s/47 known images correctly predicted" % lens_predicted_count_47)
 print("%s/47 non lensed images correctly predicted" % non_lens_predicted_count_47)
 
-
 excel_headers.append("Predicted_Lens_47")
 excel_dictionary.append({'Predicted_Lens_47': lens_predicted_count_47})
 excel_headers.append("Predicted_No_Lens_47")
@@ -391,7 +395,6 @@ lens_predicted_count_84 = np.count_nonzero(predicted_class_probabilities_84 == 1
 non_lens_predicted_count_84 = np.count_nonzero(predicted_class_probabilities_84 == 0)
 print("%s/84 known images correctly predicted" % lens_predicted_count_84)
 print("%s/84 non lensed images correctly predicted" % non_lens_predicted_count_84)
-
 
 excel_headers.append("Predicted_Lens_84")
 excel_dictionary.append({'Predicted_Lens_84': lens_predicted_count_84})
@@ -419,5 +422,5 @@ executeKFoldValidation(known_84_data,
                        excel_dictionary)
 
 # add row to excel table
-createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
+# createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
 writeToFile('../Results/kerasCNN_Results.csv', excel_dictionary)

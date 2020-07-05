@@ -10,13 +10,14 @@ from astropy.io import fits
 from matplotlib import pyplot as plt
 from astropy.utils.data import get_pkg_data_filename
 from pandas import np
+from numpy.random import randint
 from keras.preprocessing.image import ImageDataGenerator
 
 # variable
 max_num_training = 3000  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 image_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
-
+augmentedImages = []
 
 def getUnseenData(images_dir, max_num, input_shape):
     for root, dirs, _ in os.walk(images_dir):
@@ -50,8 +51,17 @@ def viewOriginalImage(array_known, file_name):
     print(first_original_image.shape)
     original_image.savefig('Training/Original_Image/Original_%s' % file_name)
 
-def augmentImages():
+
+def augmentImages(array_known):
     print('Augmenting some stuff')
+    for i in range(0, len(array_known)):
+        flipped = tf.image.flip_left_right(array_known[0])
+        augmentedImages.append(flipped)
+        saturated = tf.image.adjust_saturation(array_known[0], 3)
+        bright = tf.image.adjust_brightness(array_known[0], 0.2)
+        rotated = tf.image.rot90(array_known[0])
+        cropped = tf.image.central_crop(array_known[0], central_fraction=0.3)
+
 
 # ______________________________________________________________________________________________________
 # MAIN
@@ -60,3 +70,13 @@ known_84 = getUnseenData('UnseenData/Known84', max_num_training, input_shape=ima
 
 viewOriginalImage(known_47, 'known_47')
 viewOriginalImage(known_84, 'known_84')
+
+random_47 = randint(0, 47, 20)
+random_84 = randint(0, 84, 40)
+
+random_known_47 = getUnseenData('UnseenData/Known47', random_47, input_shape=image_shape)
+random_known_84 = getUnseenData('UnseenData/Known84', random_84, input_shape=image_shape)
+
+augmentImages(random_47)
+augmentImages(random_84)
+
