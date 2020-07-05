@@ -213,8 +213,10 @@ def visualiseActivations(img_tensor, base_dir):
         plt.title(layer_name)
         plt.grid(False)
         plt.imshow(display_grid, aspect='auto', cmap='viridis')
-        plt.show()
+        # plt.show()
         activations_figure.savefig('%s/%s_Activation_%s.png' % (base_dir, count, layer_name))
+        plt.close()
+
         count += 1
 
 
@@ -225,7 +227,7 @@ def visualiseActivations(img_tensor, base_dir):
 # Get positive training data
 # train_pos = getPositiveImages('Training/Positive', max_num_training, input_shape=image_shape)
 # train_pos = getPositiveImages('Training/Positive2000_ChangedIMags', max_num_training, input_shape=image_shape)
-train_positive = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
+train_positive = getPositiveImages('Training/Positive2000_ChangedIMags', max_num_training, input_shape=image_shape)
 train_47 = getUnseenData('UnseenData/Known47', 20, input_shape=image_shape)
 train_84 = getUnseenData('UnseenData/Known84', 40, input_shape=image_shape)
 # #
@@ -309,8 +311,9 @@ plt.plot(epochs, acc, label='Training acc')
 plt.plot(epochs, val_acc, label='Validation acc')
 plt.title('Training and validation accuracy')
 plt.legend()
-plt.show()
+# plt.show()
 train_val_accuracy_figure.savefig('../Results/TrainingValidationAccuracy.png')
+plt.close()
 
 # Losses
 train_val_loss_figure = plt.figure()
@@ -318,8 +321,9 @@ plt.plot(epochs, loss, label='Training loss')
 plt.plot(epochs, val_loss, label='Validation loss')
 plt.title('Training and validation loss')
 plt.legend()
-plt.show()
+# plt.show()
 train_val_loss_figure.savefig('../Results/TrainingValidationLoss.png')
+plt.close()
 
 # make positive and negative directory
 if not os.path.exists('../Results/PositiveResults/'):
@@ -332,9 +336,10 @@ if not os.path.exists('../Results/NegativeResults/'):
 img_positive_tensor = getPositiveImages('Training/Positive2000_ChangedIMags', 1, input_shape=image_shape)
 positive_train_figure = plt.figure()
 plt.imshow(img_positive_tensor[0])
-plt.show()
+# plt.show()
 print(img_positive_tensor.shape)
 positive_train_figure.savefig('../Results/PositiveResults/PositiveTrainingFigure.png')
+plt.close()
 
 # Visualise Activations of positive image
 visualiseActivations(img_positive_tensor, base_dir='../Results/PositiveResults/')
@@ -343,9 +348,11 @@ visualiseActivations(img_positive_tensor, base_dir='../Results/PositiveResults/'
 img_negative_tensor = getNegativeImages('Training/Negative', 1, input_shape=image_shape)
 negative_train_figure = plt.figure()
 plt.imshow(img_negative_tensor[0])
-plt.show()
+# plt.show()
 print(img_negative_tensor.shape)
 negative_train_figure.savefig('../Results/NegativeResults/NegativeTrainingFigure.png')
+plt.close()
+
 
 # Visualise Activations of negative image
 visualiseActivations(img_negative_tensor, base_dir='../Results/NegativeResults/')
