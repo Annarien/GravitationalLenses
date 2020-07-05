@@ -225,12 +225,13 @@ def visualiseActivations(img_tensor, base_dir):
 # Get positive training data
 # train_pos = getPositiveImages('Training/Positive', max_num_training, input_shape=image_shape)
 # train_pos = getPositiveImages('Training/Positive2000_ChangedIMags', max_num_training, input_shape=image_shape)
-train_positive = getPositiveImages('Training/Positive2000_ChangedIMags', max_num_training, input_shape=image_shape)
+train_positive = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
 train_47 = getUnseenData('UnseenData/Known47', 20, input_shape=image_shape)
 train_84 = getUnseenData('UnseenData/Known84', 40, input_shape=image_shape)
 # #
 train_pos = np.vstack((train_positive, train_47, train_84))
 
+print("Train Positive Shape: " + str(train_pos.shape))
 excel_headers.append("Train_Positive_Shape")
 excel_dictionary.append({'Train_Positive_Shape': train_pos.shape})
 
@@ -239,6 +240,7 @@ excel_dictionary.append({'Train_Positive_Shape': train_pos.shape})
 
 # Get negative training data
 train_neg = getNegativeImages('Training/Negative', max_num_training, input_shape=image_shape)
+print("Train Negative Shape: " + str(train_neg.shape))
 excel_headers.append("Train_Negative_Shape")
 excel_dictionary.append({'Train_Negative_Shape': train_neg.shape})
 
@@ -353,7 +355,7 @@ test_pos = getPositiveImages('Testing/Positive', max_num_testing, image_shape)
 test_neg = getNegativeImages('Testing/Negative', max_num_testing, image_shape)
 testing_data, testing_labels = makeImageSet(test_pos, test_neg, shuffle_needed=True)
 # scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
-scores = classifier.evaluate(val_data, val_labels, batch_size=batch_size)
+scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
 print("Test loss: %s" % scores[0])
 print("Test accuracy: %s" % scores[1])
 
