@@ -13,6 +13,7 @@ from tensorflow.python.keras.layers.core import Dense, Dropout, Flatten
 from tensorflow.python.keras.layers.convolutional import Conv2D, MaxPooling2D
 from ExcelUtils import createExcelSheet, writeToFile
 from sklearn.utils import shuffle
+from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 
 # Globals
 excel_headers = []
@@ -29,6 +30,8 @@ epochs = 20  # A number that dictates how many iterations should be run to train
 batch_size = 10  # The number of items batched together during training.
 run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
 image_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
+use_augmented_data = True
+patience_num = 3
 
 
 # Helper methods
@@ -141,7 +144,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     # Step 3 - Flattening
     classifier.add(Flatten())
     # Step 4 - Full connection
-    classifier.add(Dense(units=512, activation='relu'))
+    # classifier.add(Dense(units=512, activation='relu'))
     classifier.add(Dropout(0.5))
     classifier.add(Dense(units=1, activation='sigmoid'))
     classifier.summary()
@@ -212,7 +215,7 @@ def visualiseActivations(img_tensor, base_dir):
                                                  scale * display_grid.shape[0]))
         plt.title(layer_name)
         plt.grid(False)
-        plt.imshow(display_grid, aspect='auto', cmap='viridis')
+        # plt.imshow(display_grid, aspect='auto', cmap='viridis')
         # plt.show()
         activations_figure.savefig('%s/%s_Activation_%s.png' % (base_dir, count, layer_name))
         plt.close()
@@ -220,14 +223,41 @@ def visualiseActivations(img_tensor, base_dir):
         count += 1
 
 
+def usingModelsWithOrWithoutAugmentedData(classifier, use_augmented_data, training_data, training_labels):
+    if use_augmented_data:
+        data_augmented = ImageDataGenerator(featurewise_center=True,
+                                            featurewise_std_normalization=True,
+                                            rotation_range=20,
+                                            width_shift_range=0.2,
+                                            height_shift_range=0.2,
+                                            horizontal_flip=True)
+        data_augmented.fit(training_data)
+        history = classifier.fit(data_augmented.flow(training_data, training_labels, batch_size=batch_size),
+                                 epochs=epochs,
+                                 validation_data=(val_data, val_labels),
+                                 callbacks=[model_checkpoint, early_stopping])
+        return history, classifier
+
+    else:
+
+        history = classifier.fit(training_data,
+                                 training_labels,
+                                 epochs=epochs,
+                                 batch_size=batch_size,
+                                 validation_data=(val_data, val_labels),
+                                 callbacks=[model_checkpoint, early_stopping])
+
+        return history, classifier
+
+
 # __________________________________________________________________________
 # MAIN
 
 
 # Get positive training data
-# train_pos = getPositiveImages('Training/Positive', max_num_training, input_shape=image_shape)
+# train_pos = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
 train_pos = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
-# train_positive = getPositiveImages('Training/Positive2000_ChangedIMags', max_num_training, input_shape=image_shape)
+# train_positive = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
 # train_47 = getUnseenData('UnseenData/Known47', 20, input_shape=image_shape)
 # train_84 = getUnseenData('UnseenData/Known84', 40, input_shape=image_shape)
 # #
@@ -272,14 +302,9 @@ model_checkpoint = ModelCheckpoint(filepath="best_weights.hdf5",
                                    monitor='val_acc',
                                    save_best_only=True)
 
-early_stopping = EarlyStopping(monitor='val_loss', patience=3)
+early_stopping = EarlyStopping(monitor='val_loss', patience=patience_num)  # original patience =3
 
-history = classifier.fit(training_data,
-                         training_labels,
-                         epochs=epochs,
-                         batch_size=batch_size,
-                         validation_data=(val_data, val_labels),
-                         callbacks=[model_checkpoint, early_stopping])
+history, classifier = usingModelsWithOrWithoutAugmentedData(classifier, use_augmented_data, training_data, training_labels)
 
 classifier.load_weights('best_weights.hdf5')
 classifier.save_weights('galaxies_cnn.h5')
@@ -333,7 +358,7 @@ if not os.path.exists('../Results/NegativeResults/'):
     os.mkdir('../Results/NegativeResults/')
 
 # Plot original positive image
-img_positive_tensor = getPositiveImages('Training/Positive2000_ChangedIMags', 1, input_shape=image_shape)
+img_positive_tensor = getPositiveImages('Training/Positive3000', 1, input_shape=image_shape)
 positive_train_figure = plt.figure()
 plt.imshow(img_positive_tensor[0])
 # plt.show()
@@ -353,12 +378,11 @@ print(img_negative_tensor.shape)
 negative_train_figure.savefig('../Results/NegativeResults/NegativeTrainingFigure.png')
 plt.close()
 
-
 # Visualise Activations of negative image
 visualiseActivations(img_negative_tensor, base_dir='../Results/NegativeResults/')
 
 # Classifier evaluation
-test_pos = getPositiveImages('Testing/Positive', max_num_testing, image_shape)
+test_pos = getPositiveImages('Testing/Positive3000', max_num_testing, image_shape)
 test_neg = getNegativeImages('Testing/Negative', max_num_testing, image_shape)
 testing_data, testing_labels = makeImageSet(test_pos, test_neg, shuffle_needed=True)
 # scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
