@@ -1,6 +1,7 @@
 import os
 import sys
 import numpy as np
+import tensorflow
 from matplotlib import pyplot as plt
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
@@ -14,6 +15,9 @@ from tensorflow.python.keras.layers.convolutional import Conv2D, MaxPooling2D
 from ExcelUtils import createExcelSheet, writeToFile
 from sklearn.utils import shuffle
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
+
+var = tensorflow.__version__
+print(var)
 
 # Globals
 excel_headers = []
@@ -223,7 +227,9 @@ def visualiseActivations(img_tensor, base_dir):
         count += 1
 
 
-def usingModelsWithOrWithoutAugmentedData(classifier, use_augmented_data, training_data, training_labels):
+def usingModelsWithOrWithoutAugmentedData(use_augmented_data, training_data, training_labels, val_data, val_labels):
+    classifier = buildClassifier()
+
     if use_augmented_data:
         data_augmented = ImageDataGenerator(featurewise_center=True,
                                             featurewise_std_normalization=True,
@@ -232,10 +238,12 @@ def usingModelsWithOrWithoutAugmentedData(classifier, use_augmented_data, traini
                                             height_shift_range=0.2,
                                             horizontal_flip=True)
         data_augmented.fit(training_data)
-        history = classifier.fit(data_augmented.flow(training_data, training_labels, batch_size=batch_size),
+        history = classifier.fit(data_augmented.flow(training_data, training_labels),
                                  epochs=epochs,
+                                 batch_size=batch_size,
                                  validation_data=(val_data, val_labels),
                                  callbacks=[model_checkpoint, early_stopping])
+                                 # steps_per_epoch=len(training_data)/batch_size)
         return history, classifier
 
     else:
@@ -295,7 +303,7 @@ excel_dictionary.append({'Validation_Labels_Shape': val_labels.shape})
 excel_headers.append("Validation_Split")
 excel_dictionary.append({'Validation_Split': validation_split})
 
-classifier = buildClassifier()
+# classifier = buildClassifier()
 
 model_checkpoint = ModelCheckpoint(filepath="best_weights.hdf5",
                                    monitor='val_acc',
@@ -303,7 +311,11 @@ model_checkpoint = ModelCheckpoint(filepath="best_weights.hdf5",
 
 early_stopping = EarlyStopping(monitor='val_loss', patience=patience_num)  # original patience =3
 
-history, classifier = usingModelsWithOrWithoutAugmentedData(classifier, use_augmented_data, training_data, training_labels)
+history, classifier = usingModelsWithOrWithoutAugmentedData(use_augmented_data,
+                                                            training_data,
+                                                            training_labels,
+                                                            val_data,
+                                                            val_labels)
 
 classifier.load_weights('best_weights.hdf5')
 classifier.save_weights('galaxies_cnn.h5')
