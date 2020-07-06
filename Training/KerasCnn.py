@@ -1,7 +1,6 @@
 import os
 import sys
 import numpy as np
-import tensorflow
 from matplotlib import pyplot as plt
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
@@ -16,8 +15,6 @@ from ExcelUtils import createExcelSheet, writeToFile
 from sklearn.utils import shuffle
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 
-var = tensorflow.__version__
-print(var)
 
 # Globals
 excel_headers = []
@@ -238,12 +235,12 @@ def usingModelsWithOrWithoutAugmentedData(use_augmented_data, training_data, tra
                                             height_shift_range=0.2,
                                             horizontal_flip=True)
         data_augmented.fit(training_data)
-        history = classifier.fit(data_augmented.flow(training_data, training_labels),
+        history = classifier.fit(data_augmented.flow(training_data, training_labels, batch_size= batch_size),
                                  epochs=epochs,
-                                 batch_size=batch_size,
+                                 # batch_size=batch_size,
                                  validation_data=(val_data, val_labels),
-                                 callbacks=[model_checkpoint, early_stopping])
-                                 # steps_per_epoch=len(training_data)/batch_size)
+                                 callbacks=[model_checkpoint, early_stopping],
+                                 steps_per_epoch=len(training_data)/batch_size)
         return history, classifier
 
     else:
