@@ -215,7 +215,7 @@ def visualiseActivations(img_tensor, base_dir):
                                                  scale * display_grid.shape[0]))
         plt.title(layer_name)
         plt.grid(False)
-        # plt.imshow(display_grid, aspect='auto', cmap='viridis')
+        plt.imshow(display_grid, aspect='auto', cmap='viridis')
         # plt.show()
         activations_figure.savefig('%s/%s_Activation_%s.png' % (base_dir, count, layer_name))
         plt.close()
@@ -255,7 +255,6 @@ def usingModelsWithOrWithoutAugmentedData(classifier, use_augmented_data, traini
 
 
 # Get positive training data
-# train_pos = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
 train_pos = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
 # train_positive = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
 # train_47 = getUnseenData('UnseenData/Known47', 20, input_shape=image_shape)
