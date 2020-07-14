@@ -14,6 +14,8 @@ from tensorflow.python.keras.layers.convolutional import Conv2D, MaxPooling2D
 from ExcelUtils import createExcelSheet, writeToFile
 from sklearn.utils import shuffle
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
+from sklearn.metrics import classification_report, confusion_matrix
+
 
 # Globals
 excel_headers = []
@@ -274,6 +276,47 @@ def usingModelsWithOrWithoutAugmentedData(use_augmented_data, training_data, tra
         return history, classifier
 
 
+def savePredictedLenses(des_names_array, predicted_class_probabilities, predicted_lenses_filepath, text_file_path):
+    if not os.path.exists(predicted_lenses_filepath):
+        os.mkdir('%s/' % predicted_lenses_filepath)
+    text_file = open('%s' % text_file_path, "a+")
+    text_file.write('Predicted Lenses: \n')
+    for index in range(len(predicted_class_probabilities)):
+        if predicted_class_probabilities[index] == 1:
+            text_file.write("%s \n " % des_names_array[index])
+            print(des_names_array[index])
+
+    text_file.close()
+
+
+def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_path,  predicted_lenses_filepath):
+
+    if not os.path.exists(predicted_lenses_filepath):
+        os.mkdir('%s/' % predicted_lenses_filepath)
+
+    predicted_data = classifier.predict_classes(testing_data)
+    true_negative, false_positive, false_negative, true_positive = confusion_matrix(testing_labels, predicted_data.round()).ravel()
+    matrix = (confusion_matrix(testing_labels, predicted_data.round()))
+
+    print("True Positive: %s \n" % true_positive)
+    print("False Negative: %s \n" % false_negative)
+    print("False Positive: %s \n" % false_positive)
+    print("True Negative: %s \n" % true_negative)
+
+    text_file = open('%s' % text_file_path, "a+")
+    text_file.write('Predicted vs True Matrix: \n')
+    text_file.write(str(matrix) + " \n ")
+    text_file.write("True Negative: %s \n" % str(true_negative))
+    text_file.write("False Positive: %s \n" % str(false_positive))
+    text_file.write("False Negative: %s \n" % str(false_negative))
+    text_file.write("True Positive: %s \n" % str(true_positive))
+    text_file.write("\n")
+    text_file.close()
+
+
+
+
+
 # __________________________________________________________________________
 # MAIN
 
@@ -419,6 +462,11 @@ excel_dictionary.append({'Test_Loss': scores[0]})
 excel_headers.append("Test_Accuracy")
 excel_dictionary.append({'Test_Accuracy': scores[1]})
 
+gettingTrueFalsePositiveNegatives(testing_data,
+                                  testing_labels,
+                                  text_file_path='../Results/TrainingTestingResults/ActualPredictedMatrix.txt',
+                                  predicted_lenses_filepath='../Results/TrainingTestingResults')
+
 # Evaluate known 47 with negative 47
 known_47_images = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=image_shape)
 negative_47_images = getUnseenData('UnseenData/Negative', 47, input_shape=image_shape)
@@ -433,9 +481,17 @@ lens_predicted_count_47 = np.count_nonzero(predicted_class_probabilities_47 == 1
 non_lens_predicted_count_47 = np.count_nonzero(predicted_class_probabilities_47 == 0)
 print("%s/47 known images correctly predicted" % lens_predicted_count_47)
 print("%s/47 non lensed images correctly predicted" % non_lens_predicted_count_47)
-for index in range(len(predicted_class_probabilities_47)):
-    if predicted_class_probabilities_47[index] == 1:
-        print(des_47_names[index])
+
+gettingTrueFalsePositiveNegatives(images_47,
+                                  labels_47,
+                                  text_file_path='../Results/Predicted47/47_LensesPredicted.txt',
+                                  predicted_lenses_filepath='../Results/Predicted47')
+
+
+savePredictedLenses(des_47_names,
+                    predicted_class_probabilities_47,
+                    predicted_lenses_filepath='../Results/Predicted47',
+                    text_file_path='../Results/Predicted47/47_LensesPredicted.txt')
 
 excel_headers.append("Predicted_Lens_47")
 excel_dictionary.append({'Predicted_Lens_47': lens_predicted_count_47})
@@ -456,9 +512,17 @@ lens_predicted_count_84 = np.count_nonzero(predicted_class_probabilities_84 == 1
 non_lens_predicted_count_84 = np.count_nonzero(predicted_class_probabilities_84 == 0)
 print("%s/84 known images correctly predicted" % lens_predicted_count_84)
 print("%s/84 non lensed images correctly predicted" % non_lens_predicted_count_84)
-for index in range(len(predicted_class_probabilities_84)):
-    if predicted_class_probabilities_84[index] == 1:
-        print(des_84_names[index])
+
+gettingTrueFalsePositiveNegatives(images_84,
+                                  labels_84,
+                                  text_file_path='../Results/Predicted84/84_LensesPredicted.txt',
+                                  predicted_lenses_filepath='../Results/Predicted84')
+
+savePredictedLenses(des_84_names,
+                    predicted_class_probabilities_84,
+                    predicted_lenses_filepath='../Results/Predicted84',
+                    text_file_path='../Results/Predicted84/84_LensesPredicted.txt')
+
 
 excel_headers.append("Predicted_Lens_84")
 excel_dictionary.append({'Predicted_Lens_84': lens_predicted_count_84})
