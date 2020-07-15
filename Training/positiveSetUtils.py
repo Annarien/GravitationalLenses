@@ -40,7 +40,7 @@ def cutCosmosTable(cosmos):
     # DES2017
     sources_table = tab[np.logical_and(tab['zpbest'] > 1, tab['zpbest'] < 2)]
     lens_table = tab[np.logical_and(tab['zpbest'] > 0.1, tab['zpbest'] < 0.3)]
-    lens_table = lens_table[np.logical_and(lens_table['Imag'] > 18, lens_table['Imag'] < 21)] # The Imag<21 is
+    lens_table = lens_table[np.logical_and(lens_table['Imag'] > 18, lens_table['Imag'] < 22)] # The Imag<21 is
     # changed from Imag<22
 
     source_max_r = max(sources_table['Rmag'])

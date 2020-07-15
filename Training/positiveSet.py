@@ -77,8 +77,8 @@ for i in range(0, len(numbers_train_neg)):
     rs = float(random.uniform(1, 2))  # Half-light radius of the source, in arcsec.
 
     train_sky = 'Training/DESSky'
-    train_positive_noiseless = 'Training/PositiveNoiselessAll_ChangedIMags'
-    train_positive = 'Training/PositiveAll_ChangedIMags'
+    train_positive_noiseless = 'Training/PositiveNoiselessAll'
+    train_positive = 'Training/PositiveAll'
 
     makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, train_positive_noiseless)
     addSky(num, train_positive_noiseless, train_sky, train_positive)
@@ -118,8 +118,8 @@ for i in range(0, len(numbers_test_neg)):
     rs = float(random.uniform(1, 2))  # Half-light radius of the source, in arcsec.
 
     test_sky = 'Testing/DESSky'
-    test_positive_noiseless = 'Testing/PositiveNoiselessAll_ChangedIMags'
-    test_positive = 'Testing/PositiveAll_ChangedIMags'
+    test_positive_noiseless = 'Testing/PositiveNoiselessAll'
+    test_positive = 'Testing/PositiveAll'
 
     makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, test_positive_noiseless)
     addSky(num, test_positive_noiseless, test_sky, test_positive)
