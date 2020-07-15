@@ -157,17 +157,17 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
     classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Dropout(0.5))  # antes era 0.25
+    classifier.add(Dropout(0.2))  # antes era 0.25
     # Adding a third convolutional layer
     classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
     classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Dropout(0.5))  # antes era 0.25
+    classifier.add(Dropout(0.2))  # antes era 0.25
     # Step 3 - Flattening
     classifier.add(Flatten())
     # Step 4 - Full connection
     # classifier.add(Dense(units=512, activation='relu'))
-    classifier.add(Dropout(0.5))
+    classifier.add(Dropout(0.2))
     classifier.add(Dense(units=1, activation='sigmoid'))
     classifier.summary()
 
@@ -251,10 +251,11 @@ def usingModelsWithOrWithoutAugmentedData(use_augmented_data, training_data, tra
     if use_augmented_data:
         data_augmented = ImageDataGenerator(featurewise_center=True,
                                             featurewise_std_normalization=True,
-                                            rotation_range=20,
+                                            rotation_range=90,
                                             width_shift_range=0.2,
                                             height_shift_range=0.2,
-                                            horizontal_flip=True)
+                                            horizontal_flip=True,
+                                            vertical_flip=True)
         data_augmented.fit(training_data)
         history = classifier.fit(data_augmented.flow(training_data, training_labels, batch_size=batch_size),
                                  epochs=epochs,
@@ -281,15 +282,24 @@ def savePredictedLenses(des_names_array, predicted_class_probabilities, predicte
         os.mkdir('%s/' % predicted_lenses_filepath)
     text_file = open('%s' % text_file_path, "a+")
     text_file.write('Predicted Lenses: \n')
-    for index in range(len(predicted_class_probabilities)):
-        if predicted_class_probabilities[index] == 1:
-            text_file.write("%s \n " % des_names_array[index])
-            print(des_names_array[index])
+    for lens_index in range(len(predicted_class_probabilities)):
+        if predicted_class_probabilities[lens_index] == 1:
+            text_file.write("%s \n " % des_names_array[lens_index])
+            print(des_names_array[lens_index])
 
+    text_file.write('\n')
+    text_file.write('\n')
+
+    text_file.write('No Lenses Predicted: \n')
+    for lens_index in range(len(predicted_class_probabilities)):
+        if predicted_class_probabilities[lens_index] == 0:
+            text_file.write("%s \n " % des_names_array[lens_index])
+            print(des_names_array[lens_index])
     text_file.close()
 
 
-def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_path,  predicted_lenses_filepath):
+def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_path,
+                                      predicted_lenses_filepath):
 
     if not os.path.exists(predicted_lenses_filepath):
         os.mkdir('%s/' % predicted_lenses_filepath)
