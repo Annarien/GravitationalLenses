@@ -166,7 +166,6 @@ def buildClassifier(input_shape=(100, 100, 3)):
     # Step 3 - Flattening
     classifier.add(Flatten())
     # Step 4 - Full connection
-    # classifier.add(Dense(units=512, activation='relu'))
     classifier.add(Dropout(0.5))
     classifier.add(Dense(units=1, activation='sigmoid'))
     classifier.summary()
@@ -206,9 +205,7 @@ def visualiseActivations(img_tensor, base_dir):
     global predicted_class, size
     # Run prediction on that image
     predicted_class = classifier.predict_classes(img_tensor, batch_size=10)
-    # predicted_prob = classifier.predict(img_tensor)
     print("Predicted class is: ", predicted_class)
-    # print("Predicted Prob is: ", predicted_prob)
     # Visualize activations
     layer_outputs = [layer.output for layer in classifier.layers[:12]]
     activation_model = Model(inputs=classifier.input, outputs=layer_outputs)
@@ -238,7 +235,6 @@ def visualiseActivations(img_tensor, base_dir):
         plt.title(layer_name)
         plt.grid(False)
         plt.imshow(display_grid, aspect='auto', cmap='viridis')
-        # plt.show()
         activations_figure.savefig('%s/%s_Activation_%s.png' % (base_dir, count, layer_name))
         plt.close()
 
@@ -285,7 +281,6 @@ def savePredictedLenses(des_names_array, predicted_class_probabilities, predicte
     for lens_index in range(len(predicted_class_probabilities)):
         if predicted_class_probabilities[lens_index] == 1:
             text_file.write("%s \n " % des_names_array[lens_index])
-            # print(des_names_array[lens_index])
 
     text_file.write('\n')
     text_file.write('\n')
@@ -294,7 +289,6 @@ def savePredictedLenses(des_names_array, predicted_class_probabilities, predicte
     for lens_index in range(len(predicted_class_probabilities)):
         if predicted_class_probabilities[lens_index] == 0:
             text_file.write("%s \n " % des_names_array[lens_index])
-            # print(des_names_array[lens_index])
     text_file.close()
 
 
@@ -323,28 +317,15 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
     text_file.write("\n")
     text_file.close()
 
-
-
-
-
 # __________________________________________________________________________
 # MAIN
 
 
 # Get positive training data
 train_pos = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
-# train_positive = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
-# train_47 = getUnseenData('UnseenData/Known47', 20, input_shape=image_shape)
-# train_84 = getUnseenData('UnseenData/Known84', 40, input_shape=image_shape)
-# #
-# train_pos = np.vstack((train_positive, train_47, train_84))
-
 print("Train Positive Shape: " + str(train_pos.shape))
 excel_headers.append("Train_Positive_Shape")
 excel_dictionary.append({'Train_Positive_Shape': train_pos.shape})
-
-# real_pos = getUnseenData('UnseenData/Known47', 1, input_shape=image_shape)
-# train_pos = np.vstack((train_pos, real_pos))
 
 # Get negative training data
 train_neg = getNegativeImages('Training/Negative', max_num_training, input_shape=image_shape)
