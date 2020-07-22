@@ -224,6 +224,6 @@ def getNegativeNumbers(base_dir):
             num = int(re.search(r'\d+', key).group())
             numbers.append(num)
 
-    print(numbers)
+    # print(numbers)
 
     return numbers
