@@ -152,21 +152,25 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier = Sequential()
     classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
     classifier.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
-    classifier.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    classifier.add(Dropout(0.5))  # added extra Dropout layer
+
     classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Dropout(0.5))  # antes era 0.25
+    classifier.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
+    classifier.add(Dropout(0.5))  # added extra dropout layer
+
+    classifier.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(Dropout(0.2))  # antes era 0.25
     # Adding a third convolutional layer
-    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
-    classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+    classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Dropout(0.5))  # antes era 0.25
+    classifier.add(Dropout(0.2))  # antes era 0.25
     # Step 3 - Flattening
     classifier.add(Flatten())
     # Step 4 - Full connection
-    classifier.add(Dropout(0.5))
+    classifier.add(Dropout(0.2))
     classifier.add(Dense(units=1, activation='sigmoid'))
     classifier.summary()
 
@@ -301,7 +305,7 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
     predicted_data = classifier.predict_classes(testing_data)
     true_negative, false_positive, false_negative, true_positive = confusion_matrix(testing_labels, predicted_data.round()).ravel()
     matrix = (confusion_matrix(testing_labels, predicted_data.round()))
-
+    print(str(matrix) + ' \n ')
     print("True Positive: %s \n" % true_positive)
     print("False Negative: %s \n" % false_negative)
     print("False Positive: %s \n" % false_positive)
@@ -470,8 +474,8 @@ images_47, labels_47, des_47_names = makeImageSet(list(known_47_images.values())
 predicted_class_probabilities_47 = classifier.predict_classes(images_47, batch_size=batch_size)
 lens_predicted_count_47 = np.count_nonzero(predicted_class_probabilities_47 == 1)
 non_lens_predicted_count_47 = np.count_nonzero(predicted_class_probabilities_47 == 0)
-print("%s/47 known images correctly predicted" % lens_predicted_count_47)
-print("%s/47 non lensed images correctly predicted" % non_lens_predicted_count_47)
+print("%s/47 known images predicted" % lens_predicted_count_47)
+print("%s/47 non lensed images predicted" % non_lens_predicted_count_47)
 
 gettingTrueFalsePositiveNegatives(images_47,
                                   labels_47,
@@ -501,8 +505,8 @@ images_84, labels_84, des_84_names = makeImageSet(list(known_84_images.values())
 predicted_class_probabilities_84 = classifier.predict_classes(images_84, batch_size=batch_size)
 lens_predicted_count_84 = np.count_nonzero(predicted_class_probabilities_84 == 1)
 non_lens_predicted_count_84 = np.count_nonzero(predicted_class_probabilities_84 == 0)
-print("%s/84 known images correctly predicted" % lens_predicted_count_84)
-print("%s/84 non lensed images correctly predicted" % non_lens_predicted_count_84)
+print("%s/84 known images predicted" % lens_predicted_count_84)
+print("%s/84 non lensed images predicted" % non_lens_predicted_count_84)
 
 gettingTrueFalsePositiveNegatives(images_84,
                                   labels_84,
