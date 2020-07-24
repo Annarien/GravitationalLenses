@@ -15,7 +15,7 @@ from ExcelUtils import createExcelSheet, writeToFile
 from sklearn.utils import shuffle
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from sklearn.metrics import classification_report, confusion_matrix
-
+from tensorflow.python.keras.utils.vis_utils import plot_model
 
 # Globals
 excel_headers = []
@@ -178,6 +178,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.compile(optimizer='adam',
                        loss='binary_crossentropy',
                        metrics=['accuracy'])
+    plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
     return classifier
 
 
