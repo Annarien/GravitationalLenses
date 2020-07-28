@@ -392,12 +392,12 @@ acc = history.history['acc']
 val_acc = history.history['val_acc']
 loss = history.history['loss']
 val_loss = history.history['val_loss']
-epochs = range(1, len(acc) + 1)
+number_of_completed_epochs = range(1, len(acc) + 1)
 
 # Accuracies
 train_val_accuracy_figure = plt.figure()
-plt.plot(epochs, acc, label='Training acc')
-plt.plot(epochs, val_acc, label='Validation acc')
+plt.plot(number_of_completed_epochs, acc, label='Training acc')
+plt.plot(number_of_completed_epochs, val_acc, label='Validation acc')
 plt.title('Training and validation accuracy')
 plt.legend()
 # plt.show()
@@ -406,8 +406,8 @@ plt.close()
 
 # Losses
 train_val_loss_figure = plt.figure()
-plt.plot(epochs, loss, label='Training loss')
-plt.plot(epochs, val_loss, label='Validation loss')
+plt.plot(number_of_completed_epochs, loss, label='Training loss')
+plt.plot(number_of_completed_epochs, val_loss, label='Validation loss')
 plt.title('Training and validation loss')
 plt.legend()
 # plt.show()
