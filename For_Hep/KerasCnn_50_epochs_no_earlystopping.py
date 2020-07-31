@@ -30,13 +30,13 @@ validation_split = 0.2  # A float value between 0 and 1 that determines what per
 # data is used for validation.
 k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 20  # A number that dictates how many iterations should be run to train the classifier
+epochs = 50  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 10  # The number of items batched together during training.
-run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 image_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 use_augmented_data = True
 patience_num = 3
-use_early_stopping = True
+use_early_stopping = False
 use_model_checkpoint = True
 dt_string = now.strftime("%d_%m_%Y_%H_%M_%S")
 print("date and time: ", dt_string)
@@ -402,8 +402,8 @@ executeKFoldValidation(training_data,
                        excel_dictionary)
 
 # Plot run metrics
-acc = history.history['acc']
-val_acc = history.history['val_acc']
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
 loss = history.history['loss']
 val_loss = history.history['val_loss']
 number_of_completed_epochs = range(1, len(acc) + 1)

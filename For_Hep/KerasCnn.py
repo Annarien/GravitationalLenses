@@ -23,7 +23,7 @@ now = datetime.now()
 # Globals
 excel_headers = []
 excel_dictionary = []
-max_num_training = 3000  # Set to sys.maxsize when running entire data set
+max_num_training = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
@@ -38,7 +38,7 @@ use_augmented_data = True
 patience_num = 3
 use_early_stopping = True
 use_model_checkpoint = True
-dt_string = now.strftime("%d/%m/%Y_%H:%M:%S")
+dt_string = now.strftime("%d_%m_%Y_%H_%M_%S")
 print("date and time: ", dt_string)
 
 
@@ -345,7 +345,7 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
 
 
 # Get positive training data
-train_pos = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
+train_pos = getPositiveImages('Training/PositiveAll', max_num_training, input_shape=image_shape)
 print("Train Positive Shape: " + str(train_pos.shape))
 excel_headers.append("Train_Positive_Shape")
 excel_dictionary.append({'Train_Positive_Shape': train_pos.shape})
@@ -402,8 +402,8 @@ executeKFoldValidation(training_data,
                        excel_dictionary)
 
 # Plot run metrics
-acc = history.history['acc']
-val_acc = history.history['val_acc']
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
 loss = history.history['loss']
 val_loss = history.history['val_loss']
 number_of_completed_epochs = range(1, len(acc) + 1)
@@ -436,7 +436,7 @@ if not os.path.exists('../Results/%s_NegativeResults/' % dt_string):
     os.mkdir('../Results/%s_NegativeResults/' % dt_string)
 
 # Plot original positive image
-img_positive_tensor = getPositiveImages('Training/Positive3000', 1, input_shape=image_shape)
+img_positive_tensor = getPositiveImages('Training/PositiveAll', 1, input_shape=image_shape)
 positive_train_figure = plt.figure()
 plt.imshow(img_positive_tensor[0])
 # plt.show()
@@ -460,7 +460,7 @@ plt.close()
 visualiseActivations(img_negative_tensor, base_dir='../Results/%s_NegativeResults/' % dt_string)
 
 # Classifier evaluation
-test_pos = getPositiveImages('Testing/Positive3000', max_num_testing, image_shape)
+test_pos = getPositiveImages('Testing/PositiveAll', max_num_testing, image_shape)
 test_neg = getNegativeImages('Testing/Negative', max_num_testing, image_shape)
 testing_data, testing_labels, _ = makeImageSet(test_pos, test_neg, shuffle_needed=True)
 scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
