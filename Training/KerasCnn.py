@@ -30,10 +30,12 @@ k_fold_num = 5  # A number between 1 and 10 that determines how many times the k
 # is trained.
 epochs = 20  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 10  # The number of items batched together during training.
-run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
 image_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 use_augmented_data = True
 patience_num = 3
+use_early_stopping = True
+use_model_checkpoint = True
 
 
 # Helper methods
@@ -246,25 +248,36 @@ def visualiseActivations(img_tensor, base_dir):
         count += 1
 
 
-def usingModelsWithOrWithoutAugmentedData(use_augmented_data, training_data, training_labels, val_data, val_labels):
+def usingModelsWithOrWithoutAugmentedData(use_augmented_data, use_early_stopping, use_model_checkpoint, training_data, training_labels, val_data, val_labels):
+    model_checkpoint = ModelCheckpoint(filepath="best_weights.hdf5",
+                                       monitor='val_acc',
+                                       save_best_only=True)
+
+    early_stopping = EarlyStopping(monitor='val_loss', patience=patience_num)  # original patience =3
+
     classifier = buildClassifier()
+    callbacks_array = []
+    if use_early_stopping:
+        callbacks_array.append(early_stopping)
+    if use_model_checkpoint:
+        callbacks_array.append(model_checkpoint)
 
     if use_augmented_data:
-        data_augmented = ImageDataGenerator(featurewise_center=True,
-                                            featurewise_std_normalization=True,
-                                            rotation_range=90,
-                                            width_shift_range=0.2,
-                                            height_shift_range=0.2,
-                                            horizontal_flip=True,
-                                            vertical_flip=True)
-        data_augmented.fit(training_data)
-        history = classifier.fit(data_augmented.flow(training_data, training_labels, batch_size=batch_size),
+       data_augmented = ImageDataGenerator(featurewise_center=True,
+                                           featurewise_std_normalization=True,
+                                           rotation_range=90,
+                                           width_shift_range=0.2,
+                                           height_shift_range=0.2,
+                                           horizontal_flip=True,
+                                           vertical_flip=True)
+       data_augmented.fit(training_data)
+       history = classifier.fit(data_augmented.flow(training_data, training_labels, batch_size=batch_size),
                                  epochs=epochs,
                                  # batch_size=batch_size,
                                  validation_data=(val_data, val_labels),
                                  callbacks=[model_checkpoint, early_stopping],
                                  steps_per_epoch=len(training_data) / batch_size)
-        return history, classifier
+       return history, classifier
 
     else:
 
@@ -274,7 +287,6 @@ def usingModelsWithOrWithoutAugmentedData(use_augmented_data, training_data, tra
                                  batch_size=batch_size,
                                  validation_data=(val_data, val_labels),
                                  callbacks=[model_checkpoint, early_stopping])
-
         return history, classifier
 
 
@@ -358,13 +370,9 @@ excel_dictionary.append({'Validation_Labels_Shape': val_labels.shape})
 excel_headers.append("Validation_Split")
 excel_dictionary.append({'Validation_Split': validation_split})
 
-model_checkpoint = ModelCheckpoint(filepath="best_weights.hdf5",
-                                   monitor='val_acc',
-                                   save_best_only=True)
-
-early_stopping = EarlyStopping(monitor='val_loss', patience=patience_num)  # original patience =3
-
 history, classifier = usingModelsWithOrWithoutAugmentedData(use_augmented_data,
+                                                            use_early_stopping,
+                                                            use_model_checkpoint,
                                                             training_data,
                                                             training_labels,
                                                             val_data,
