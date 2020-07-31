@@ -16,11 +16,13 @@ from sklearn.utils import shuffle
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from sklearn.metrics import classification_report, confusion_matrix
 from tensorflow.python.keras.utils.vis_utils import plot_model
+from datetime import datetime
+
+now = datetime.now()
 
 # Globals
 excel_headers = []
 excel_dictionary = []
-
 max_num_training = 3000  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
@@ -36,6 +38,8 @@ use_augmented_data = True
 patience_num = 3
 use_early_stopping = True
 use_model_checkpoint = True
+dt_string = now.strftime("%d_%m_%Y_%H_%M_%S")
+print("date and time: ", dt_string)
 
 
 # Helper methods
@@ -248,7 +252,8 @@ def visualiseActivations(img_tensor, base_dir):
         count += 1
 
 
-def usingModelsWithOrWithoutAugmentedData(use_augmented_data, use_early_stopping, use_model_checkpoint, training_data, training_labels, val_data, val_labels):
+def usingModelsWithOrWithoutAugmentedData(use_augmented_data, use_early_stopping, use_model_checkpoint, training_data,
+                                          training_labels, val_data, val_labels):
     model_checkpoint = ModelCheckpoint(filepath="best_weights.hdf5",
                                        monitor='val_acc',
                                        save_best_only=True)
@@ -263,21 +268,21 @@ def usingModelsWithOrWithoutAugmentedData(use_augmented_data, use_early_stopping
         callbacks_array.append(model_checkpoint)
 
     if use_augmented_data:
-       data_augmented = ImageDataGenerator(featurewise_center=True,
-                                           featurewise_std_normalization=True,
-                                           rotation_range=90,
-                                           width_shift_range=0.2,
-                                           height_shift_range=0.2,
-                                           horizontal_flip=True,
-                                           vertical_flip=True)
-       data_augmented.fit(training_data)
-       history = classifier.fit(data_augmented.flow(training_data, training_labels, batch_size=batch_size),
+        data_augmented = ImageDataGenerator(featurewise_center=True,
+                                            featurewise_std_normalization=True,
+                                            rotation_range=90,
+                                            width_shift_range=0.2,
+                                            height_shift_range=0.2,
+                                            horizontal_flip=True,
+                                            vertical_flip=True)
+        data_augmented.fit(training_data)
+        history = classifier.fit(data_augmented.flow(training_data, training_labels, batch_size=batch_size),
                                  epochs=epochs,
                                  # batch_size=batch_size,
                                  validation_data=(val_data, val_labels),
-                                 callbacks=[model_checkpoint, early_stopping],
+                                 callbacks=callbacks_array,
                                  steps_per_epoch=len(training_data) / batch_size)
-       return history, classifier
+        return history, classifier
 
     else:
 
@@ -286,7 +291,7 @@ def usingModelsWithOrWithoutAugmentedData(use_augmented_data, use_early_stopping
                                  epochs=epochs,
                                  batch_size=batch_size,
                                  validation_data=(val_data, val_labels),
-                                 callbacks=[model_checkpoint, early_stopping])
+                                 callbacks=callbacks_array)
         return history, classifier
 
 
@@ -311,12 +316,12 @@ def savePredictedLenses(des_names_array, predicted_class_probabilities, predicte
 
 def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_path,
                                       predicted_lenses_filepath):
-
     if not os.path.exists(predicted_lenses_filepath):
         os.mkdir('%s/' % predicted_lenses_filepath)
 
     predicted_data = classifier.predict_classes(testing_data)
-    true_negative, false_positive, false_negative, true_positive = confusion_matrix(testing_labels, predicted_data.round()).ravel()
+    true_negative, false_positive, false_negative, true_positive = confusion_matrix(testing_labels,
+                                                                                    predicted_data.round()).ravel()
     matrix = (confusion_matrix(testing_labels, predicted_data.round()))
     print(str(matrix) + ' \n ')
     print("True Positive: %s \n" % true_positive)
@@ -333,6 +338,7 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
     text_file.write("True Positive: %s \n" % str(true_positive))
     text_file.write("\n")
     text_file.close()
+
 
 # __________________________________________________________________________
 # MAIN
@@ -409,7 +415,7 @@ plt.plot(number_of_completed_epochs, val_acc, label='Validation acc')
 plt.title('Training and validation accuracy')
 plt.legend()
 # plt.show()
-train_val_accuracy_figure.savefig('../Results/TrainingValidationAccuracy.png')
+train_val_accuracy_figure.savefig('../Results/%s_TrainingValidationAccuracy.png' % dt_string)
 plt.close()
 
 # Losses
@@ -419,15 +425,15 @@ plt.plot(number_of_completed_epochs, val_loss, label='Validation loss')
 plt.title('Training and validation loss')
 plt.legend()
 # plt.show()
-train_val_loss_figure.savefig('../Results/TrainingValidationLoss.png')
+train_val_loss_figure.savefig('../Results/%s_TrainingValidationLoss.png' % dt_string)
 plt.close()
 
 # make positive and negative directory
-if not os.path.exists('../Results/PositiveResults/'):
-    os.mkdir('../Results/PositiveResults/')
+if not os.path.exists('../Results/%s_PositiveResults/' % dt_string):
+    os.mkdir('../Results/%s_PositiveResults/' % dt_string)
 
-if not os.path.exists('../Results/NegativeResults/'):
-    os.mkdir('../Results/NegativeResults/')
+if not os.path.exists('../Results/%s_NegativeResults/' % dt_string):
+    os.mkdir('../Results/%s_NegativeResults/' % dt_string)
 
 # Plot original positive image
 img_positive_tensor = getPositiveImages('Training/Positive3000', 1, input_shape=image_shape)
@@ -435,11 +441,11 @@ positive_train_figure = plt.figure()
 plt.imshow(img_positive_tensor[0])
 # plt.show()
 print(img_positive_tensor.shape)
-positive_train_figure.savefig('../Results/PositiveResults/PositiveTrainingFigure.png')
+positive_train_figure.savefig('../Results/%s_PositiveResults/PositiveTrainingFigure.png' % dt_string)
 plt.close()
 
 # Visualise Activations of positive image
-visualiseActivations(img_positive_tensor, base_dir='../Results/PositiveResults/')
+visualiseActivations(img_positive_tensor, base_dir='../Results/%s_PositiveResults/' % dt_string)
 
 # Plot original negative image
 img_negative_tensor = getNegativeImages('Training/Negative', 1, input_shape=image_shape)
@@ -447,11 +453,11 @@ negative_train_figure = plt.figure()
 plt.imshow(img_negative_tensor[0])
 # plt.show()
 print(img_negative_tensor.shape)
-negative_train_figure.savefig('../Results/NegativeResults/NegativeTrainingFigure.png')
+negative_train_figure.savefig('../Results/%s_NegativeResults/NegativeTrainingFigure.png' % dt_string)
 plt.close()
 
 # Visualise Activations of negative image
-visualiseActivations(img_negative_tensor, base_dir='../Results/NegativeResults/')
+visualiseActivations(img_negative_tensor, base_dir='../Results/%s_NegativeResults/' % dt_string)
 
 # Classifier evaluation
 test_pos = getPositiveImages('Testing/Positive3000', max_num_testing, image_shape)
@@ -468,8 +474,8 @@ excel_dictionary.append({'Test_Accuracy': scores[1]})
 
 gettingTrueFalsePositiveNegatives(testing_data,
                                   testing_labels,
-                                  text_file_path='../Results/TrainingTestingResults/ActualPredictedMatrix.txt',
-                                  predicted_lenses_filepath='../Results/TrainingTestingResults')
+                                  text_file_path='../Results/%s_TrainingTestingResults/ActualPredictedMatrix.txt' % dt_string,
+                                  predicted_lenses_filepath='../Results/%s_TrainingTestingResults' % dt_string)
 
 # Evaluate known 47 with negative 47
 known_47_images = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=image_shape)
@@ -488,14 +494,13 @@ print("%s/47 non lensed images predicted" % non_lens_predicted_count_47)
 
 gettingTrueFalsePositiveNegatives(images_47,
                                   labels_47,
-                                  text_file_path='../Results/Predicted47/47_LensesPredicted.txt',
-                                  predicted_lenses_filepath='../Results/Predicted47')
-
+                                  text_file_path='../Results/%s_Predicted47/47_LensesPredicted.txt' % dt_string,
+                                  predicted_lenses_filepath='../Results/%s_Predicted47' % dt_string)
 
 savePredictedLenses(des_47_names,
                     predicted_class_probabilities_47,
-                    predicted_lenses_filepath='../Results/Predicted47',
-                    text_file_path='../Results/Predicted47/47_LensesPredicted.txt')
+                    predicted_lenses_filepath='../Results/%s_Predicted47' % dt_string,
+                    text_file_path='../Results/%s_Predicted47/47_LensesPredicted.txt' % dt_string)
 
 excel_headers.append("Predicted_Lens_47")
 excel_dictionary.append({'Predicted_Lens_47': lens_predicted_count_47})
@@ -519,14 +524,13 @@ print("%s/84 non lensed images predicted" % non_lens_predicted_count_84)
 
 gettingTrueFalsePositiveNegatives(images_84,
                                   labels_84,
-                                  text_file_path='../Results/Predicted84/84_LensesPredicted.txt',
-                                  predicted_lenses_filepath='../Results/Predicted84')
+                                  text_file_path='../Results/%s_Predicted84/84_LensesPredicted.txt' % dt_string,
+                                  predicted_lenses_filepath='../Results/%s_Predicted84' % dt_string)
 
 savePredictedLenses(des_84_names,
                     predicted_class_probabilities_84,
-                    predicted_lenses_filepath='../Results/Predicted84',
-                    text_file_path='../Results/Predicted84/84_LensesPredicted.txt')
-
+                    predicted_lenses_filepath='../Results/%s_Predicted84' % dt_string,
+                    text_file_path='../Results/%s_Predicted84/84_LensesPredicted.txt' % dt_string)
 
 excel_headers.append("Predicted_Lens_84")
 excel_dictionary.append({'Predicted_Lens_84': lens_predicted_count_84})
