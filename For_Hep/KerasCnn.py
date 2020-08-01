@@ -32,7 +32,7 @@ k_fold_num = 5  # A number between 1 and 10 that determines how many times the k
 # is trained.
 epochs = 20  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 10  # The number of items batched together during training.
-run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 image_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 use_augmented_data = True
 patience_num = 3
@@ -40,7 +40,11 @@ use_early_stopping = True
 use_model_checkpoint = True
 dt_string = now.strftime("%d_%m_%Y_%H_%M_%S")
 print("date and time: ", dt_string)
+excel_headers.append("Date and Time")
+excel_dictionary.append(dt_string)
 
+if not os.path.exists('../Results/%s/' % dt_string):
+    os.mkdir('../Results/%s/' % dt_string)
 
 # Helper methods
 def getPositiveImages(images_dir, max_num, input_shape):
@@ -184,7 +188,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.compile(optimizer='adam',
                        loss='binary_crossentropy',
                        metrics=['accuracy'])
-    plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+    #plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
     return classifier
 
 
@@ -207,9 +211,9 @@ def executeKFoldValidation(data,
         print("kFold Scores Std: " + str(k_fold_std))
 
         excel_headers.append("K-Fold_Mean")
-        excel_dictionary.append({'K-Fold_Mean': score_mean})
+        excel_dictionary.append(score_mean)
         excel_headers.append("K-Fold_Std")
-        excel_dictionary.append({'K-Fold_Std': k_fold_std})
+        excel_dictionary.append(k_fold_std)
 
 
 def visualiseActivations(img_tensor, base_dir):
@@ -345,16 +349,16 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
 
 
 # Get positive training data
-train_pos = getPositiveImages('Training/PositiveAll', max_num_training, input_shape=image_shape)
+train_pos = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
 print("Train Positive Shape: " + str(train_pos.shape))
 excel_headers.append("Train_Positive_Shape")
-excel_dictionary.append({'Train_Positive_Shape': train_pos.shape})
+excel_dictionary.append(train_pos.shape)
 
 # Get negative training data
 train_neg = getNegativeImages('Training/Negative', max_num_training, input_shape=image_shape)
 print("Train Negative Shape: " + str(train_neg.shape))
 excel_headers.append("Train_Negative_Shape")
-excel_dictionary.append({'Train_Negative_Shape': train_neg.shape})
+excel_dictionary.append(train_neg.shape)
 
 all_training_data, all_training_labels, _ = makeImageSet(train_pos, train_neg)
 training_data, val_data, training_labels, val_labels = train_test_split(all_training_data,
@@ -362,19 +366,19 @@ training_data, val_data, training_labels, val_labels = train_test_split(all_trai
                                                                         test_size=validation_split,
                                                                         shuffle=True)
 excel_headers.append("All_Training_Data_Shape")
-excel_dictionary.append({'All_Training_Data_Shape': all_training_labels.shape})
+excel_dictionary.append(all_training_labels.shape)
 excel_headers.append("All_Training_Labels_Shape")
-excel_dictionary.append({'All_Training_Labels_Shape': all_training_labels.shape})
+excel_dictionary.append(all_training_labels.shape)
 excel_headers.append("Training_Data_Shape")
-excel_dictionary.append({'Training_Data_Shape': training_data.shape})
+excel_dictionary.append(training_data.shape)
 excel_headers.append("Validation_Data_Shape")
-excel_dictionary.append({'Validation_Data_Shape': val_data.shape})
+excel_dictionary.append(val_data.shape)
 excel_headers.append("Training_Labels_Shape")
-excel_dictionary.append({'Training_Labels_Shape': training_labels.shape})
+excel_dictionary.append(training_labels.shape)
 excel_headers.append("Validation_Labels_Shape")
-excel_dictionary.append({'Validation_Labels_Shape': val_labels.shape})
+excel_dictionary.append(val_labels.shape)
 excel_headers.append("Validation_Split")
-excel_dictionary.append({'Validation_Split': validation_split})
+excel_dictionary.append(validation_split)
 
 history, classifier = usingModelsWithOrWithoutAugmentedData(use_augmented_data,
                                                             use_early_stopping,
@@ -388,9 +392,9 @@ classifier.load_weights('best_weights.hdf5')
 classifier.save_weights('galaxies_cnn.h5')
 
 excel_headers.append("Epochs")
-excel_dictionary.append({'Epochs': epochs})
+excel_dictionary.append(epochs)
 excel_headers.append("Batch_size")
-excel_dictionary.append({'Batch_size': batch_size})
+excel_dictionary.append(batch_size)
 
 # K fold for training data
 executeKFoldValidation(training_data,
@@ -415,7 +419,7 @@ plt.plot(number_of_completed_epochs, val_acc, label='Validation acc')
 plt.title('Training and validation accuracy')
 plt.legend()
 # plt.show()
-train_val_accuracy_figure.savefig('../Results/%s_TrainingValidationAccuracy.png' % dt_string)
+train_val_accuracy_figure.savefig('../Results/%s/TrainingValidationAccuracy.png' % dt_string)
 plt.close()
 
 # Losses
@@ -425,27 +429,27 @@ plt.plot(number_of_completed_epochs, val_loss, label='Validation loss')
 plt.title('Training and validation loss')
 plt.legend()
 # plt.show()
-train_val_loss_figure.savefig('../Results/%s_TrainingValidationLoss.png' % dt_string)
+train_val_loss_figure.savefig('../Results/%s/TrainingValidationLoss.png' % dt_string)
 plt.close()
 
 # make positive and negative directory
-if not os.path.exists('../Results/%s_PositiveResults/' % dt_string):
-    os.mkdir('../Results/%s_PositiveResults/' % dt_string)
+if not os.path.exists('../Results/%s/PositiveResults/' % dt_string):
+    os.mkdir('../Results/%s/PositiveResults/' % dt_string)
 
-if not os.path.exists('../Results/%s_NegativeResults/' % dt_string):
-    os.mkdir('../Results/%s_NegativeResults/' % dt_string)
+if not os.path.exists('../Results/%s/NegativeResults/' % dt_string):
+    os.mkdir('../Results/%s/NegativeResults/' % dt_string)
 
 # Plot original positive image
-img_positive_tensor = getPositiveImages('Training/PositiveAll', 1, input_shape=image_shape)
+img_positive_tensor = getPositiveImages('Training/Positive3000', 1, input_shape=image_shape)
 positive_train_figure = plt.figure()
 plt.imshow(img_positive_tensor[0])
 # plt.show()
 print(img_positive_tensor.shape)
-positive_train_figure.savefig('../Results/%s_PositiveResults/PositiveTrainingFigure.png' % dt_string)
+positive_train_figure.savefig('../Results/%s/PositiveResults/PositiveTrainingFigure.png' % dt_string)
 plt.close()
 
 # Visualise Activations of positive image
-visualiseActivations(img_positive_tensor, base_dir='../Results/%s_PositiveResults/' % dt_string)
+visualiseActivations(img_positive_tensor, base_dir='../Results/%s/PositiveResults/' % dt_string)
 
 # Plot original negative image
 img_negative_tensor = getNegativeImages('Training/Negative', 1, input_shape=image_shape)
@@ -453,14 +457,14 @@ negative_train_figure = plt.figure()
 plt.imshow(img_negative_tensor[0])
 # plt.show()
 print(img_negative_tensor.shape)
-negative_train_figure.savefig('../Results/%s_NegativeResults/NegativeTrainingFigure.png' % dt_string)
+negative_train_figure.savefig('../Results/%s/NegativeResults/NegativeTrainingFigure.png' % dt_string)
 plt.close()
 
 # Visualise Activations of negative image
-visualiseActivations(img_negative_tensor, base_dir='../Results/%s_NegativeResults/' % dt_string)
+visualiseActivations(img_negative_tensor, base_dir='../Results/%s/NegativeResults/' % dt_string)
 
 # Classifier evaluation
-test_pos = getPositiveImages('Testing/PositiveAll', max_num_testing, image_shape)
+test_pos = getPositiveImages('Testing/Positive3000', max_num_testing, image_shape)
 test_neg = getNegativeImages('Testing/Negative', max_num_testing, image_shape)
 testing_data, testing_labels, _ = makeImageSet(test_pos, test_neg, shuffle_needed=True)
 scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
@@ -468,14 +472,14 @@ print("Test loss: %s" % scores[0])
 print("Test accuracy: %s" % scores[1])
 
 excel_headers.append("Test_Loss")
-excel_dictionary.append({'Test_Loss': scores[0]})
+excel_dictionary.append(scores[0])
 excel_headers.append("Test_Accuracy")
-excel_dictionary.append({'Test_Accuracy': scores[1]})
+excel_dictionary.append(scores[1])
 
 gettingTrueFalsePositiveNegatives(testing_data,
                                   testing_labels,
-                                  text_file_path='../Results/%s_TrainingTestingResults/ActualPredictedMatrix.txt' % dt_string,
-                                  predicted_lenses_filepath='../Results/%s_TrainingTestingResults' % dt_string)
+                                  text_file_path='../Results/%s/TrainingTestingResults/ActualPredictedMatrix.txt' % dt_string,
+                                  predicted_lenses_filepath='../Results/%s/TrainingTestingResults' % dt_string)
 
 # Evaluate known 47 with negative 47
 known_47_images = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=image_shape)
@@ -494,18 +498,18 @@ print("%s/47 non lensed images predicted" % non_lens_predicted_count_47)
 
 gettingTrueFalsePositiveNegatives(images_47,
                                   labels_47,
-                                  text_file_path='../Results/%s_Predicted47/47_LensesPredicted.txt' % dt_string,
-                                  predicted_lenses_filepath='../Results/%s_Predicted47' % dt_string)
+                                  text_file_path='../Results/%s/Predicted47/47_LensesPredicted.txt' % dt_string,
+                                  predicted_lenses_filepath='../Results/%s/Predicted47' % dt_string)
 
 savePredictedLenses(des_47_names,
                     predicted_class_probabilities_47,
-                    predicted_lenses_filepath='../Results/%s_Predicted47' % dt_string,
-                    text_file_path='../Results/%s_Predicted47/47_LensesPredicted.txt' % dt_string)
+                    predicted_lenses_filepath='../Results/%s/Predicted47' % dt_string,
+                    text_file_path='../Results/%s/Predicted47/47_LensesPredicted.txt' % dt_string)
 
 excel_headers.append("Predicted_Lens_47")
-excel_dictionary.append({'Predicted_Lens_47': lens_predicted_count_47})
+excel_dictionary.append(lens_predicted_count_47)
 excel_headers.append("Predicted_No_Lens_47")
-excel_dictionary.append({'Predicted_No_Lens_47': non_lens_predicted_count_47})
+excel_dictionary.append(non_lens_predicted_count_47)
 
 # Evaluate known 84 with negative 84
 known_84_images = getUnseenData('UnseenData/Known84', max_num_prediction, input_shape=image_shape)
@@ -524,18 +528,18 @@ print("%s/84 non lensed images predicted" % non_lens_predicted_count_84)
 
 gettingTrueFalsePositiveNegatives(images_84,
                                   labels_84,
-                                  text_file_path='../Results/%s_Predicted84/84_LensesPredicted.txt' % dt_string,
-                                  predicted_lenses_filepath='../Results/%s_Predicted84' % dt_string)
+                                  text_file_path='../Results/%s/Predicted84/84_LensesPredicted.txt' % dt_string,
+                                  predicted_lenses_filepath='../Results/%s/Predicted84' % dt_string)
 
 savePredictedLenses(des_84_names,
                     predicted_class_probabilities_84,
-                    predicted_lenses_filepath='../Results/%s_Predicted84' % dt_string,
-                    text_file_path='../Results/%s_Predicted84/84_LensesPredicted.txt' % dt_string)
+                    predicted_lenses_filepath='../Results/%s/Predicted84' % dt_string,
+                    text_file_path='../Results/%s/Predicted84/84_LensesPredicted.txt' % dt_string)
 
 excel_headers.append("Predicted_Lens_84")
-excel_dictionary.append({'Predicted_Lens_84': lens_predicted_count_84})
+excel_dictionary.append(lens_predicted_count_84)
 excel_headers.append("Predicted_No_Lens_84")
-excel_dictionary.append({'Predicted_No_Lens_84': non_lens_predicted_count_84})
+excel_dictionary.append(non_lens_predicted_count_84)
 
 # K-Fold for known 47
 executeKFoldValidation(images_47,
@@ -556,5 +560,5 @@ executeKFoldValidation(images_84,
                        excel_dictionary)
 
 # add row to excel table
-# createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
+createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
 writeToFile('../Results/kerasCNN_Results.csv', excel_dictionary)
