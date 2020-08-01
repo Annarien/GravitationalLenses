@@ -349,7 +349,7 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
 
 
 # Get positive training data
-train_pos = getPositiveImages('Training/Positive3000', max_num_training, input_shape=image_shape)
+train_pos = getPositiveImages('Training/PositiveAll', max_num_training, input_shape=image_shape)
 print("Train Positive Shape: " + str(train_pos.shape))
 excel_headers.append("Train_Positive_Shape")
 excel_dictionary.append(train_pos.shape)
@@ -440,7 +440,7 @@ if not os.path.exists('../Results/%s/NegativeResults/' % dt_string):
     os.mkdir('../Results/%s/NegativeResults/' % dt_string)
 
 # Plot original positive image
-img_positive_tensor = getPositiveImages('Training/Positive3000', 1, input_shape=image_shape)
+img_positive_tensor = getPositiveImages('Training/PositiveAll', 1, input_shape=image_shape)
 positive_train_figure = plt.figure()
 plt.imshow(img_positive_tensor[0])
 # plt.show()
@@ -464,7 +464,7 @@ plt.close()
 visualiseActivations(img_negative_tensor, base_dir='../Results/%s/NegativeResults/' % dt_string)
 
 # Classifier evaluation
-test_pos = getPositiveImages('Testing/Positive3000', max_num_testing, image_shape)
+test_pos = getPositiveImages('Testing/PositiveAll', max_num_testing, image_shape)
 test_neg = getNegativeImages('Testing/Negative', max_num_testing, image_shape)
 testing_data, testing_labels, _ = makeImageSet(test_pos, test_neg, shuffle_needed=True)
 scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
