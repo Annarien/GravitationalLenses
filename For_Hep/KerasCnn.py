@@ -30,7 +30,7 @@ validation_split = 0.2  # A float value between 0 and 1 that determines what per
 # data is used for validation.
 k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 20  # A number that dictates how many iterations should be run to train the classifier
+epochs = 50  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 10  # The number of items batched together during training.
 run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 image_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
