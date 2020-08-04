@@ -9,20 +9,22 @@ The plotting of all the image grids is done under the function called: plotAndSa
 # Processing images into a grid, to view all images at the same time, to view the process taken.
 # IMPORTS
 import glob
-import matplotlib.pyplot as plt
-import numpy as np
 import os
-import sys
 import random
-from astropy.io import fits
-from astLib import astImages
+
+import matplotlib.pyplot as plt
 from PIL import Image
-from os import walk
+from astropy.io import fits
+
 from positiveSetUtils import getNegativeNumbers
+
+train_positive_path = 'Training/Positive'
+train_negative_path = 'Training/Negative'
+number_iterations = 9
 
 
 # Open DES Processed WCS .fits files, and assign a variable to the g, r, i images.
-def getNegativeProcessedWCS(num, base_dir='Training/Negative'):
+def getNegativeProcessedWCS(num, base_dir=train_negative_path):
     """
     This is to open the files of the negative DES WCSClipped images for the g, r, and i bands,
     which have been clipped using the World Coordinate Systems (WCS).
@@ -45,7 +47,7 @@ def getNegativeProcessedWCS(num, base_dir='Training/Negative'):
 
 
 # Open DES Processed norm .fits files and assign a variable to the g, r, i images.
-def getNegativeDES(num, base_dir='Training/Negative'):
+def getNegativeDES(num, base_dir=train_negative_path):
     """
     This is to open the normalised files of the negative DES WCSClipped images for the g, r, and i bands.
 
@@ -115,7 +117,7 @@ def getPosNoiseless(num, base_dir='Training/PositiveNoiseless'):
 
 
 # Open PositiveWithDESSky  .fits files and assign a variable to the ...posSky_g, r, i images.
-def getPosWDESSky(num, base_dir='Training/Positive'):
+def getPosWDESSky(num, base_dir=train_positive_path):
     """
     The number is used to open files of the positively simulated images of gravitational lensing for the g, r, and 
     i bands, that have the background sky added to them. 
@@ -142,7 +144,7 @@ def getPosWDESSky(num, base_dir='Training/Positive'):
 
 
 # Open PositiveWithDESSky norm. fits images and assign a variable to the ...posSky_g, r, i_norm images.
-def getPosWDESSkyNorm(num, base_dir='Training/Positive'):
+def getPosWDESSkyNorm(num, base_dir=train_positive_path):
     """
     This is to open files of the normalised positively simulated images of gravitational lensing for the g, r, and 
     i bands, that have the background sky added to them. 
@@ -199,7 +201,7 @@ def getNegativeDESRGBPath(num):
     'DES/DES_Processed/num_source/rgb.png The format of this file path is 'DES/DES_Processed/num_source/rgb.png.
     """
 
-    rgb_des_path = glob.glob('Training/Negative/%s_*/rgb.png' % (num))[0]
+    rgb_des_path = glob.glob('%s/%s_*/rgb.png' % (train_negative_path, num))[0]
     return rgb_des_path
 
 
@@ -222,7 +224,7 @@ def getKnownRGBPath(num, known_path):
     """
 
     # get path of KnownRGBPath
-    rgb_known = glob.glob("UnseenData/%s/%s_*/rgb.png" % (known_path, num))[0]
+    rgb_known = glob.glob('UnseenData/%s/%s_*/rgb.png' % (known_path, num))[0]
 
     # get header of g image so that we can get the DESJ tile name
 
@@ -264,31 +266,31 @@ def makeRandomRGBArray(rgb_path, number_iterations, numbers_train_neg):
 
     files = folders = 0
     for _, dir_names, file_names in os.walk(rgb_path):
-        # ^ this idiom means "we won't be using this value"
+        # ^ this idiom means 'we won't be using this value'
         files += len(file_names)
         folders += len(dir_names)
 
-    print("{:,} files, {:,} folders".format(files, folders))
+    print('{:,} files, {:,} folders'.format(files, folders))
 
     for num in range(0, number_iterations):
         # random_num = random.randint(0, folders - 1)
         random_num = random.choice(numbers_train_neg)
-        print("RANDOM NUM: " + str(random_num))
+        print('RANDOM NUM: ' + str(random_num))
 
         while random_num in random_array:
-            print("RANDOM NUM: " + str(random_num))
+            print('RANDOM NUM: ' + str(random_num))
             # random_num = random.randint(0, folders - 1)
             random_num = random.choice(numbers_train_neg)
         random_array.append(random_num)
 
-    print("RANDOM ARRAY: " + str(random_array) + " TYPE: " + str(type(random_array)))
+    print('RANDOM ARRAY: ' + str(random_array) + ' TYPE: ' + str(type(random_array)))
     for num in range(0, len(random_array)):
         random_array_index = random_array[num]
-        if rgb_path == 'Training/Positive':
+        if rgb_path == train_positive_path:
             rgb_random_array.append('%s/%s/%s_rgb.png' % (rgb_path, random_array_index, random_array_index))
             image_title_array.append(random_array_index)
 
-        elif rgb_path == 'Training/Negative':
+        elif rgb_path == train_negative_path:
             rgb_random_array.append(glob.glob('%s/%s_*/rgb.png' % (rgb_path, random_array_index))[0])
             image_title_array.append(random_array_index)
 
@@ -332,7 +334,7 @@ def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array):
             axs[row_num, column_num].imshow(img)
             axs[row_num, column_num].axis('off')
             imageTitle = image_title_array[image_title_num]
-            axs[row_num, column_num].set_title("%s" % imageTitle, fontdict=None, loc='center', color='k')
+            axs[row_num, column_num].set_title('%s' % imageTitle, fontdict=None, loc='center', color='k')
             image_title_num += 1
             img.close()
 
@@ -378,7 +380,7 @@ def plotprogressNegativePositive(number_iterations):
     rgb_des_image_paths = []
     image_title_array = []
 
-    numbers_train_neg = getNegativeNumbers('Training/Negative')
+    numbers_train_neg = getNegativeNumbers(train_negative_path)
     for index in range(0, number_iterations):
         num = numbers_train_neg[index]
         gWCS, rWCS, iWCS = getNegativeProcessedWCS(num)
@@ -401,11 +403,9 @@ def plotprogressNegativePositive(number_iterations):
         axs[2, 1].imshow(rDESSky[0].data, cmap='gray')
         axs[2, 2].imshow(iDESSky[0].data, cmap='gray')
 
-        pathToPos = 'Training/Positive'
-        pathToNeg = 'Training/Negative'
-
-        # filepath1 = (glob.glob('Training/Negative/%s_*' % num))[0]
-        fig1.savefig(glob.glob('%s/%i_*/Negative_Processed_Grid.png' % (pathToNeg, num)))
+        some_path = glob.glob('%s/%i_*/Negative_Processed_Grid.png' % (train_negative_path, num))[0]
+        print(some_path)
+        fig1.savefig(some_path)
         plt.close(fig1)
 
         gWCS.close()
@@ -430,8 +430,7 @@ def plotprogressNegativePositive(number_iterations):
         axs[2, 1].imshow(rPosSkyNorm[0].data, cmap='gray')
         axs[2, 2].imshow(iPosSkyNorm[0].data, cmap='gray')
 
-        # filepath2 = ("%s/%s/%s_posSky_ImageGrid.png" % ('Training/Positive', num, num))
-        fig2.savefig('%s/%i/Positive_Processed_Grid.png' % (pathToPos, num))
+        fig2.savefig('%s/%i/Positive_Processed_Grid.png' % (train_positive_path, num))
         plt.close(fig2)
 
         # closing images to save RAM
@@ -445,18 +444,18 @@ def plotprogressNegativePositive(number_iterations):
         rPosSkyNorm.close()
         iPosSkyNorm.close()
 
-        rgb_pos_image_paths.append('Training/Positive/%s/%s_rgb.png' % (num, num))
+        rgb_pos_image_paths.append('%s/%s/%s_rgb.png' % (train_positive_path, num, num))
         rgb_des_image_paths.append(getNegativeDESRGBPath(num))
-        imageTitlePos = '%s' % (num)
-        image_title_array.append(imageTitlePos)
+        image_title_pos = '%s' % num
+        image_title_array.append(image_title_pos)
 
-    file_path3 = "Training/Positive_RGB_ImageGrid.png"
+    file_path3 = '%s_RGB_ImageGrid.png' % train_positive_path
     # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
     # list( paths of rgb images)))
     plotAndSaveRgbGrid(file_path3, rgb_pos_image_paths, image_title_array)
 
     # creating the rgb grid for the DES Images
-    file_path4 = "Training/Negative_RGB_ImageGrid.png"
+    file_path4 = '%s_RGB_ImageGrid.png' % train_negative_path
     # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
     # list( paths of rgb images)))
     plotAndSaveRgbGrid(file_path4, rgb_des_image_paths, image_title_array)
@@ -480,7 +479,7 @@ def plotKnownLenses(number_iterations, known_path=''):
         imageTitle = '%s_%s' % (num, desJ)
         image_title_array.append(imageTitle)
 
-    file_path5 = "UnseenData/%s_RGB_ImageGrid.png" % known_path
+    file_path5 = 'UnseenData/%s_RGB_ImageGrid.png' % known_path
     # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
     # list( paths of rgb images)))
     plotAndSaveRgbGrid(file_path5, rgb_known_image_paths, image_title_array)
@@ -489,21 +488,17 @@ def plotKnownLenses(number_iterations, known_path=''):
 # ___________________________________________________________________________________________________________________________________________
 # MAIN 
 # Number of Images creating grids to view.
-# number_iterations = int(sys.argv[1])
-number_iterations = 9
-# plot progress and rgb images of negative and positive images 
+# plot progress and rgb images of negative and positive images
 numbers_train_neg = plotprogressNegativePositive(number_iterations)
 
 # Get Random RGB images from PositiveWithDESSky
-path = 'Training/Positive'
-file_path6 = "Training/Positive_randomRGB_ImageGrid.png"
-rgb_random, image_title_array = makeRandomRGBArray(path, number_iterations, numbers_train_neg)
+file_path6 = '%s_randomRGB_ImageGrid.png' % train_positive_path
+rgb_random, image_title_array = makeRandomRGBArray(train_positive_path, number_iterations, numbers_train_neg)
 plotAndSaveRgbGrid(file_path6, rgb_random, image_title_array)
 
 # Get Random RGB images from NegativeDES
-path = 'Training/Negative'
-file_path7 = "Training/Negative_randomRGB_ImageGrid.png"
-rgb_random, image_title_array = makeRandomRGBArray(path, number_iterations, numbers_train_neg)
+file_path7 = '%s_randomRGB_ImageGrid.png' % train_negative_path
+rgb_random, image_title_array = makeRandomRGBArray(train_negative_path, number_iterations, numbers_train_neg)
 plotAndSaveRgbGrid(file_path7, rgb_random, image_title_array)
 
 # plot KnownLenses rgb images
