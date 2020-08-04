@@ -6,7 +6,7 @@ To get the random rgb.png images from the negative and positive data is formed u
 The plotting of all the image grids is done under the function called: plotAndSaveRgbGrid()
 """
 
-## Processing images into a grid, to view all images at the same time, to view the process taken. 
+# Processing images into a grid, to view all images at the same time, to view the process taken.
 # IMPORTS
 import glob
 import matplotlib.pyplot as plt
@@ -234,7 +234,7 @@ def getKnownRGBPath(num, known_path):
     return rgb_known, des_j, tilename
 
 
-def makeRandomRGBArray(rgb_path, number_iterations):
+def makeRandomRGBArray(rgb_path, number_iterations, numbers_train_neg):
     """
     This takes the root directory of rgb images that will create a list of random rgb images within the directory.
     An example of the necessary path of the root directory is 'PositiveWithDESSky' or 'DES/DES_Processed'.
@@ -250,6 +250,12 @@ def makeRandomRGBArray(rgb_path, number_iterations):
         image_title_array(list):      The list of the numbers that correspond to the rgb.png images in the rgb_random_array.
     """
 
+    # The error is that the images in the folders are random, not consecutively from 0,1.
+    # The methods below, takes images from (0,?) At random, but some of the numbers it chooses, dont exit within the
+    # folders.
+    # Somehow get a list of folders from the array.
+    # This can be done by calling the method in the positiveSetUtils.py method
+
     random_num = 0
     random_array = []
     random_array_index = 0
@@ -262,15 +268,20 @@ def makeRandomRGBArray(rgb_path, number_iterations):
         files += len(file_names)
         folders += len(dir_names)
 
-    print ("{:,} files, {:,} folders".format(files, folders))
+    print("{:,} files, {:,} folders".format(files, folders))
 
     for num in range(0, number_iterations):
-        random_num = random.randint(0, folders - 1)
+        # random_num = random.randint(0, folders - 1)
+        random_num = random.choice(numbers_train_neg)
+        print("RANDOM NUM: " + str(random_num))
+
         while random_num in random_array:
-            random_num = random.randint(0, folders - 1)
+            print("RANDOM NUM: " + str(random_num))
+            # random_num = random.randint(0, folders - 1)
+            random_num = random.choice(numbers_train_neg)
         random_array.append(random_num)
 
-    print ("RANDOM ARRAY: " + str(random_array) + " TYPE: " + str(type(random_array)))
+    print("RANDOM ARRAY: " + str(random_array) + " TYPE: " + str(type(random_array)))
     for num in range(0, len(random_array)):
         random_array_index = random_array[num]
         if rgb_path == 'Training/Positive':
@@ -367,7 +378,7 @@ def plotprogressNegativePositive(number_iterations):
     rgb_des_image_paths = []
     image_title_array = []
 
-    numbers_train_neg=getNegativeNumbers('Training/Negative')
+    numbers_train_neg = getNegativeNumbers('Training/Negative')
     for index in range(0, number_iterations):
         num = numbers_train_neg[index]
         gWCS, rWCS, iWCS = getNegativeProcessedWCS(num)
@@ -393,8 +404,8 @@ def plotprogressNegativePositive(number_iterations):
         pathToPos = 'Training/Positive'
         pathToNeg = 'Training/Negative'
 
-        filepath1 = (glob.glob('Training/Negative/%s_*' % num))[0]
-        fig1.savefig("%s/Negative_Processed_Grid.png" % filepath1)
+        # filepath1 = (glob.glob('Training/Negative/%s_*' % num))[0]
+        fig1.savefig(glob.glob('%s/%i_*/Negative_Processed_Grid.png' % (pathToNeg, num)))
         plt.close(fig1)
 
         gWCS.close()
@@ -419,8 +430,8 @@ def plotprogressNegativePositive(number_iterations):
         axs[2, 1].imshow(rPosSkyNorm[0].data, cmap='gray')
         axs[2, 2].imshow(iPosSkyNorm[0].data, cmap='gray')
 
-        filepath2 = ("%s/%s/%s_posSky_ImageGrid.png" % ('Training/Positive', num, num))
-        fig2.savefig(filepath2)
+        # filepath2 = ("%s/%s/%s_posSky_ImageGrid.png" % ('Training/Positive', num, num))
+        fig2.savefig('%s/%i/Positive_Processed_Grid.png' % (pathToPos, num))
         plt.close(fig2)
 
         # closing images to save RAM
@@ -449,9 +460,10 @@ def plotprogressNegativePositive(number_iterations):
     # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
     # list( paths of rgb images)))
     plotAndSaveRgbGrid(file_path4, rgb_des_image_paths, image_title_array)
+    return numbers_train_neg
 
 
-def plotKnownLenses(number_iterations, known_path = ''):
+def plotKnownLenses(number_iterations, known_path=''):
     """
     This is the plotting of knownlenses. This has the requested amount of known lenses to look at and check. 
     This function opens the function getKnownRGBPath(), and gets the paths of the rgb images of the known 
@@ -480,21 +492,20 @@ def plotKnownLenses(number_iterations, known_path = ''):
 # number_iterations = int(sys.argv[1])
 number_iterations = 9
 # plot progress and rgb images of negative and positive images 
-plotprogressNegativePositive(number_iterations)
+numbers_train_neg = plotprogressNegativePositive(number_iterations)
 
 # Get Random RGB images from PositiveWithDESSky
 path = 'Training/Positive'
 file_path6 = "Training/Positive_randomRGB_ImageGrid.png"
-rgb_random, image_title_array = makeRandomRGBArray(path, number_iterations)
+rgb_random, image_title_array = makeRandomRGBArray(path, number_iterations, numbers_train_neg)
 plotAndSaveRgbGrid(file_path6, rgb_random, image_title_array)
 
 # Get Random RGB images from NegativeDES
 path = 'Training/Negative'
 file_path7 = "Training/Negative_randomRGB_ImageGrid.png"
-rgb_random, image_title_array = makeRandomRGBArray(path, number_iterations)
-# plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved), list( paths of rgb images)))
+rgb_random, image_title_array = makeRandomRGBArray(path, number_iterations, numbers_train_neg)
 plotAndSaveRgbGrid(file_path7, rgb_random, image_title_array)
 
 # plot KnownLenses rgb images
-plotKnownLenses(number_iterations, known_path = 'Known47')
+plotKnownLenses(number_iterations, known_path='Known47')
 plotKnownLenses(number_iterations, known_path='Known84')
