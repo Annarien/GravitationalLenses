@@ -22,27 +22,26 @@ from datetime import datetime
 now = datetime.now()
 
 # Globals
+max_num = 10                        # Set to sys.maxsize when running entire data set
+max_num_testing = 10                # Set to sys.maxsize when running entire data set
+max_num_prediction = sys.maxsize    # Set to sys.maxsize when running entire data set
+validation_split = 0.2              # A float value between 0 and 1 that determines what percentage of the training
+                                    # data is used for validation.
+k_fold_num = 5                      # A number between 1 and 10 that determines how many times the k-fold classifier
+                                    # is trained.
+epochs = 20                         # A number that dictates how many iterations should be run to train the classifier
+batch_size = 10                     # The number of items batched together during training.
+run_k_fold_validation = False       # Set this to True if you want to run K-Fold validation as well.
+input_shape = (100, 100, 3)         # The shape of the images being learned & evaluated.
+augmented_multiplier = 2            # This uses data augmentation to generate x-many times as much data as there is on file.
+use_augmented_data = True           # Determines whether to use data augmentation or not.
+patience_num = 3                    # Used in the early stopping to determine how quick/slow to react.
+use_early_stopping = True           # Determines whether to use early stopping or not.
+use_model_checkpoint = True         # Determines whether the classifiers keeps track of the most accurate iteration of itself.
+
+dt_string = now.strftime("%d_%m_%Y_%H_%M_%S")
 excel_headers = []
 excel_dictionary = []
-max_num = 10  # Set to sys.maxsize when running entire data set
-max_num_testing = 10
-# max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
-max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
-validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
-# data is used for validation.
-k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
-# is trained.
-epochs = 20  # A number that dictates how many iterations should be run to train the classifier
-batch_size = 10  # The number of items batched together during training.
-run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
-input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
-augmented_multiplier = 2
-use_augmented_data = True
-patience_num = 3
-use_early_stopping = True
-use_model_checkpoint = True
-dt_string = now.strftime("%d_%m_%Y_%H_%M_%S")
-print("date and time: ", dt_string)
 excel_headers.append("Date and Time")
 excel_dictionary.append(dt_string)
 
