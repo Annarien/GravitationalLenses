@@ -289,6 +289,7 @@ def usingModelsWithOrWithoutAugmentedData(training_data, training_labels, val_da
 def createAugmentedData(training_data, training_labels, num_of_images):
     complete_training_data_set = []
     complete_training_labels_set = []
+    training_data_size = training_data.size
 
     complete_training_data_set.append(np.copy(training_data))
     print("Complete Training Data: " + str(len(complete_training_data_set)))
@@ -314,7 +315,7 @@ def createAugmentedData(training_data, training_labels, num_of_images):
             complete_training_labels_set.append(label)
 
             iterator_index += 1
-            if iterator_index > len(training_data):
+            if iterator_index > training_data_size:
                 break
 
         aug_counter += 1
