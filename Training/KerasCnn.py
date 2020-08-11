@@ -288,15 +288,13 @@ def usingModelsWithOrWithoutAugmentedData(training_data, training_labels, val_da
 
 
 def createAugmentedData(training_data, training_labels, num_of_images):
-    # create a copy of training data and training labels
-    original_train_data = np.copy(training_data)
-    original_train_labels = np.copy(training_labels)
+    complete_training_data_set = []
+    complete_training_labels_set = []
 
-    aug_counter = 0
-    complete_training_data_set = original_train_data
-    print("Complete Training Data: " +str(complete_training_data_set.shape))
-    complete_training_labels_set = original_train_labels
-    print("Complete Training Label: " +str(complete_training_labels_set.shape))
+    complete_training_data_set.append(np.copy(training_data))
+    print("Complete Training Data: " + str(len(complete_training_data_set)))
+    complete_training_labels_set.append(np.copy(training_labels))
+    print("Complete Training Label: " + str(len(complete_training_labels_set)))
 
     # create augmented data
     data_augmented = ImageDataGenerator(featurewise_center=True,
@@ -308,45 +306,24 @@ def createAugmentedData(training_data, training_labels, num_of_images):
                                         vertical_flip=True)
 
     # create a multiple of augmented data, here 2 sets of augmented data
+    aug_counter = 0
     while aug_counter < (augmented_multiplier - 1):
-        data_augmented.fit(training_data)
         iterator = data_augmented.flow(training_data, training_labels, batch_size=batch_size)
-
-        print(len(iterator))
+        iterator_index = 0
         for image, label in iterator:
+            complete_training_data_set.append(image)
+            complete_training_labels_set.append(label)
 
-            reshaped_image = image.reshape(image.shape[0], input_shape[0], input_shape[1], input_shape[2])
-            # print("reshaped: "+str(reshaped_image.shape))
-            print("label.shape[0]: "+str(label.shape[0]))
-            reshaped_label = label.reshape(label.shape[0])
-            # new_reshaped_label = np.array([reshaped_label])
-            print("reshaped label : " + str(reshaped_label.shape))
-
-            print("Complete Training Data Set: " + str(complete_training_data_set.shape))
-            print("Reshaped Image: " + str(reshaped_image.shape))
-            complete_training_data_set = np.vstack((complete_training_data_set, reshaped_image))
-
-            print("Complete Training Labels Set: " + str(complete_training_labels_set.shape))
-            print("Reshaped Label: "+ str(reshaped_label.shape))
-
-            # complete_training_labels_set = np.vstack((complete_training_labels_set, reshaped_label))
-            complete_training_labels_set = np.concatenate((complete_training_labels_set, reshaped_label))
-            print("Complete Training Labels Set: " + str(complete_training_labels_set.shape))
-
-            # complete_training_labels_set.append(reshaped_label)
+            iterator_index += 1
+            if iterator_index > len(training_data):
+                break
 
         aug_counter += 1
 
-        # complete_training_data_set = np.vstack((complete_training_data_set, reshaped_image))
-        # complete_training_labels_set = np.vstack((complete_training_labels_set, label))
+    print("Size of All Training Data: " + str(len(complete_training_data_set)))
+    print("Size of All Training Labels: " + str(len(complete_training_labels_set)))
 
-    complete_training_data_set = np.vstack((complete_training_data_set, original_train_data))
-    complete_training_labels_set = np.vstack((complete_training_labels_set, original_train_labels))
-
-    print("Size of All Training Data: " + str(complete_training_data_set.shape))
-    print("Size of All Training Labels: " + str(complete_training_labels_set.shape))
-
-    return complete_training_data_set, complete_training_labels_set
+    return np.array(complete_training_data_set), np.array(complete_training_labels_set)
 
 
 def savePredictedLenses(des_names_array, predicted_class_probabilities, predicted_lenses_filepath, text_file_path):
