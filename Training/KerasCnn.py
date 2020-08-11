@@ -275,7 +275,7 @@ def usingModelsWithOrWithoutAugmentedData(training_data, training_labels, val_da
         callbacks_array.append(model_checkpoint)
 
     if use_augmented_data:
-        training_data, training_labels = createAugmentedData(training_data, training_labels,num_of_images)
+        training_data, training_labels = createAugmentedData(training_data, training_labels, num_of_images)
 
     history = classifier.fit(training_data,
                              training_labels,
@@ -287,22 +287,16 @@ def usingModelsWithOrWithoutAugmentedData(training_data, training_labels, val_da
     return history, classifier
 
 
-def createAugmentedData(training_data, training_labels,num_of_images):
+def createAugmentedData(training_data, training_labels, num_of_images):
     # create a copy of training data and training labels
     original_train_data = np.copy(training_data)
     original_train_labels = np.copy(training_labels)
 
     aug_counter = 0
-    complete_training_data_set = []
-    complete_training_labels_set = []
-
-    # print(original_train_data.shape)
-    # print(complete_training_data_set.shape)
-    # print(original_train_data.shape)
-    # complete_training_data_set = np.vstack((complete_training_data_set, original_train_data))
-    # print(complete_training_data_set.shape)
-    # # complete_training_labels_set.append(original_train_labels)
-    # complete_training_labels_set = np.vstack((complete_training_labels_set, original_train_labels))
+    complete_training_data_set = original_train_data
+    print("Complete Training Data: " +str(complete_training_data_set.shape))
+    complete_training_labels_set = original_train_labels
+    print("Complete Training Label: " +str(complete_training_labels_set.shape))
 
     # create augmented data
     data_augmented = ImageDataGenerator(featurewise_center=True,
@@ -314,45 +308,40 @@ def createAugmentedData(training_data, training_labels,num_of_images):
                                         vertical_flip=True)
 
     # create a multiple of augmented data, here 2 sets of augmented data
-    while aug_counter < (augmented_multiplier-1):
+    while aug_counter < (augmented_multiplier - 1):
         data_augmented.fit(training_data)
         iterator = data_augmented.flow(training_data, training_labels, batch_size=batch_size)
-        #
-        # complete_training_data_set = np.vstack((complete_training_data_set, images))
-        # complete_training_labels_set = np.vstack((complete_training_labels_set, labels))
-        # complete_training_data_set.append(images)
-        # complete_training_labels_set.append(labels)
-        #
-        # for index in iterator:
-        #     image = index[0]
-        #     label = index[1]
-        #     reshaped_image = image.reshape(image.shape[0], input_shape[0], input_shape[1], input_shape[2])
 
         print(len(iterator))
         for image, label in iterator:
 
-            # print("Image: "+str(image))
-            print(image.shape)
-            # print("Label : "+str(label))
-            # complete_training_data_set.append(np.array(image))
-            # complete_training_labels_set.append(label)
             reshaped_image = image.reshape(image.shape[0], input_shape[0], input_shape[1], input_shape[2])
-            print("reshaped: "+str(reshaped_image.shape))
+            # print("reshaped: "+str(reshaped_image.shape))
+            print("label.shape[0]: "+str(label.shape[0]))
+            reshaped_label = label.reshape(label.shape[0])
+            # new_reshaped_label = np.array([reshaped_label])
+            print("reshaped label : " + str(reshaped_label.shape))
 
-            # complete_training_data_set = np.vstack((complete_training_data_set, reshaped_image))
-            # complete_training_labels_set = np.vstack((complete_training_labels_set, label))
-            # print("Label for Iteration: " +str(label))
+            print("Complete Training Data Set: " + str(complete_training_data_set.shape))
+            print("Reshaped Image: " + str(reshaped_image.shape))
+            complete_training_data_set = np.vstack((complete_training_data_set, reshaped_image))
+
+            print("Complete Training Labels Set: " + str(complete_training_labels_set.shape))
+            print("Reshaped Label: "+ str(reshaped_label.shape))
+
+            # complete_training_labels_set = np.vstack((complete_training_labels_set, reshaped_label))
+            complete_training_labels_set = np.concatenate((complete_training_labels_set, reshaped_label))
+            print("Complete Training Labels Set: " + str(complete_training_labels_set.shape))
+
+            # complete_training_labels_set.append(reshaped_label)
+
         aug_counter += 1
 
-        complete_training_data_set = np.vstack((complete_training_data_set, reshaped_image))
-        complete_training_labels_set = np.vstack((complete_training_labels_set, label))
+        # complete_training_data_set = np.vstack((complete_training_data_set, reshaped_image))
+        # complete_training_labels_set = np.vstack((complete_training_labels_set, label))
 
     complete_training_data_set = np.vstack((complete_training_data_set, original_train_data))
     complete_training_labels_set = np.vstack((complete_training_labels_set, original_train_labels))
-    # complete_training_data_set = np.asarray(complete_training_data_set)
-    # complete_training_labels_set = np.asarray(complete_training_labels_set)
-    # preprocess(np.array(complete_training_data_set))
-    # preprocess(np.array(complete_training_data_set))
 
     print("Size of All Training Data: " + str(complete_training_data_set.shape))
     print("Size of All Training Labels: " + str(complete_training_labels_set.shape))
