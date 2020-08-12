@@ -22,8 +22,8 @@ from datetime import datetime
 now = datetime.now()
 
 # Globals
-max_num = 10                        # Set to sys.maxsize when running entire data set
-max_num_testing = 10                # Set to sys.maxsize when running entire data set
+max_num = 3000                      # Set to sys.maxsize when running entire data set
+max_num_testing = sys.maxsize       # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize    # Set to sys.maxsize when running entire data set
 validation_split = 0.2              # A float value between 0 and 1 that determines what percentage of the training
                                     # data is used for validation.
@@ -33,7 +33,7 @@ epochs = 20                         # A number that dictates how many iterations
 batch_size = 10                     # The number of items batched together during training.
 run_k_fold_validation = False       # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)         # The shape of the images being learned & evaluated.
-augmented_multiplier = 2            # This uses data augmentation to generate x-many times as much data as there is on file.
+augmented_multiple = 2              # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True           # Determines whether to use data augmentation or not.
 patience_num = 3                    # Used in the early stopping to determine how quick/slow to react.
 use_early_stopping = True           # Determines whether to use early stopping or not.
@@ -70,7 +70,7 @@ def getPositiveImages(images_dir, max_num, input_shape):
 
             if index >= num_of_images:
                 break
-        return positive_images.reshape(num_of_images, input_shape[0], input_shape[1], input_shape[2]), num_of_images
+        return positive_images.reshape(num_of_images, input_shape[0], input_shape[1], input_shape[2])
 
 
 def getNegativeImages(images_dir, max_num, input_shape):
@@ -259,7 +259,7 @@ def visualiseActivations(img_tensor, base_dir):
         count += 1
 
 
-def usingModelsWithOrWithoutAugmentedData(training_data, training_labels, val_data, val_labels, num_of_images):
+def usingModelsWithOrWithoutAugmentedData(training_data, training_labels, val_data, val_labels):
     model_checkpoint = ModelCheckpoint(filepath="best_weights.hdf5",
                                        monitor='val_acc',
                                        save_best_only=True)
@@ -274,26 +274,28 @@ def usingModelsWithOrWithoutAugmentedData(training_data, training_labels, val_da
         callbacks_array.append(model_checkpoint)
 
     if use_augmented_data:
-        training_data, training_labels = createAugmentedData(training_data, training_labels, num_of_images)
+        training_data, training_labels = createAugmentedData(training_data, training_labels)
 
+    print(len(training_data))
     history = classifier.fit(training_data,
                              training_labels,
                              epochs=epochs,
-                             # batch_size=batch_size,
+                             batch_size=batch_size,
                              validation_data=(val_data, val_labels),
-                             callbacks=callbacks_array,
-                             steps_per_epoch=len(training_data) / batch_size)
+                             callbacks=callbacks_array)
     return history, classifier
 
 
-def createAugmentedData(training_data, training_labels, num_of_images):
+def createAugmentedData(training_data, training_labels):
     complete_training_data_set = []
     complete_training_labels_set = []
-    training_data_size = training_data.size
 
-    complete_training_data_set.append(np.copy(training_data))
+    for data in training_data:
+        complete_training_data_set.append(data)
     print("Complete Training Data: " + str(len(complete_training_data_set)))
-    complete_training_labels_set.append(np.copy(training_labels))
+
+    for label in training_labels:
+        complete_training_labels_set.append(label)
     print("Complete Training Label: " + str(len(complete_training_labels_set)))
 
     # create augmented data
@@ -304,24 +306,28 @@ def createAugmentedData(training_data, training_labels, num_of_images):
                                         height_shift_range=0.2,
                                         horizontal_flip=True,
                                         vertical_flip=True)
+    data_augmented.fit(training_data)
 
-    # create a multiple of augmented data, here 2 sets of augmented data
+    training_data_size = training_data.shape[0]
     aug_counter = 0
-    while aug_counter < (augmented_multiplier - 1):
-        iterator = data_augmented.flow(training_data, training_labels, batch_size=batch_size)
-        iterator_index = 0
-        for image, label in iterator:
-            complete_training_data_set.append(image)
+    while aug_counter < (augmented_multiple - 1):
+        iterator = data_augmented.flow(training_data, training_labels, batch_size = training_data_size)
+        # iterator = data_augmented.flow(training_data, training_labels, batch_size=batch_size)
+        augmented_data = iterator.next()
+        for data in augmented_data[0]:
+            complete_training_data_set.append(data)
+        for label in augmented_data[1]:
             complete_training_labels_set.append(label)
-
-            iterator_index += 1
-            if iterator_index > training_data_size:
-                break
-
         aug_counter += 1
 
     print("Size of All Training Data: " + str(len(complete_training_data_set)))
     print("Size of All Training Labels: " + str(len(complete_training_labels_set)))
+
+    array_training_data = np.array(complete_training_data_set)
+    array_training_labels = np.array(complete_training_labels_set)
+
+    print("Shape of complete training data: " + str(array_training_data.shape))
+    print("Shape of complete training labels: " + str(array_training_labels.shape))
 
     return np.array(complete_training_data_set), np.array(complete_training_labels_set)
 
@@ -376,7 +382,7 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
 
 
 # Get positive training data
-train_pos, num_of_images = getPositiveImages('Training/Positive3000', max_num, input_shape=input_shape)
+train_pos = getPositiveImages('Training/Positive3000', max_num, input_shape=input_shape)
 print("Train Positive Shape: " + str(train_pos.shape))
 excel_headers.append("Train_Positive_Shape")
 excel_dictionary.append(train_pos.shape)
@@ -410,8 +416,7 @@ excel_dictionary.append(validation_split)
 history, classifier = usingModelsWithOrWithoutAugmentedData(training_data,
                                                             training_labels,
                                                             val_data,
-                                                            val_labels,
-                                                            num_of_images)
+                                                            val_labels)
 
 classifier.load_weights('best_weights.hdf5')
 classifier.save_weights('galaxies_cnn.h5')
