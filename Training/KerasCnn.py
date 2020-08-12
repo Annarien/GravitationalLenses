@@ -280,9 +280,10 @@ def usingModelsWithOrWithoutAugmentedData(training_data, training_labels, val_da
     history = classifier.fit(training_data,
                              training_labels,
                              epochs=epochs,
-                             batch_size=batch_size,
                              validation_data=(val_data, val_labels),
-                             callbacks=callbacks_array)
+                             callbacks=callbacks_array,
+                             # batch_size=batch_size,
+                             steps_per_epoch=int(len(training_data) / batch_size))
     return history, classifier
 
 
