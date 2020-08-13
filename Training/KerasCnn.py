@@ -22,22 +22,22 @@ from datetime import datetime
 now = datetime.now()
 
 # Globals
-max_num = 3000                      # Set to sys.maxsize when running entire data set
-max_num_testing = sys.maxsize       # Set to sys.maxsize when running entire data set
-max_num_prediction = sys.maxsize    # Set to sys.maxsize when running entire data set
-validation_split = 0.2              # A float value between 0 and 1 that determines what percentage of the training
-                                    # data is used for validation.
-k_fold_num = 5                      # A number between 1 and 10 that determines how many times the k-fold classifier
-                                    # is trained.
-epochs = 20                         # A number that dictates how many iterations should be run to train the classifier
-batch_size = 10                     # The number of items batched together during training.
-run_k_fold_validation = False       # Set this to True if you want to run K-Fold validation as well.
-input_shape = (100, 100, 3)         # The shape of the images being learned & evaluated.
-augmented_multiple = 2              # This uses data augmentation to generate x-many times as much data as there is on file.
-use_augmented_data = True           # Determines whether to use data augmentation or not.
-patience_num = 3                    # Used in the early stopping to determine how quick/slow to react.
-use_early_stopping = True           # Determines whether to use early stopping or not.
-use_model_checkpoint = True         # Determines whether the classifiers keeps track of the most accurate iteration of itself.
+max_num = 1000  # Set to sys.maxsize when running entire data set
+max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
+validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
+# data is used for validation.
+k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
+# is trained.
+epochs = 20  # A number that dictates how many iterations should be run to train the classifier
+batch_size = 100  # The number of items batched together during training.
+run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
+input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
+augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
+use_augmented_data = True  # Determines whether to use data augmentation or not.
+patience_num = 3  # Used in the early stopping to determine how quick/slow to react.
+use_early_stopping = True  # Determines whether to use early stopping or not.
+use_model_checkpoint = True  # Determines whether the classifiers keeps track of the most accurate iteration of itself.
 
 dt_string = now.strftime("%d_%m_%Y_%H_%M_%S")
 excel_headers = []
@@ -272,9 +272,9 @@ def usingModelsWithOrWithoutAugmentedData(training_data, training_labels, val_da
         callbacks_array.append(early_stopping)
     if use_model_checkpoint:
         callbacks_array.append(model_checkpoint)
-
-    if use_augmented_data:
-        training_data, training_labels = createAugmentedData(training_data, training_labels)
+    #
+    # if use_augmented_data:
+    #     training_data, training_labels = createAugmentedData(training_data, training_labels)
 
     print(len(training_data))
     history = classifier.fit(training_data,
@@ -283,7 +283,8 @@ def usingModelsWithOrWithoutAugmentedData(training_data, training_labels, val_da
                              validation_data=(val_data, val_labels),
                              callbacks=callbacks_array,
                              # batch_size=batch_size,
-                             steps_per_epoch=int(len(training_data) / batch_size))
+                             steps_per_epoch=int(len(training_data) / batch_size),
+                             verbrose=1)
     return history, classifier
 
 
@@ -312,7 +313,7 @@ def createAugmentedData(training_data, training_labels):
     training_data_size = training_data.shape[0]
     aug_counter = 0
     while aug_counter < (augmented_multiple - 1):
-        iterator = data_augmented.flow(training_data, training_labels, batch_size = training_data_size)
+        iterator = data_augmented.flow(training_data, training_labels, batch_size=training_data_size)
         # iterator = data_augmented.flow(training_data, training_labels, batch_size=batch_size)
         augmented_data = iterator.next()
         for data in augmented_data[0]:
@@ -395,6 +396,9 @@ excel_headers.append("Train_Negative_Shape")
 excel_dictionary.append(train_neg.shape)
 
 all_training_data, all_training_labels, _ = makeImageSet(train_pos, train_neg)
+if use_augmented_data:
+    all_training_data, all_training_labels = createAugmentedData(all_training_data, all_training_labels)
+
 training_data, val_data, training_labels, val_labels = train_test_split(all_training_data,
                                                                         all_training_labels,
                                                                         test_size=validation_split,
