@@ -4,6 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
+from pip._internal.req.req_file import preprocess
 from sklearn.model_selection import cross_val_score, train_test_split
 from tensorflow.python.keras import Sequential
 from tensorflow.python.keras.models import Model
@@ -21,30 +22,32 @@ from datetime import datetime
 now = datetime.now()
 
 # Globals
-excel_headers = []
-excel_dictionary = []
-max_num_training = sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
 k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 50  # A number that dictates how many iterations should be run to train the classifier
-batch_size = 10  # The number of items batched together during training.
-run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
-image_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
-use_augmented_data = True
-patience_num = 3
-use_early_stopping = True
-use_model_checkpoint = True
+epochs = 20  # A number that dictates how many iterations should be run to train the classifier
+batch_size = 100  # The number of items batched together during training.
+run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
+input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
+augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
+use_augmented_data = True  # Determines whether to use data augmentation or not.
+patience_num = 3  # Used in the early stopping to determine how quick/slow to react.
+use_early_stopping = True  # Determines whether to use early stopping or not.
+use_model_checkpoint = True  # Determines whether the classifiers keeps track of the most accurate iteration of itself.
+
 dt_string = now.strftime("%d_%m_%Y_%H_%M_%S")
-print("date and time: ", dt_string)
+excel_headers = []
+excel_dictionary = []
 excel_headers.append("Date and Time")
 excel_dictionary.append(dt_string)
 
 if not os.path.exists('../Results/%s/' % dt_string):
     os.mkdir('../Results/%s/' % dt_string)
+
 
 # Helper methods
 def getPositiveImages(images_dir, max_num, input_shape):
@@ -188,19 +191,19 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.compile(optimizer='adam',
                        loss='binary_crossentropy',
                        metrics=['accuracy'])
-    #plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+    plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
     return classifier
 
 
 def executeKFoldValidation(data,
                            labels,
-                           num_of_epochs,
-                           classifier_batch_size,
-                           should_run_k_fold,
                            excel_headers,
                            excel_dictionary):
     # global k_fold_std
-    if should_run_k_fold:
+    num_of_epochs = epochs
+    classifier_batch_size = batch_size
+
+    if run_k_fold_validation:
         neural_network = KerasClassifier(build_fn=buildClassifier,
                                          epochs=num_of_epochs,
                                          batch_size=classifier_batch_size)
@@ -256,10 +259,9 @@ def visualiseActivations(img_tensor, base_dir):
         count += 1
 
 
-def usingModelsWithOrWithoutAugmentedData(use_augmented_data, use_early_stopping, use_model_checkpoint, training_data,
-                                          training_labels, val_data, val_labels):
+def usingModelsWithOrWithoutAugmentedData(training_data, training_labels, val_data, val_labels):
     model_checkpoint = ModelCheckpoint(filepath="best_weights.hdf5",
-                                       monitor='val_acc',
+                                       monitor='val_accuracy',
                                        save_best_only=True)
 
     early_stopping = EarlyStopping(monitor='val_loss', patience=patience_num)  # original patience =3
@@ -270,33 +272,66 @@ def usingModelsWithOrWithoutAugmentedData(use_augmented_data, use_early_stopping
         callbacks_array.append(early_stopping)
     if use_model_checkpoint:
         callbacks_array.append(model_checkpoint)
+    #
+    # if use_augmented_data:
+    #     training_data, training_labels = createAugmentedData(training_data, training_labels)
 
-    if use_augmented_data:
-        data_augmented = ImageDataGenerator(featurewise_center=True,
-                                            featurewise_std_normalization=True,
-                                            rotation_range=90,
-                                            width_shift_range=0.2,
-                                            height_shift_range=0.2,
-                                            horizontal_flip=True,
-                                            vertical_flip=True)
-        data_augmented.fit(training_data)
-        history = classifier.fit(data_augmented.flow(training_data, training_labels, batch_size=batch_size),
-                                 epochs=epochs,
-                                 # batch_size=batch_size,
-                                 validation_data=(val_data, val_labels),
-                                 callbacks=callbacks_array,
-                                 steps_per_epoch=len(training_data) / batch_size)
-        return history, classifier
+    print(len(training_data))
+    history = classifier.fit(training_data,
+                             training_labels,
+                             epochs=epochs,
+                             validation_data=(val_data, val_labels),
+                             callbacks=callbacks_array,
+                             # batch_size=batch_size,
+                             steps_per_epoch=int(len(training_data) / batch_size),
+                             verbrose=1)
+    return history, classifier
 
-    else:
 
-        history = classifier.fit(training_data,
-                                 training_labels,
-                                 epochs=epochs,
-                                 batch_size=batch_size,
-                                 validation_data=(val_data, val_labels),
-                                 callbacks=callbacks_array)
-        return history, classifier
+def createAugmentedData(training_data, training_labels):
+    complete_training_data_set = []
+    complete_training_labels_set = []
+
+    for data in training_data:
+        complete_training_data_set.append(data)
+    print("Complete Training Data: " + str(len(complete_training_data_set)))
+
+    for label in training_labels:
+        complete_training_labels_set.append(label)
+    print("Complete Training Label: " + str(len(complete_training_labels_set)))
+
+    # create augmented data
+    data_augmented = ImageDataGenerator(featurewise_center=True,
+                                        featurewise_std_normalization=True,
+                                        rotation_range=90,
+                                        width_shift_range=0.2,
+                                        height_shift_range=0.2,
+                                        horizontal_flip=True,
+                                        vertical_flip=True)
+    data_augmented.fit(training_data)
+
+    training_data_size = training_data.shape[0]
+    aug_counter = 0
+    while aug_counter < (augmented_multiple - 1):
+        iterator = data_augmented.flow(training_data, training_labels, batch_size=training_data_size)
+        # iterator = data_augmented.flow(training_data, training_labels, batch_size=batch_size)
+        augmented_data = iterator.next()
+        for data in augmented_data[0]:
+            complete_training_data_set.append(data)
+        for label in augmented_data[1]:
+            complete_training_labels_set.append(label)
+        aug_counter += 1
+
+    print("Size of All Training Data: " + str(len(complete_training_data_set)))
+    print("Size of All Training Labels: " + str(len(complete_training_labels_set)))
+
+    array_training_data = np.array(complete_training_data_set)
+    array_training_labels = np.array(complete_training_labels_set)
+
+    print("Shape of complete training data: " + str(array_training_data.shape))
+    print("Shape of complete training labels: " + str(array_training_labels.shape))
+
+    return np.array(complete_training_data_set), np.array(complete_training_labels_set)
 
 
 def savePredictedLenses(des_names_array, predicted_class_probabilities, predicted_lenses_filepath, text_file_path):
@@ -349,18 +384,21 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
 
 
 # Get positive training data
-train_pos = getPositiveImages('Training/PositiveAll', max_num_training, input_shape=image_shape)
+train_pos = getPositiveImages('Training/PositiveAll', max_num, input_shape=input_shape)
 print("Train Positive Shape: " + str(train_pos.shape))
 excel_headers.append("Train_Positive_Shape")
 excel_dictionary.append(train_pos.shape)
 
 # Get negative training data
-train_neg = getNegativeImages('Training/Negative', max_num_training, input_shape=image_shape)
+train_neg = getNegativeImages('Training/Negative', max_num, input_shape=input_shape)
 print("Train Negative Shape: " + str(train_neg.shape))
 excel_headers.append("Train_Negative_Shape")
 excel_dictionary.append(train_neg.shape)
 
 all_training_data, all_training_labels, _ = makeImageSet(train_pos, train_neg)
+if use_augmented_data:
+    all_training_data, all_training_labels = createAugmentedData(all_training_data, all_training_labels)
+
 training_data, val_data, training_labels, val_labels = train_test_split(all_training_data,
                                                                         all_training_labels,
                                                                         test_size=validation_split,
@@ -380,10 +418,7 @@ excel_dictionary.append(val_labels.shape)
 excel_headers.append("Validation_Split")
 excel_dictionary.append(validation_split)
 
-history, classifier = usingModelsWithOrWithoutAugmentedData(use_augmented_data,
-                                                            use_early_stopping,
-                                                            use_model_checkpoint,
-                                                            training_data,
+history, classifier = usingModelsWithOrWithoutAugmentedData(training_data,
                                                             training_labels,
                                                             val_data,
                                                             val_labels)
@@ -399,9 +434,6 @@ excel_dictionary.append(batch_size)
 # K fold for training data
 executeKFoldValidation(training_data,
                        training_labels,
-                       epochs,
-                       batch_size,
-                       run_k_fold_validation,
                        excel_headers,
                        excel_dictionary)
 
@@ -440,7 +472,7 @@ if not os.path.exists('../Results/%s/NegativeResults/' % dt_string):
     os.mkdir('../Results/%s/NegativeResults/' % dt_string)
 
 # Plot original positive image
-img_positive_tensor = getPositiveImages('Training/PositiveAll', 1, input_shape=image_shape)
+img_positive_tensor = getPositiveImages('Training/PositiveAll', 1, input_shape=input_shape)
 positive_train_figure = plt.figure()
 plt.imshow(img_positive_tensor[0])
 # plt.show()
@@ -452,7 +484,7 @@ plt.close()
 visualiseActivations(img_positive_tensor, base_dir='../Results/%s/PositiveResults/' % dt_string)
 
 # Plot original negative image
-img_negative_tensor = getNegativeImages('Training/Negative', 1, input_shape=image_shape)
+img_negative_tensor = getNegativeImages('Training/Negative', 1, input_shape=input_shape)
 negative_train_figure = plt.figure()
 plt.imshow(img_negative_tensor[0])
 # plt.show()
@@ -464,8 +496,8 @@ plt.close()
 visualiseActivations(img_negative_tensor, base_dir='../Results/%s/NegativeResults/' % dt_string)
 
 # Classifier evaluation
-test_pos = getPositiveImages('Testing/PositiveAll', max_num_testing, image_shape)
-test_neg = getNegativeImages('Testing/Negative', max_num_testing, image_shape)
+test_pos = getPositiveImages('Testing/PositiveAll', max_num_testing, input_shape)
+test_neg = getNegativeImages('Testing/Negative', max_num_testing, input_shape)
 testing_data, testing_labels, _ = makeImageSet(test_pos, test_neg, shuffle_needed=True)
 scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
 print("Test loss: %s" % scores[0])
@@ -482,8 +514,8 @@ gettingTrueFalsePositiveNegatives(testing_data,
                                   predicted_lenses_filepath='../Results/%s/TrainingTestingResults' % dt_string)
 
 # Evaluate known 47 with negative 47
-known_47_images = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=image_shape)
-negative_47_images = getUnseenData('UnseenData/Negative', 47, input_shape=image_shape)
+known_47_images = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=input_shape)
+negative_47_images = getUnseenData('UnseenData/Negative', 47, input_shape=input_shape)
 images_47, labels_47, des_47_names = makeImageSet(list(known_47_images.values()),
                                                   list(negative_47_images.values()),
                                                   list(known_47_images.keys()),
@@ -512,8 +544,8 @@ excel_headers.append("Predicted_No_Lens_47")
 excel_dictionary.append(non_lens_predicted_count_47)
 
 # Evaluate known 84 with negative 84
-known_84_images = getUnseenData('UnseenData/Known84', max_num_prediction, input_shape=image_shape)
-negative_84_images = getUnseenData('UnseenData/Negative', 84, input_shape=image_shape)
+known_84_images = getUnseenData('UnseenData/Known84', max_num_prediction, input_shape=input_shape)
+negative_84_images = getUnseenData('UnseenData/Negative', 84, input_shape=input_shape)
 images_84, labels_84, des_84_names = makeImageSet(list(known_84_images.values()),
                                                   list(negative_84_images.values()),
                                                   list(known_84_images.keys()),
@@ -544,18 +576,12 @@ excel_dictionary.append(non_lens_predicted_count_84)
 # K-Fold for known 47
 executeKFoldValidation(images_47,
                        labels_47,
-                       epochs,
-                       batch_size,
-                       run_k_fold_validation,
                        excel_headers,
                        excel_dictionary)
 
 # K-Fold for known 84
 executeKFoldValidation(images_84,
                        labels_84,
-                       epochs,
-                       batch_size,
-                       run_k_fold_validation,
                        excel_headers,
                        excel_dictionary)
 
