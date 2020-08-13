@@ -282,9 +282,9 @@ def usingModelsWithOrWithoutAugmentedData(training_data, training_labels, val_da
                              epochs=epochs,
                              validation_data=(val_data, val_labels),
                              callbacks=callbacks_array,
-                             # batch_size=batch_size,
-                             steps_per_epoch=int(len(training_data) / batch_size),
-                             verbrose=1)
+                             batch_size=batch_size
+                             # steps_per_epoch=int(len(training_data) / batch_size),
+                             )
     return history, classifier
 
 
@@ -586,5 +586,5 @@ executeKFoldValidation(images_84,
                        excel_dictionary)
 
 # add row to excel table
-createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
+#createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
 writeToFile('../Results/kerasCNN_Results.csv', excel_dictionary)
