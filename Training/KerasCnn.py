@@ -31,7 +31,7 @@ k_fold_num = 5  # A number between 1 and 10 that determines how many times the k
 # is trained.
 epochs = 20  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 100  # The number of items batched together during training.
-run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
