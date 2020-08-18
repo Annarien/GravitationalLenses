@@ -333,7 +333,6 @@ def createAugmentedData(training_data, training_labels):
 
     return np.array(complete_training_data_set), np.array(complete_training_labels_set)
 
-
 def savePredictedLenses(des_names_array, predicted_class_probabilities, predicted_lenses_filepath, text_file_path):
     if not os.path.exists(predicted_lenses_filepath):
         os.mkdir('%s/' % predicted_lenses_filepath)
@@ -351,7 +350,6 @@ def savePredictedLenses(des_names_array, predicted_class_probabilities, predicte
         if predicted_class_probabilities[lens_index] == 0:
             text_file.write("%s \n " % des_names_array[lens_index])
     text_file.close()
-
 
 def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_path,
                                       predicted_lenses_filepath):
@@ -378,10 +376,8 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
     text_file.write("\n")
     text_file.close()
 
-
 # __________________________________________________________________________
 # MAIN
-
 
 # Get positive training data
 train_pos = getPositiveImages('Training/Positive3000', max_num, input_shape=input_shape)
