@@ -11,6 +11,7 @@ The plotting of all the image grids is done under the function called: plotAndSa
 import glob
 import os
 import random
+import re
 
 import matplotlib.pyplot as plt
 from PIL import Image
@@ -18,8 +19,9 @@ from astropy.io import fits
 
 from positiveSetUtils import getNegativeNumbers
 
-train_positive_path = 'Training/Positive'
-train_negative_path = 'Training/Negative'
+train_positive_path = 'Training/PositiveAll_top2000'
+train_negative_path = 'Training/Negative_top2000'
+
 number_iterations = 9
 
 
@@ -73,6 +75,7 @@ def getNegativeDES(num, base_dir=train_negative_path):
 
 # Open DESSky .fits files and assign a variable to the g, r, i images.
 def getDESSky(num, base_dir='Training/DESSky'):
+    print('%s/%s_g_sky.fits' % (base_dir, num))
     """
     This uses the num to open files of the background sky of the DES Original images for the g, r, and i bands.
 
@@ -94,7 +97,7 @@ def getDESSky(num, base_dir='Training/DESSky'):
 
 
 # Open PositiveNoiseless .fits files and assign a variable to the ..._SDSS_g, r, images.
-def getPosNoiseless(num, base_dir='Training/PositiveNoiseless'):
+def getPosNoiseless(num, base_dir='Training/PositiveNoiselessAll_top2000'):
     """
     This is to open files of the smoothly positively simulated images of gravitational lensing for the g, r, and i bands.
 
@@ -357,6 +360,36 @@ def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array):
     plt.close(fig)
 
 
+def getNegativeNumbers(base_dir):
+    """
+    This is used to get the numbers of the sources, as seen in the directories of the negative training and testing set.
+    This is creates an list of these numbers.
+
+    Args:
+        base_dir(string):   This is the root path name in which the directories in question are found.
+    Returns:
+        Numbers(list):      This is the list of the indexes of the directories, in question.
+    """
+
+    folders = {}
+    numbers = []
+    keys = []
+
+    for root, dirs, files in os.walk(base_dir):
+        for folder in dirs:
+            key = folder
+            value = os.path.join(root, folder)
+            folders[key] = value
+            print(key)
+
+            num = int(re.search(r'\d+', key).group())
+            numbers.append(num)
+            keys.append(key)
+
+    # print(numbers)
+
+    return numbers, keys
+
 def plotprogressNegativePositive(number_iterations):
     """
     This is the plotting of the progress taken, step by step of the negative and positive 
@@ -388,9 +421,10 @@ def plotprogressNegativePositive(number_iterations):
     rgb_des_image_paths = []
     image_title_array = []
 
-    numbers_train_neg = getNegativeNumbers(train_negative_path)
+    numbers_train_neg, keys = getNegativeNumbers(train_negative_path)
     for index in range(0, number_iterations):
         num = numbers_train_neg[index]
+        key = keys[index]
         gWCS, rWCS, iWCS = getNegativeProcessedWCS(num)
         gDESNorm, rDESNorm, iDESNorm = getNegativeDES(num)
         gDESSky, rDESSky, iDESSky = getDESSky(num)
@@ -411,7 +445,10 @@ def plotprogressNegativePositive(number_iterations):
         axs[2, 1].imshow(rDESSky[0].data, cmap='gray')
         axs[2, 2].imshow(iDESSky[0].data, cmap='gray')
 
-        some_path = glob.glob('%s/%i_*/Negative_Processed_Grid.png' % (train_negative_path, num))[0]
+        print(num)
+        print(train_negative_path)
+        # some_path = glob.glob('%s/%i_*/Negative_Processed_Grid.png' % (train_negative_path, num))[0]
+        some_path = '%s/%s/Negative_Processed_Grid.png' % (train_negative_path, key)
         print(some_path)
         fig1.savefig(some_path)
         plt.close(fig1)

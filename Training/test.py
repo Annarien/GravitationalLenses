@@ -1,865 +1,520 @@
-"""This is a draft of machine learning code, so that we can test how to do the machine learning algorithm of the
-gravitational lenses. """
+"""
+This is used to create image grids, of the various data that is looked at.
+The process of creating the images is formed under the function called : plotprogressNegativePositive().
+The image grid of rgb.png images from the negative and positive data is formed under the function called: plotprogressNegativePositive().
+To get the random rgb.png images from the negative and positive data is formed under the function called: makeRandomRGBArray().
+The plotting of all the image grids is done under the function called: plotAndSaveRgbGrid()
+"""
+
+# Processing images into a grid, to view all images at the same time, to view the process taken.
 # IMPORTS
+import glob
 import os
+import random
 
 import matplotlib.pyplot as plt
-import numpy as np
+from PIL import Image
 from astropy.io import fits
-from astropy.utils.data import get_pkg_data_filename
-from sklearn.model_selection import cross_val_score
-from sklearn.preprocessing import LabelEncoder
-from sklearn.utils import shuffle
-import makeExcelTable
-from tensorflow.python.keras.callbacks import EarlyStopping, History
-from tensorflow.python.keras.layers import Flatten, Dense, Conv2D, MaxPooling2D, Activation, Dropout
-from tensorflow.python.keras.models import Sequential, Model
-from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
+
+from positiveSetUtils import getNegativeNumbers
+
+train_positive_path = 'Training/Positive'
+train_negative_path = 'Training/Negative'
+number_iterations = 9
 
 
-# from keras.models import Model
-
-# TO EXTRACT FEATURES FROM CNN
-# https://datascience.stackexchange.com/questions/17513/extracting-features-using-tensorflow-cnn
-
-# FUNCTIONS
-def getPositiveSimulatedTrain(base_dir='Training/Positive'):
+# Open DES Processed WCS .fits files, and assign a variable to the g, r, i images.
+def getNegativeProcessedWCS(num, base_dir=train_negative_path):
     """
-    This gets the g, r, and i of the 10 000 positively simulated images from the 
-    PositiveWithDESSky, as well as returning the positively simulate array.
+    This is to open the files of the negative DES WCSClipped images for the g, r, and i bands,
+    which have been clipped using the World Coordinate Systems (WCS).
 
     Args:
-        base_dir (string):      This the root file path of the positively simulated images.  
+        num(integer):       This is the number of the source, which corresponds to the g, r, and i .fits
+                            images of the DES Processed images which have been clipped using the WCS coordinates.
+                            The file names are in the form 'Training/Negative/DES/num_source/band_WCSClipped.fits'.
+        base_dir(string):   This is the top directory path of the background sky of the DES Original images.
+                            This is set to a default of 'Training/Negative'.
     Returns:
-        data_pos(numpy array):   This is the array of positively simulated images.
+        g_wcs(HDUList):      The data of the opened g band WCSClipped fits image.
+        r_wcs(HDUList):      The data of the opened r band WCSClipped fits image.
+        i_wcs(HDUList):      The data of the opened i band WCSClipped fits image.
     """
-
-    folders = {}
-    for root, dirs, files in os.walk(base_dir):
-        for folder in dirs:
-            key = folder
-            value = os.path.join(root, folder)
-            folders[key] = value
-
-    # number of Positive DataPoints
-    num_data_target = len(folders)
-
-    data_pos = np.zeros([num_data_target, 3, 100, 100])
-
-    # key is name of folder number
-    # value is the number of the folder to be added to the file name
-
-    counter = 0
-    for key, value in folders.items():
-        g_name = get_pkg_data_filename(value + '/' + str(key) + '_g_norm.fits')
-        r_name = get_pkg_data_filename(value + '/' + str(key) + '_r_norm.fits')
-        i_name = get_pkg_data_filename(value + '/' + str(key) + '_i_norm.fits')
-
-        # g_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_g.fits')
-        # r_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_r.fits')
-        # i_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_i.fits')
-
-        g = fits.open(g_name)[0].data[0:100, 0:100]
-        r = fits.open(r_name)[0].data[0:100, 0:100]
-        i = fits.open(i_name)[0].data[0:100, 0:100]
-
-        data_pos[counter] = [g, r, i]
-        counter += 1
-        # just to run, and use less things
-        # if counter >= 1000:
-        #     break
-    print("GOT POSITIVE TRAINING DATA")
-    return data_pos
+    g_wcs = fits.open(glob.glob('%s/%s_*/g_WCSClipped.fits' % (base_dir, num))[0])
+    r_wcs = fits.open(glob.glob('%s/%s_*/r_WCSClipped.fits' % (base_dir, num))[0])
+    i_wcs = fits.open(glob.glob('%s/%s_*/i_WCSClipped.fits' % (base_dir, num))[0])
+    return g_wcs, r_wcs, i_wcs
 
 
-def getNegativeDESTrain(base_dir='Training/Negative'):
+# Open DES Processed norm .fits files and assign a variable to the g, r, i images.
+def getNegativeDES(num, base_dir=train_negative_path):
     """
-    This gets the g, r, and i  10 000 negative images from the 
-    DES/DES_Processed folder, as well as returning the
-    negative array,
+    This is to open the normalised files of the negative DES WCSClipped images for the g, r, and i bands.
 
     Args:
-        base_dir (string):      This the root file path of the negative images.  
+        num(integer):       This is the number of the source, which corresponds to the g, r, and i .fits
+                            images of the DES Processed images which have been normalised.
+                            The file names are in the form 'Training/Negative/num_source/band_norm.fits'.
+        base_dir(string):   This is the top directory path of the background sky of the DES Original images.
+                            This is set to a default of 'Training/Negative'.
     Returns:
-        data_neg (numpy array):  This is the array of negative images.
+        The images that are returned is the WCSClipped image normalised.
+        g_des_norm(HDUList):  The data of the opened g band normalised .fits image.
+        r_des_norm(HDUList):  The data of the opened r band normalised .fits image.
+        i_des_norm(HDUList):  The data of the opened i band normalised .fits image.
     """
-    folders_neg = []
-    for root, dirs, files in os.walk(base_dir):
-        for folder in dirs:
-            folders_neg.append(os.path.join(root, folder))
-    num_data_target = len(folders_neg)
-    data_neg = np.zeros([num_data_target, 3, 100, 100])
 
-    for var in range(len(folders_neg)):
+    g_des_norm = fits.open(glob.glob('%s/%s_*/g_norm.fits' % (base_dir, num))[0])
+    r_des_norm = fits.open(glob.glob('%s/%s_*/r_norm.fits' % (base_dir, num))[0])
+    i_des_norm = fits.open(glob.glob('%s/%s_*/i_norm.fits' % (base_dir, num))[0])
 
-        # g_name = get_pkg_data_filename(folders_neg[var]+'/g_WCSClipped.fits')
-        # r_name = get_pkg_data_filename(folders_neg[var]+'/r_WCSClipped.fits')
-        # i_name = get_pkg_data_filename(folders_neg[var]+'/i_WCSClipped.fits')
-
-        g_name = get_pkg_data_filename(folders_neg[var] + '/g_norm.fits')
-        r_name = get_pkg_data_filename(folders_neg[var] + '/r_norm.fits')
-        i_name = get_pkg_data_filename(folders_neg[var] + '/i_norm.fits')
-
-        g = fits.open(g_name)[0].data[0:100, 0:100]
-        r = fits.open(r_name)[0].data[0:100, 0:100]
-        i = fits.open(i_name)[0].data[0:100, 0:100]
-
-        data_neg[var] = [g, r, i]
-        # just to run, and use less things
-        # if var >= 1000:
-        #     break
-    print("GOT NEGATIVE TRAINING DATA")
-    return data_neg
+    return g_des_norm, r_des_norm, i_des_norm
 
 
-def getPositiveSimulatedTest(base_dir='Testing/Positive'):
-    folders = {}
-    for root, dirs, files in os.walk(base_dir):
-        for folder in dirs:
-            key = folder
-            value = os.path.join(root, folder)
-            folders[key] = value
-
-    # number of Positive DataPoints
-    num_data_target = len(folders)
-
-    positive_test = np.zeros([num_data_target, 3, 100, 100])
-
-    # key is name of folder number
-    # value is the number of the folder to be added to the file name
-
-    counter = 0
-    for key, value in folders.items():
-        g_name = get_pkg_data_filename(value + '/' + str(key) + '_g_norm.fits')
-        r_name = get_pkg_data_filename(value + '/' + str(key) + '_r_norm.fits')
-        i_name = get_pkg_data_filename(value + '/' + str(key) + '_i_norm.fits')
-
-        # g_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_g.fits')
-        # r_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_r.fits')
-        # i_name = get_pkg_data_filename(value + '/' + str(key) + '_posSky_i.fits')
-
-        g = fits.open(g_name)[0].data[0:100, 0:100]
-        r = fits.open(r_name)[0].data[0:100, 0:100]
-        i = fits.open(i_name)[0].data[0:100, 0:100]
-
-        positive_test[counter] = [g, r, i]
-        counter += 1
-        # just to run, and use less things
-        # if counter > 1500:
-        #     break
-    print("GOT POSITIVE TESTING DATA")
-    return positive_test
-
-
-def getNegativeDESTest(base_dir='Testing/Negative'):
+# Open DESSky .fits files and assign a variable to the g, r, i images.
+def getDESSky(num, base_dir='Training/DESSky'):
     """
-    This gets the g, r, and i  10 000 negative images from the
-    DES/DES_Processed folder, as well as returning the
-    negative array,
+    This uses the num to open files of the background sky of the DES Original images for the g, r, and i bands.
 
     Args:
-        base_dir (string):      This the root file path of the negative images.
+        num(integer):       This is the number of the source, which corresponds to the g, r, and i .fits
+                            images of the background sky of the DES Original images.
+                            The file names are in the form 'Training/DESSky/num_band_sky.fits'.
+        base_dir(string):   This is the top directory path of the background sky of the DES Original images.
+                            This is set to a default of 'Training/DESSky'.
     Returns:
-        negative_test (numpy array):  This is the array of negative images.
+        g_des_sky(HDUList):   The data of the opened g band sky fits image.
+        r_des_sky(HDUList):   The data of the opened r band sky fits image.
+        i_des_sky(HDUList):   The data of the opened i band sky fits image.
     """
-    folders_neg = []
-    for root, dirs, files in os.walk(base_dir):
-        for folder in dirs:
-            folders_neg.append(os.path.join(root, folder))
-    num_data_target = len(folders_neg)
-    negative_test = np.zeros([num_data_target, 3, 100, 100])
-
-    for var in range(len(folders_neg)):
-        # if var > 1500:
-        # break
-        # g_name = get_pkg_data_filename(folders_neg[var]+'/g_WCSClipped.fits')
-        # r_name = get_pkg_data_filename(folders_neg[var]+'/r_WCSClipped.fits')
-        # i_name = get_pkg_data_filename(folders_neg[var]+'/i_WCSClipped.fits')
-
-        g_name = get_pkg_data_filename(folders_neg[var] + '/g_norm.fits')
-        r_name = get_pkg_data_filename(folders_neg[var] + '/r_norm.fits')
-        i_name = get_pkg_data_filename(folders_neg[var] + '/i_norm.fits')
-
-        g = fits.open(g_name)[0].data[0:100, 0:100]
-        r = fits.open(r_name)[0].data[0:100, 0:100]
-        i = fits.open(i_name)[0].data[0:100, 0:100]
-
-        negative_test[var] = [g, r, i]
-        # just to run, and use less things
-        # if var >= 1000:
-        #     break
-    print("GOT NEGATIVE TESTING DATA")
-    return negative_test
+    g_des_sky = fits.open(glob.glob('%s/%s_g_sky.fits' % (base_dir, num))[0])
+    r_des_sky = fits.open(glob.glob('%s/%s_r_sky.fits' % (base_dir, num))[0])
+    i_des_sky = fits.open(glob.glob('%s/%s_i_sky.fits' % (base_dir, num))[0])
+    return g_des_sky, r_des_sky, i_des_sky
 
 
-def loadImage(positive_array, negative_array):
+# Open PositiveNoiseless .fits files and assign a variable to the ..._SDSS_g, r, images.
+def getPosNoiseless(num, base_dir='Training/PositiveNoiseless'):
     """
-    This loads the positive and negative arrays, and makes an image dataset 
-    numpy array that is made through adding the images of the positive and 
-    negative arrays. This also makes a label dataset, by adding the appropriate
-    labels for the positive and negative arrays.
+    This is to open files of the smoothly positively simulated images of gravitational lensing for the g, r, and i bands.
 
     Args:
-        positive_array (numpy array):    This is the positively simulated array of gravitational lenses.
-        negative_array (numpy array):    This is the negative array of from DES.
+        num(integer):       This is the number of the source, which corresponds to the g, r, and i positively
+                            simulated .fits.
+                            The file names are in the form 'Training/PositiveNoiseless/num/num_image_band_SDSS.fits'.
+        base_dir(string):   This is the top directory path of the positively simulated images.
+                            This is set to a default of 'Training/PositiveNoiseless'.
     Returns:
-        image_train (numpy array):      This is the numpy array of the positive and negative arrays added
-                                        together to make a single array.
-        image_labels (numpy array):     This is the numpy array of the labels for the positive and negative
-                                        arrays added together to make a single array.
+        g_pos(HDUList):      The data of the opened g band of the positively simulated fits image.
+        r_pos(HDUList):      The data of the opened r band of the positively simulated fits image.
+        i_pos(HDUList):      The data of the opened i band of the positively simulated fits image.
     """
 
-    image_train = []
-    image_labels = []
-
-    for num in range(0, len(positive_array)):
-        image_train.append(positive_array[num])
-        # label_pos = 'Gravitational Lensing'
-        label_pos = 1  # assign 1 for gravitational lensing
-        image_labels.append(label_pos)
-
-    for num in range(0, len(negative_array)):
-        image_train.append(negative_array[num])
-        # label_neg = 'No Gravitational Lensing'
-        label_neg = 0  # assign 0  for non gravitational lenses
-        image_labels.append(label_neg)
-
-    print("LOADED POSITIVE AND NEGATIVE")
-    return np.array(image_train), np.array(image_labels)
+    g_pos = fits.open(glob.glob('%s/%s/%s_image_g_SDSS.fits' % (base_dir, num, num))[0])
+    r_pos = fits.open(glob.glob('%s/%s/%s_image_r_SDSS.fits' % (base_dir, num, num))[0])
+    i_pos = fits.open(glob.glob('%s/%s/%s_image_i_SDSS.fits' % (base_dir, num, num))[0])
+    return g_pos, r_pos, i_pos
 
 
-def getUnseenNegative(num, base_dir='UnseenData'):
+# Open PositiveWithDESSky  .fits files and assign a variable to the ...posSky_g, r, i images.
+def getPosWDESSky(num, base_dir=train_positive_path):
     """
-    This gets the unseen g, r, and i unknown/negative images, according to the number specified.
-    This is so that the correct number of unknown images, is retrieved, according to the
-    unseen known lenses.
+    The number is used to open files of the positively simulated images of gravitational lensing for the g, r, and
+    i bands, that have the background sky added to them.
 
     Args:
-        num (integer):              This is the number specified, which equates to how many unseen known
-                                    gravitational lenses.
-                                    This indicates how many unseen negative images is to be retrieved.
-        base_dir (string):          This is the root directory file path of where the unknown lenses are situated in.
+        num(integer):           This is the number of the source, which corresponds to the g, r, and i positively
+                                simulated .fits with background sky from the original DES images added to it.
+                                The file names are in the form 'Training/Positive/num_source/num_posSky_band.fits'.
+        base_dir(string):       This is the top directory path of the positively simulated images with the
+                                background sky added to it. This is set to a default of 'Training/Positive'.
     Returns:
-        data_unknown (numpy array):  This is the numpy array of the unknown dataset.
-    """
-    path_unknown = '%s' % base_dir
-    if num == 47:
-        path_unknown = '%s/Negative47' % path_unknown
-    elif num == 84:
-        path_unknown = '%s/Negative84' % path_unknown
-    elif num == 131:
-        path_unknown = '%s/Negative131' % path_unknown
-
-    folders_unknown = []
-    for root, dirs, files in os.walk(path_unknown):
-        for folder in dirs:
-            folders_unknown.append(os.path.join(root, folder))
-
-    num_data_target = len(folders_unknown)
-    data_unknown = np.zeros([num_data_target, 3, 100, 100])
-
-    for var in range(len(folders_unknown)):
-        # gName = get_pkg_data_filename(folders_unknown[var]+'/g_WCSClipped.fits')
-        # rName = get_pkg_data_filename(folders_unknown[var]+'/r_WCSClipped.fits')
-        # iName = get_pkg_data_filename(folders_unknown[var]+'/i_WCSClipped.fits')
-
-        gName = get_pkg_data_filename(folders_unknown[var] + '/g_norm.fits')
-        rName = get_pkg_data_filename(folders_unknown[var] + '/r_norm.fits')
-        iName = get_pkg_data_filename(folders_unknown[var] + '/i_norm.fits')
-
-        g = fits.open(gName)[0].data[0:100, 0:100]
-        r = fits.open(rName)[0].data[0:100, 0:100]
-        i = fits.open(iName)[0].data[0:100, 0:100]
-
-        data_unknown[var] = [g, r, i]
-    return data_unknown
-
-
-def getTestSet():
-    positive_test = getPositiveSimulatedTest()
-    negative_test = getNegativeDESTest()
-    images_test, labels_test = loadImage(positive_test, negative_test)
-    return images_test, labels_test
-
-def getUnseenDES2017(base_dir='UnseenData/Known47'):
-    """
-    This is used to get g, r, and i images of the DES2017 array, which contains 47 unseen known lenses.
-    Args:
-        base_dir (string):          This is the root directory of the DES2017 folder. 
-    Returns:
-        data_known_des (numpy array): This is the numpy array of the the DES2017 dataset.
+        g_pos_sky(HDUList):      The data of the opened g band of the positively simulated with the background
+                               sky added fits images.
+        r_pos_sky(HDUList):      The data of the opened r band of the positively simulated with the background
+                               sky added fits images.
+        i_pos_sky(HDUList):      The data of the opened i band of the positively simulated with the background
+                               sky added fits images.
     """
 
-    folders_known_des2017 = []
-    for root, dirs, files in os.walk(base_dir):
-        for folder in dirs:
-            folders_known_des2017.append(os.path.join(root, folder))
-
-    num_data_target = len(folders_known_des2017)
-    data_known_des = np.zeros([num_data_target, 3, 100, 100])
-
-    for var in range(len(folders_known_des2017)):
-        # g_name = get_pkg_data_filename(folders_known_des2017[var]+'/g_WCSClipped.fits')
-        # r_name = get_pkg_data_filename(folders_known_des2017[var]+'/r_WCSClipped.fits')
-        # i_name = get_pkg_data_filename(folders_known_des2017[var]+'/i_WCSClipped.fits')
-
-        g_name = get_pkg_data_filename(folders_known_des2017[var] + '/g_norm.fits')
-        r_name = get_pkg_data_filename(folders_known_des2017[var] + '/r_norm.fits')
-        i_name = get_pkg_data_filename(folders_known_des2017[var] + '/i_norm.fits')
-
-        g = fits.open(g_name)[0].data[0:100, 0:100]
-        r = fits.open(r_name)[0].data[0:100, 0:100]
-        i = fits.open(i_name)[0].data[0:100, 0:100]
-
-        data_known_des[var] = [g, r, i]
-    return data_known_des
+    g_pos_sky = fits.open(glob.glob('%s/%s/%s_g_posSky.fits' % (base_dir, num, num))[0])
+    r_pos_sky = fits.open(glob.glob('%s/%s/%s_r_posSky.fits' % (base_dir, num, num))[0])
+    i_pos_sky = fits.open(glob.glob('%s/%s/%s_i_posSky.fits' % (base_dir, num, num))[0])
+    return g_pos_sky, r_pos_sky, i_pos_sky
 
 
-def getUnseenJacobs(base_dir='UnseenData/Known84'):
+# Open PositiveWithDESSky norm. fits images and assign a variable to the ...posSky_g, r, i_norm images.
+def getPosWDESSkyNorm(num, base_dir=train_positive_path):
     """
-    This is used to get g, r, and i images of the known Jacobs dataset, which contains 84 unseen known lenses.
+    This is to open files of the normalised positively simulated images of gravitational lensing for the g, r, and
+    i bands, that have the background sky added to them.
 
     Args:
-        base_dir (string):          This is the root directory of the DES2017 folder. 
+        num(integer):           This is the number of the source, which corresponds to the g, r, and i norm. fits
+                                images of the sources.
+                                The file names are in the form 'Training/Positive/num_source/num_band_norm.fits'.
+        base_dir(string):       This is the top directory path of the positively simulated images with the
+                                background sky added to it. This is set to a default of 'Training/Positive'.
     Returns:
-        dataKnownDES (numpy array): This is the numpy array of the the DES2017 dataset.
+       g_pos_sky_norm(HDUList):    The data of the opened g band of the normalised positively simulated with
+                                the background sky added fits images.
+        r_pos_sky_norm(HDUList):   The data of the opened r band of the normalised positively simulated with
+                                the background sky added fits images.
+        i_pos_sky_norm(HDUList):   The data of the opened i band of the normalised positively simulated with
+                                the background sky added fits images.
     """
 
-    folders_known_jacobs = []
-    for root, dirs, files in os.walk(base_dir):
-        for folder in dirs:
-            folders_known_jacobs.append(os.path.join(root, folder))
-    num_data_target = len(folders_known_jacobs)
-    data_known_jacobs = np.zeros([num_data_target, 3, 100, 100])
-
-    for var in range(len(folders_known_jacobs)):
-        # g_name = get_pkg_data_filename(folders_known_jacobs[var]+'/g_WCSClipped.fits')
-        # r_name = get_pkg_data_filename(folders_known_jacobs[var]+'/r_WCSClipped.fits')
-        # i_name = get_pkg_data_filename(folders_known_jacobs[var]+'/i_WCSClipped.fits')
-
-        g_name = get_pkg_data_filename(folders_known_jacobs[var] + '/g_norm.fits')
-        r_name = get_pkg_data_filename(folders_known_jacobs[var] + '/r_norm.fits')
-        i_name = get_pkg_data_filename(folders_known_jacobs[var] + '/i_norm.fits')
-
-        g = fits.open(g_name)[0].data[0:100, 0:100]
-        r = fits.open(r_name)[0].data[0:100, 0:100]
-        i = fits.open(i_name)[0].data[0:100, 0:100]
-
-        data_known_jacobs[var] = [g, r, i]
-    return data_known_jacobs
+    g_pos_sky_norm = fits.open(glob.glob('%s/%s/%s_g_norm.fits' % (base_dir, num, num))[0])
+    r_pos_sky_norm = fits.open(glob.glob('%s/%s/%s_r_norm.fits' % (base_dir, num, num))[0])
+    i_pos_sky_norm = fits.open(glob.glob('%s/%s/%s_i_norm.fits' % (base_dir, num, num))[0])
+    return g_pos_sky_norm, r_pos_sky_norm, i_pos_sky_norm
 
 
-def testUnseenDES2017(model, neural_network, n_splits):
+def getNumOrRowsForGrid(num_of_cols_for_rgb_grid, rgb_list):
     """
-    This tests the unseen DES2017 images and unknown 47 images, to get the accuracy rate 
-    of these unseen images that aren't used in training. 
-
-    Returns:
-        known_des2017_array (numpy array):    This is the numpy array of the known DES2017 images.
-        accuracy_score_47 (float):           This is the accuracy score of the 47 unseen unknown images and of the
-                                            47 images from DES2017, being tested on the already learnt set.
-        k_fold_accuracy_47(float):            This is the accuracy score of the 47 unseen unknown images and of the 47
-                                            images from DES2017 after k fold cross validation, being 
-                                            tested on the already learnt set. 
-    
-    """
-
-    known_des2017_array = getUnseenDES2017()
-
-    num = 47
-    unknown_array = getUnseenNegative(num)
-
-    image_test, labels_test = loadImage(known_des2017_array, unknown_array)
-    x_image_test = image_test.reshape(image_test.shape[0], image_test.shape[1] * image_test.shape[2] * image_test.shape[
-        3])  # batchsize, height*width*3channels
-
-    # print('x_image_test length: '+str(len(x_image_test)))
-    # print('image_test shape: '+str(image_test.shape()))
-    # print('labels_test Shape: '+str(labels_test.shape()))
-
-    encoder = LabelEncoder()
-    y_image_labels = encoder.fit_transform(labels_test)
-    # print('y_image_labels Shape: '+str(y_image_labels.shape()))
-
-    # Get Accuracy Score tests DES2017 on the mlpclassifier:
-    _, acc = model.evaluate(image_test, y_image_labels, verbose=0)
-    accuracy_score_47 = acc * 100
-    print("Accuracy Score_47: " + str(accuracy_score_47))
-
-    # get the k fold accuracy after k fold cross validation
-    scores = cross_val_score(neural_network, image_test, y_image_labels, scoring='accuracy', cv=n_splits)
-    scores_mean = scores.mean() * 100
-    print("kFold47 Scores Mean: " + str(scores_mean))
-    k_fold_std_47 = scores.std()
-    print("kFold47 Scores Std: " + str(k_fold_std_47))
-    k_fold_accuracy_47 = scores_mean
-
-    return known_des2017_array, accuracy_score_47, k_fold_accuracy_47, k_fold_std_47
-
-
-def testUnseenJacobs(model, neural_network, n_splits):
-    """
-    This tests the unseen Jacobs images and unknown 84 images, to get the accuracy rate 
-    of these unseen images that aren't used in training. 
-
-    Returns:
-        known_jacobs_array (numpy array):     This is the numpy array of the known Jacobs images.
-        accuracy_score_84 (float):           This is the accuracy score of the 84 unseen unknown images and of the
-                                            84 images from Jacobs, being tested on the already learnt set.
-        k_fold_accuracy_84(float):            This is the accuracy score of the 84 unseen unknown images and of the 84
-                                            images from Jacobs after k fold cross validation, being 
-                                            tested on the already learnt set. 
-    
-    """
-
-    known_jacobs_array = getUnseenJacobs()
-
-    num = 84
-    unknown_array = getUnseenNegative(num)
-
-    image_jacobs_test, labels_jacobs_test = loadImage(known_jacobs_array, unknown_array)
-    x_image_test = image_jacobs_test.reshape(image_jacobs_test.shape[0],
-                                             image_jacobs_test.shape[1] * image_jacobs_test.shape[2] *
-                                             image_jacobs_test.shape[
-                                                 3])  # batchsize, height*width*3channels
-
-    encoder = LabelEncoder()
-    y_image_labels = encoder.fit_transform(labels_jacobs_test)
-
-    # Get Accuracy Score tests Jacobs on the mlp classifier:
-    _, acc = model.evaluate(image_jacobs_test, y_image_labels, verbose=0)
-    accuracy_score_84 = acc * 100
-    print("Accuracy Score_84: " + str(accuracy_score_84))
-
-    # get the k fold accuracy after k fold cross validation
-    scores = cross_val_score(neural_network, image_jacobs_test, y_image_labels, scoring='accuracy', cv=n_splits)
-    scores_mean = scores.mean() * 100
-    print("kFold84 Scores Mean: " + str(scores_mean))
-    k_fold_std_84 = scores.std()
-    print("kFold84 Scores Std: " + str(k_fold_std_84))
-    k_fold_accuracy_84 = scores_mean
-    return known_jacobs_array, accuracy_score_84, k_fold_accuracy_84, k_fold_std_84
-
-
-def testUnseenDES2017AndJacobs(known_des2017_array, known_jacobs_array, model, neural_network, n_splits):
-    """
-    This tests the unseen DES2017 and Jacobs images together with the unknown 131 images, to get the accuracy rate 
-    of these unseen images that aren't used in training. 
+    This is to get a number of rows using a predetermined number of columns.
+    This is to ensure that the images form a grid, so that multiple rgb images can be viewed at once.
 
     Args:
-        known_des2017_array (numpy array):    This is the dataset of the unseen known DES2017 images.
-        known_jacobs_array (numpy array):     This is the dataset of the unseen known Jacobs images.
+        num_of_cols_for_rgb_grid(integer):   The number of columns using that is predetermined.
+        rgb_list(list):                      This is the list of paths for rgb images.
     Returns:
-        accuracy_score_131 (float):          This is the accuracy score of the 131 unseen unknown images and of the
-                                            131 images from DES2017 and Jacobs, being tested on the already learnt set.
-        k_fold_accuracy_131(float):           This is the accuracy score of the 131 unseen unknown images and of the 131
-                                            images from DES2017 and Jacobs after k fold cross validation, being 
-                                            tested on the already learnt set. 
+        num_of_rows_for_rgb_grid(integer):   The number of rows that is calculated using the length divided
+                                             by the number of predetermined columns
     """
 
-    all_known_array = np.vstack((known_des2017_array, known_jacobs_array))
+    len_rgb = len(rgb_list)
+    num_of_rows_for_rgb_grid = (len_rgb / num_of_cols_for_rgb_grid)
+    if len_rgb % num_of_cols_for_rgb_grid != 0:
+        num_of_rows_for_rgb_grid += 1
 
-    num = 131
-    unknown_array = getUnseenNegative(num)
-
-    image_known_test, labels_known_test = loadImage(all_known_array, unknown_array)
-    x_image_test = image_known_test.reshape(image_known_test.shape[0],
-                                            image_known_test.shape[1] * image_known_test.shape[2] *
-                                            image_known_test.shape[
-                                                3])  # batch size, height*width*3channels
-
-    encoder = LabelEncoder()
-    y_image_labels = encoder.fit_transform(labels_known_test)
-
-    # Get Accuracy Score tests DES2017 on the mlp classifier:
-    _, acc = model.evaluate(image_known_test, y_image_labels, verbose=0)
-    accuracy_score_131 = acc * 100
-    print("Accuracy Score _131: " + str(accuracy_score_131))
-
-    # get the k fold accuracy after k fold cross validation
-    scores = cross_val_score(neural_network, image_known_test, y_image_labels, scoring='accuracy', cv=n_splits)
-    scores_mean = scores.mean() * 100
-    print("kFold131 Scores Mean: " + str(scores_mean))
-    k_fold_std_131 = scores.std()
-    print("kFold131 Scores Std: " + str(k_fold_std_131))
-    k_fold_accuracy_131 = scores_mean
-    return accuracy_score_131, k_fold_accuracy_131, k_fold_std_131
+    return num_of_rows_for_rgb_grid
 
 
-def makeTrainTest(positive_array, negative_array):
+def getNegativeDESRGBPath(num):
     """
-    This makes the training and testing data sets that are to be made. This creates 
-    a training image data set with the positive and negative images together. This 
-    also creates a training label data set with the positive and negative images together.
+    Get the file path of the rgb.png image of the negative DES processed images.
 
-    Args:  
-        positive_array (numpy array):    This is the positively simulated dataset images.
-        negative_array (numpy array):    This is the negative DES images.
+    Args:
+        num(integer):           The number of the DES Processed source. The format of this is
+                                'Training/Negative/num_source/rgb.png
     Returns:
-        x_train (numpy array):          This is the array of the training set of the training images,
-                                        which is 80% of the image training set. 
-        x_test (numpy array):           This is the array of the testing set of the training images, which
-                                        is the 20% of the training images. 
-        y_train (numpy array):          This is the array of the labels of the training labels, which is 80%
-                                        of the training labels.
-        y_test (numpy array):           This is the array of the labels of the testing labels, which is 20%
-                                        of the training labels.
-        train_percent (float):          This is the percentage of data used for training (1- testPercent).
-        testPercent (float):           This is the percentage of date used for testing.
-        image_train_std (float):         This is the standard deviation of the entire training set, all 20000 images.
-        image_train_mean (float):        This is the mean of the entire training set, all 20000 images.
-        image_train_shape (list):        This is the shape of the entire training set, all 20000 images.
-        image_labels_shape (list):       This is the shape of the entire training sets' labels, all 20000 labels.
-        x_train_shape (list):            This is the shape of the training set of the images.
-        x_test_shape (list):             This is the shape of the testing set of the images.
-        y_train_shape (list):            This is the shape of the training set of the labels.
-        y_test_shape (list):             This is the shape of the testing set of the labels.
+        rgb_des_path(string):   The path of the rgb.png image of the negative DES processed images.
+                               The format of this is 'Training/Negative/num_source/rgb.png.
     """
 
-    image_train, image_labels = loadImage(positive_array, negative_array)
-    image_train_std = image_train.std()
-    image_train_mean = image_train.mean()
-    image_train_shape = image_train.shape
-
-    # X = image_train.reshape(image_train.shape[0], image_train.shape[1]*image_train.shape[2]*image_train.shape[3])
-    # print("X shape: " + str(X.shape))
-
-    image_labels_shape = image_labels.shape
-
-    image_test, labels_test = getTestSet()
-
-    # Encoding y now
-    encoder = LabelEncoder()
-    y_labels_train = encoder.fit_transform(image_labels)
-    y_labels_test = encoder.fit_transform(labels_test)
-    # print("y shape: " +str(y.shape))
-
-    # Doing a train-test split with sklearn, to train the data, where 20% of the training data is used for the test data
-    test_percent = 0
-    # x_train, y_train,  = train_test_split(image_train, y_labels_train, shuffle=True, test_size=None, random_state=1)
-    # x_test, y_test = train_test_split(, y_labels_47, shuffle=True, train_size=None, random_state=1)
-
-    x_train = shuffle(image_train)
-    y_train = shuffle(y_labels_train)
-    x_test = shuffle(image_test)
-    y_test = shuffle(y_labels_test)
-
-    x_train_shape = x_train.shape
-    x_test_shape = x_test.shape
-    y_train_shape = y_train.shape
-    y_test_shape = y_test.shape
-
-    print("x_train: " + str(x_train_shape))
-    print("y_train: " + str(y_train.shape))
-    print("x_test shape: " + str(x_test_shape))
-    print("y_test shape: " + str(y_train.shape))
-
-    train_percent = (1 - test_percent)
-    print("MADE TRAIN TEST SET")
-    return (x_train, x_test, y_train, y_test, train_percent, test_percent, image_train_std, image_train_mean,
-            image_train_shape, image_labels_shape, x_train_shape, x_test_shape, y_train_shape, y_test_shape)
+    rgb_des_path = glob.glob('%s/%s_*/rgb.png' % (train_negative_path, num))[0]
+    return rgb_des_path
 
 
-def makeKerasModel():
-    # mlp classifier without cnn
-    model = Sequential()
-    model.add(Dense(100, activation='relu', input_shape=(3, 100, 100)))  # change this to have a 2d shape
-    model.add(Dense(100, activation='relu'))
-    model.add(Dense(100, activation='relu'))
-    model.add(Flatten())
-    # model.add(Dense(100))
-    # model.add(Activation('relu'))
-    model.add(Dense(1))
-    model.add(Activation('sigmoid'))  # THE KERAS WITHOUT ES PNG IMAGE, HAS SIGMOID
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    return model
+def getKnownRGBPath(num, known_path):
+    """
+    The num is used to get the path of the rgb.png images of known lenses that have been previously
+    identified in studies. The tilename (from DES DR1) and the DESJ2000 name
+    (from the DES2017 paper) are also retrieved, as this is to get the correct names for each
+    image when creating the rgb image grids of these known lenses. The tilename and DESJ names
+    are retrieved from one of bands of the WCSClipped images of that source, here we will just use the g band.
+
+    Args:
+        num(integer):        This is the number that is used to find the rgb.png and the g_WCSClipped.fits files for that
+                             source in the 'UnseenData/Known?' directory. The rgb.png files are in the form:
+                             'UnseenData/Known47/num_source/rgb.png'. The g_WCSClipped.fit files are in the
+                             form: 'UnseenData/Known47/num_source/g_WCSClipped.fits.
+        known_path(string):  This is the path name name that identifies which set of known lenses are used,
+                             either 'Known47' or 'Known84'.
+    Returns:
+        rgb_known(string):   Provides the path name for the known lenses from previous studies study.
+        des_j(string):       Provides the DESJ2000 name of the known lenses.
+        tilename(string):   Provides the DES DR1 tilename for the known lenses.
+    """
+
+    # get path of KnownRGBPath
+    rgb_known = glob.glob('UnseenData/%s/%s_*/rgb.png' % (known_path, num))[0]
+
+    # get header of g image so that we can get the DESJ tile name
+
+    g_band = glob.glob('UnseenData/%s/%s_*/g_WCSClipped.fits' % (known_path, num))[0]
+    hdu1 = fits.open(g_band)
+    des_j = hdu1[0].header['DESJ']
+    tilename = hdu1[0].header['TILENAME']
+
+    return rgb_known, des_j, tilename
 
 
-def makeModelFromTutorial():
-    # Initialising the CNN
-    classifier = Sequential()
+def makeRandomRGBArray(rgb_path, number_iterations, numbers_train_neg):
+    """
+    This takes the root directory of rgb images that will create a list of random rgb images within the directory.
+    An example of the necessary path of the root directory is 'PositiveWithDESSky' or 'DES/DES_Processed'.
 
-    # Step 1 - Convolution
-    classifier.add(Conv2D(32, (3, 3), padding='same', input_shape=(3, 100, 100), activation='relu'))
-    classifier.add(Conv2D(32, (3, 3), activation='relu'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Dropout(0.5))  # antes era 0.25
-    # Adding a second convolutional layer
-    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
-    classifier.add(Conv2D(64, (3, 3), activation='relu'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2)))
-    classifier.add(Dropout(0.5))  # antes era 0.25
-    # Adding a third convolutional layer
-    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
-    classifier.add(Conv2D(64, (3, 3), activation='relu'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2)))
-    classifier.add(Dropout(0.5))  # antes era 0.25
-    # Step 3 - Flattening
-    classifier.add(Flatten())
-    # Step 4 - Full connection
-    classifier.add(Dense(units=512, activation='relu'))
-    classifier.add(Dropout(0.5))
-    classifier.add(Dense(units=3, activation='softmax'))
-    classifier.summary()
+    Makes an random list of the rgb.png images.
+    This creates a list of random rgb images within the chosen directory.
 
-    # Compiling the CNN
-    classifier.compile(optimizer='rmsprop',
-                       loss='categorical_crossentropy',
-                       metrics=['accuracy'])
-    return classifier
+    Args:
+       rgb_path(string):                The path name in which the rgb images are found.
+       number_iterations(integer):      This is the number of images that will are needed in a grid.
+       numbers_train_neg(list):         This is a list of Negative data numbers, which have been created at random.
+    Returns:
+        rgb_random_array(list):         The list of random paths of rgb.png images, corresponding to the
+                                        random_array_index as its sources.
+        image_title_array(list):        The list of the numbers that correspond to the rgb.png images in the
+                                        rgb_random_array.
+    """
 
+    # The error is that the images in the folders are random, not consecutively from 0,1.
+    # The methods below, takes images from (0,?) At random, but some of the numbers it chooses, dont exit within the
+    # folders.
+    # Somehow get a list of folders from the array.
+    # This can be done by calling the method in the positiveSetUtils.py method
 
-def makeKerasCNNModel():
-    # https://medium.com/@randerson112358/classify-images-using-convolutional-neural-networks-python-a89cecc8c679
-    model = Sequential()
-    model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(3, 100, 100)))
-    model.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
-    # model.add(Dropout(0.5))
-    # model.add(Conv2D(32, (3, 3), activation='relu'))
-    # model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dense(100, activation='relu'))
-    model.add(Dense(100, activation='relu'))
-    model.add(Dense(100, activation='relu'))
-    model.add(Flatten())
-    model.add(Dense(1))
+    random_num = 0
+    random_array = []
+    random_array_index = 0
+    rgb_random_array = []
+    image_title_array = []
 
-    # model.add(Conv2D(64, kernel_size=(3, 3), activation='relu', input_shape=(3, 100, 100)))
-    # model.add(Dense(100, activation='relu', input_shape=(3, 100, 100)))  # change this to have a 2d shape
-    # model.add(Dense(100, activation='relu'))
-    # model.add(Dense(100, activation='relu'))
-    # model.add(Flatten())
-    # # model.add(Dense(100))
-    # # model.add(Activation('relu'))
-    # model.add(Dense(1))
-    # model.add(Activation('sigmoid'))  # THE KERAS WITHOUT ES PNG IMAGE, HAS SIGMOID
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    files = folders = 0
+    for _, dir_names, file_names in os.walk(rgb_path):
+        # ^ this idiom means 'we won't be using this value'
+        files += len(file_names)
+        folders += len(dir_names)
 
-    # model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    # model.add(Flatten())
-    # model.add(Dense(128))
-    # model.add(Activation('relu'))
-    # model.add(Dense(1))
-    # model.add(Activation('sigmoid'))
-    # model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    return model
+    print('{:,} files, {:,} folders'.format(files, folders))
+
+    for num in range(0, number_iterations):
+        # random_num = random.randint(0, folders - 1)
+        random_num = random.choice(numbers_train_neg)
+        print('RANDOM NUM: ' + str(random_num))
+
+        while random_num in random_array:
+            print('RANDOM NUM: ' + str(random_num))
+            # random_num = random.randint(0, folders - 1)
+            random_num = random.choice(numbers_train_neg)
+        random_array.append(random_num)
+
+    print('RANDOM ARRAY: ' + str(random_array) + ' TYPE: ' + str(type(random_array)))
+    for num in range(0, len(random_array)):
+        random_array_index = random_array[num]
+        if rgb_path == train_positive_path:
+            rgb_random_array.append('%s/%s/%s_rgb.png' % (rgb_path, random_array_index, random_array_index))
+            image_title_array.append(random_array_index)
+
+        elif rgb_path == train_negative_path:
+            rgb_random_array.append(glob.glob('%s/%s_*/rgb.png' % (rgb_path, random_array_index))[0])
+            image_title_array.append(random_array_index)
+
+    return rgb_random_array, image_title_array
 
 
-def useKerasModel(positive_array, negative_array):
-    x_train, \
-        x_test, \
-        y_train, \
-        y_test, \
-        train_percent, \
-        test_percent, \
-        image_train_std, \
-        image_train_mean, \
-        image_train_shape, \
-        image_labels_shape, \
-        x_train_shape, \
-        x_test_shape, \
-        y_train_shape, \
-        y_test_shape = makeTrainTest(positive_array, negative_array)
+def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array):
+    # You should probably pass num in here or something like that and save many images
+    """
+    Using the image arrays (rgbImagePaths()) to make an image grid made of RGB images.
+    The title for each image is retrieved from the imageTitleArray().
 
-    es = EarlyStopping(monitor='val_loss', verbose=1, patience=3)
-    model = makeKerasModel()
-    seq_model = model.fit(
-        x_train,
-        y_train,
-        epochs=30,
-        batch_size=200,
-        validation_data=(x_test, y_test),
-        callbacks=[es])
-    description = str(model)
+    Args:
+        file_path(string):          The file path name where the Figure of the image grid is to be saved.
+        rgb_image_paths(list):      This is the list of the rgb images, that are used when making the rgb image grids.
+        image_title_array(list):    This is the list of the names or titles of each image that is in the grid.
+                                    These names will either be the numbers of the sources or the source name,
+                                    depending on which data is being used.
+        Returns:
+            This saves the Figure, which is all the indivivual rgb images placed in a grid.
+            These figures are saved in the path which is retrieved from when this function is called.
+    """
+    len_rgb = len(rgb_image_paths)
+    num_of_cols_for_rgb_grid = 3
+    num_of_rows_for_rgb_grid = getNumOrRowsForGrid(num_of_cols_for_rgb_grid, rgb_image_paths)
+    fig, axs = plt.subplots(num_of_rows_for_rgb_grid, num_of_cols_for_rgb_grid)
+    row_num = 0
+    current_index = 0
+    image_title_num = 0
+    while row_num < num_of_rows_for_rgb_grid:
+        images_for_row = []
+        image_index = 0
+        while image_index < num_of_cols_for_rgb_grid and current_index < len_rgb:
+            images_for_row.append(rgb_image_paths[current_index])
+            current_index += 1
+            image_index += 1
 
-    # Accuracy Testing
-    y_pred = model.predict(x_test)
-    print("y_pred: " + str(y_pred))
-    print("y_pred shape: " + str(y_pred.shape))
-    print("y_pred(type): " + str(type(y_pred)))
-    y_test_index = np.round(y_pred)
-    ones = np.count_nonzero(y_test_index == 1)
-    zeroes = np.count_nonzero(y_test_index == 0)
+        for column_num in range(0, len(images_for_row)):
+            img = Image.open(images_for_row[column_num])
+            img.thumbnail((100, 100))
+            axs[row_num, column_num].imshow(img)
+            axs[row_num, column_num].axis('off')
+            imageTitle = image_title_array[image_title_num]
+            axs[row_num, column_num].set_title('%s' % imageTitle, fontdict=None, loc='center', color='k')
+            image_title_num += 1
+            img.close()
 
-    print("Ones: %s / 1000" % ones)
-    print("Zeroes: %s / 1000" % zeroes)
+        if row_num == num_of_rows_for_rgb_grid - 1:
+            numOfEmptyGridsForRow = num_of_cols_for_rgb_grid - len(images_for_row)
+            for emptyIndex in range(len(images_for_row), num_of_cols_for_rgb_grid):
+                axs[row_num, emptyIndex].axis('off')
 
-    # plt.plot(x_train[10])
-    # display_activation(y_pred, 5, 5, 1)
+        row_num += 1
 
-    _, acc = model.evaluate(x_test, y_test, verbose=0)
-    accuracy_score = acc * 100.0
-    print("Accuracy Score: " + str(accuracy_score))
-    # plot training vs validation loss. 
-    History()
-    train_loss = seq_model.history['loss']
-    val_loss = seq_model.history['val_loss']
-    train_accuracy = seq_model.history['acc']
-    val_accuracy = seq_model.history['val_acc']
-
-    # epochs = range(1,50)
-    fig1 = plt.figure()
-    plt.plot(train_loss, label='Training Loss')
-    plt.plot(val_loss, label='Validation Loss')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.legend()
-    fig1.savefig('../Results/TrainingvsValidationLoss_Keras.png')
-
-    fig2 = plt.figure()
-    plt.plot(train_accuracy, label='Train Accuracy')
-    plt.plot(val_accuracy, label='Validation Accuracy')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.legend()
-    fig2.savefig('../Results/TrainingvsValidationAccuracy_Keras.png')
-
-    # saving model weights in keras.
-    model.save_weights('kerasModel.h5')
-    print("USED KERAS MODEL")
-
-    return (model,
-            y_pred,
-            x_train,
-            x_test,
-            y_train,
-            y_test,
-            description,
-            train_percent,
-            test_percent,
-            image_train_std,
-            image_train_mean,
-            image_train_shape,
-            image_labels_shape,
-            x_train_shape,
-            x_test_shape,
-            y_train_shape,
-            y_test_shape,
-            accuracy_score)
+    fig.savefig(file_path)
+    plt.close(fig)
 
 
-def getKerasKFold(x_train, x_test, y_train, y_test):
-    # Stratified K fold Cross Validation
-    # https://machinelearningmastery.com/use-keras-deep-learning-models-scikit-learn-python/
+def plotprogressNegativePositive(number_iterations):
+    """
+    This is the plotting of the progress taken, step by step of the negative and positive
+    data, placed into a grid for each source. This grid is made for each g, r, and i band,
+    seen in each column.
+    This also makes a rgb image grid of the positive image and negative images, following
+    the amount of images requested in the variable numberIterations
 
-    neural_network = KerasClassifier(build_fn=makeKerasModel,
-                                     epochs=30,
-                                     batch_size=200,
-                                     verbose=0)
-    n_splits = 10
-    random_state = 0
-    print("DONE 2")
-    scores = cross_val_score(neural_network, x_test, y_test, scoring='accuracy', cv=n_splits)
-    print("DONE 3")
-    scores_mean = scores.mean() * 100
-    print("kFold Scores Mean: " + str(scores_mean))
-    k_fold_std = scores.std()
-    print("kFold Scores Std: " + str(k_fold_std))
-    print("DONE 4")
+    The grid for the negative data is set where the DES Processed WCSClipped images is seen
+    in the first row, the DES Processed normalised images are seen in the second row, and
+    the DES Sky images are seen in the third row.
 
-    fig3 = plt.figure()
-    plt.plot(scores, label='Scores')
-    plt.legend()
-    fig3.savefig('../Results/KerasKFold_Scores.png')
-    return n_splits, random_state, scores_mean, k_fold_std, neural_network
-    # _____________________________________________________________________________________________________________________________
+    The grid for the positive data is set where the positively noiseless simulated images
+    are in the first row, the positively simulated data with background sky added to it is
+    seen in the second row, the normalised positively simulated images are seen in the third
+    row.
+
+    Args:
+        number_iterations(integer):    This is the number of sources that will have the progress grids made for them.
+                                       Not all sources are sometimes, since you just want to check the progress,
+                                       and how the images change overtime.
+    Returns:
+        numbers_train_neg(list):        This is a list of Negative data numbers, which have been created at random.
+        The Figure of the progress of the positive and negative data is saved.
+        The rgb image grids for the positive and negative data is saved as well.
+    """
+    # Number of Images creating grids to view.
+    rgb_pos_image_paths = []
+    rgb_des_image_paths = []
+    image_title_array = []
+
+    numbers_train_neg = getNegativeNumbers(train_negative_path)
+    for index in range(0, number_iterations):
+        num = numbers_train_neg[index]
+        gWCS, rWCS, iWCS = getNegativeProcessedWCS(num)
+        gDESNorm, rDESNorm, iDESNorm = getNegativeDES(num)
+        gDESSky, rDESSky, iDESSky = getDESSky(num)
+        gPos, rPos, iPos = getPosNoiseless(num)
+        gPosSky, rPosSky, iPosSky = getPosWDESSky(num)
+        gPosSkyNorm, rPosSkyNorm, iPosSkyNorm = getPosWDESSkyNorm(num)
+
+        # creating grids of images
+        # creating the first grid, in which the DES_Processed images are seen.
+        fig1, axs = plt.subplots(3, 3)
+        axs[0, 0].imshow(gWCS[0].data, cmap='gray')
+        axs[0, 1].imshow(rWCS[0].data, cmap='gray')
+        axs[0, 2].imshow(iWCS[0].data, cmap='gray')
+        axs[1, 0].imshow(gDESNorm[0].data, cmap='gray')
+        axs[1, 1].imshow(rDESNorm[0].data, cmap='gray')
+        axs[1, 2].imshow(iDESNorm[0].data, cmap='gray')
+        axs[2, 0].imshow(gDESSky[0].data, cmap='gray')
+        axs[2, 1].imshow(rDESSky[0].data, cmap='gray')
+        axs[2, 2].imshow(iDESSky[0].data, cmap='gray')
+
+        some_path = glob.glob('%s/%i_*/Negative_Processed_Grid.png' % (train_negative_path, num))[0]
+        print(some_path)
+        fig1.savefig(some_path)
+        plt.close(fig1)
+
+        gWCS.close()
+        rWCS.close()
+        iWCS.close()
+        gDESNorm.close()
+        rDESNorm.close()
+        iDESNorm.close()
+        gDESSky.close()
+        rDESSky.close()
+        iDESSky.close()
+
+        # creating the second grid, in which the Simulated images are seen.
+        fig2, axs = plt.subplots(3, 3)
+        axs[0, 0].imshow(gPos[0].data, cmap='gray')
+        axs[0, 1].imshow(rPos[0].data, cmap='gray')
+        axs[0, 2].imshow(iPos[0].data, cmap='gray')
+        axs[1, 0].imshow(gPosSky[0].data, cmap='gray')
+        axs[1, 1].imshow(rPosSky[0].data, cmap='gray')
+        axs[1, 2].imshow(iPosSky[0].data, cmap='gray')
+        axs[2, 0].imshow(gPosSkyNorm[0].data, cmap='gray')
+        axs[2, 1].imshow(rPosSkyNorm[0].data, cmap='gray')
+        axs[2, 2].imshow(iPosSkyNorm[0].data, cmap='gray')
+
+        fig2.savefig('%s/%i/Positive_Processed_Grid.png' % (train_positive_path, num))
+        plt.close(fig2)
+
+        # closing images to save RAM
+        gPos.close()
+        rPos.close()
+        iPos.close()
+        gPosSky.close()
+        rPosSky.close()
+        iPosSky.close()
+        gPosSkyNorm.close()
+        rPosSkyNorm.close()
+        iPosSkyNorm.close()
+
+        rgb_pos_image_paths.append('%s/%s/%s_rgb.png' % (train_positive_path, num, num))
+        rgb_des_image_paths.append(getNegativeDESRGBPath(num))
+        image_title_pos = '%s' % num
+        image_title_array.append(image_title_pos)
+
+    file_path3 = '%s_RGB_ImageGrid.png' % train_positive_path
+    # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
+    # list( paths of rgb images)))
+    plotAndSaveRgbGrid(file_path3, rgb_pos_image_paths, image_title_array)
+
+    # creating the rgb grid for the DES Images
+    file_path4 = '%s_RGB_ImageGrid.png' % train_negative_path
+    # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
+    # list( paths of rgb images)))
+    plotAndSaveRgbGrid(file_path4, rgb_des_image_paths, image_title_array)
+    return numbers_train_neg
 
 
-def displayActivation(activations):
-    for activation in activations:
-        if activation.ndim >= 3:
-            plt.figure()
-            plt.matshow(activation[0][0, :, :])
-            plt.show()
+def plotKnownLenses(number_iterations, known_path=''):
+    """
+    This is the plotting of knownlenses. This has the requested amount of known lenses to look at and check.
+    This function opens the function getKnownRGBPath(), and gets the paths of the rgb images of the known
+    lenses from DES2017. These rgb images are used to create a rgb grid of the DES2017 known lenses.
+    This rgb grid is often looked at when checking the images.
+    Args:
+        number_iterations(integer):    This is the number of sources that will have the progress grids made for them.
+                                       Not all sources are sometimes, since you just want to check the progress,
+                                       and how the images change overtime.
+        known_path(string):            This is the path name name that identifies which set of known lenses are used,
+                                       either 'Known47' or 'Known84'.
+    Returns:
+        This saves the figure containing the rgb image grids of the knownlenses.
+    """
+    rgb_known_image_paths = []
+    image_title_array = []
+    for num in range(0, number_iterations):
+        rgbKnown, desJ, tileName = getKnownRGBPath(num, known_path)
+        rgb_known_image_paths.append(rgbKnown)
+        imageTitle = '%s_%s' % (num, desJ)
+        image_title_array.append(imageTitle)
+
+    file_path5 = 'UnseenData/%s_RGB_ImageGrid.png' % known_path
+    # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
+    # list( paths of rgb images)))
+    plotAndSaveRgbGrid(file_path5, rgb_known_image_paths, image_title_array)
 
 
-def visualizeKeras(model):
-    # https://www.kaggle.com/amarjeet007/visualize-cnn-with-keras
-    # https://towardsdatascience.com/visualizing-intermediate-activation-in-convolutional-neural-networks-with-keras
-    # -260b36d60d0
-
-    layer_outputs = [layer.output for layer in model.layers]
-    activation_model = Model(inputs=model.input,
-                             outputs=layer_outputs)
-    img_tensor = getPositiveSimulatedTest()[0]
-    img_tensor = img_tensor.reshape(1, 3, 100, 100)
-
-    plt.figure()
-    plt.title("Original image")
-    plt.matshow(img_tensor[0][0, :, :])
-    plt.show()
-
-    activations = activation_model.predict(img_tensor)
-    displayActivation(activations)
-
-
-# _________________________________________________________________________________________________________________________
+# ___________________________________________________________________________________________________________________________________________
 # MAIN
-print("PAST IMPORTS")
-positive_array = getPositiveSimulatedTrain()
-negative_array = getNegativeDESTrain()
+# Number of Images creating grids to view.
+# plot progress and rgb images of negative and positive images
+numbers_train_neg = plotprogressNegativePositive(number_iterations)
 
-model, \
-    y_pred, \
-    x_train, \
-    x_test, \
-    yTrain, \
-    y_test, \
-    description, \
-    train_percent, \
-    test_percent, \
-    image_train_std, \
-    image_train_mean, \
-    image_train_shape, \
-    image_labels_shape, \
-    x_train_shape, \
-    x_test_shape, \
-    y_train_shape, \
-    y_test_shape, \
-    accuracy_score = useKerasModel(positive_array, negative_array)
-print("DONE")
+# Get Random RGB images from PositiveWithDESSky
+file_path6 = '%s_randomRGB_ImageGrid.png' % train_positive_path
+rgb_random, image_title_array = makeRandomRGBArray(train_positive_path, number_iterations, numbers_train_neg)
+plotAndSaveRgbGrid(file_path6, rgb_random, image_title_array)
 
-# visualizeKeras(model)
+# Get Random RGB images from NegativeDES
+file_path7 = '%s_randomRGB_ImageGrid.png' % train_negative_path
+rgb_random, image_title_array = makeRandomRGBArray(train_negative_path, number_iterations, numbers_train_neg)
+plotAndSaveRgbGrid(file_path7, rgb_random, image_title_array)
 
-# ______________________________________________________________________________________________________________________
-n_splits, random_state, k_fold_accuracy, k_fold_std, neural_network = getKerasKFold(x_train, x_test, yTrain, y_test)
-#
-# # calculating the amount of things accurately identified
-# # looking at Known131
-# # 1 = gravitational lens
-# # 0 = negative lens
-#
-# # #______________________________________________________________________________________________________________________
-known_des_2017, accuracy_score_47, k_fold_accuracy_47, k_fold_std_47 = testDES2017(model, neural_network, n_splits)
-known_jacobs, accuracy_score_84, k_fold_accuracy_84, k_fold_std_84 = testJacobs(model, neural_network, n_splits)
-accuracy_score_131, k_fold_accuracy_131, k_fold_std_131 = testDES2017AndJacobs(known_des_2017, known_jacobs, model,
-                                                                               neural_network, n_splits)
-#
-# # write to ml_Lenses_results.xlsx
-# # makeExcelTable.makeInitialTable()
-# element_list = makeExcelTable.getElementList(description,
-#                                              image_train_std,
-#                                              image_train_mean,
-#                                              image_train_shape,
-#                                              image_labels_shape,
-#                                              train_percent,
-#                                              test_percent,
-#                                              x_train_shape,
-#                                              x_test_shape,
-#                                              y_train_shape,
-#                                              y_test_shape,
-#                                              n_splits,
-#                                              random_state,
-#                                              accuracy_score,
-#                                              k_fold_accuracy,
-#                                              k_fold_std,
-#                                              accuracy_score_47,
-#                                              k_fold_accuracy_47,
-#                                              k_fold_std_47,
-#                                              accuracy_score_84,
-#                                              k_fold_accuracy_84,
-#                                              k_fold_std_84,
-#                                              accuracy_score_131,
-#                                              k_fold_accuracy_131,
-#                                              k_fold_std_131)
-# file_name = '../Results/ml_Lenses_results.csv'
-# makeExcelTable.appendRowAsList(file_name, element_list)
+# plot KnownLenses rgb images
+plotKnownLenses(number_iterations, known_path='Known47')
+plotKnownLenses(number_iterations, known_path='Known84')
