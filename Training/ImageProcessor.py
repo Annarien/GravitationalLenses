@@ -446,7 +446,7 @@ def plotprogressNegativePositive(number_iterations):
         axs[2, 2].imshow(iDESSky[0].data, cmap='gray')
 
         print(num)
-        print(train_negative_path)
+        # print(train_negative_path)
         # some_path = glob.glob('%s/%i_*/Negative_Processed_Grid.png' % (train_negative_path, num))[0]
         some_path = '%s/%s/Negative_Processed_Grid.png' % (train_negative_path, key)
         print(some_path)
