@@ -272,9 +272,6 @@ def usingModelsWithOrWithoutAugmentedData(training_data, training_labels, val_da
         callbacks_array.append(early_stopping)
     if use_model_checkpoint:
         callbacks_array.append(model_checkpoint)
-    #
-    # if use_augmented_data:
-    #     training_data, training_labels = createAugmentedData(training_data, training_labels)
 
     print(len(training_data))
     history = classifier.fit(training_data,
@@ -333,6 +330,7 @@ def createAugmentedData(training_data, training_labels):
 
     return np.array(complete_training_data_set), np.array(complete_training_labels_set)
 
+
 def savePredictedLenses(des_names_array, predicted_class_probabilities, predicted_lenses_filepath, text_file_path):
     if not os.path.exists(predicted_lenses_filepath):
         os.mkdir('%s/' % predicted_lenses_filepath)
@@ -350,6 +348,7 @@ def savePredictedLenses(des_names_array, predicted_class_probabilities, predicte
         if predicted_class_probabilities[lens_index] == 0:
             text_file.write("%s \n " % des_names_array[lens_index])
     text_file.close()
+
 
 def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_path,
                                       predicted_lenses_filepath):
@@ -376,17 +375,18 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
     text_file.write("\n")
     text_file.close()
 
+
 # __________________________________________________________________________
 # MAIN
 
 # Get positive training data
-train_pos = getPositiveImages('Training/Positive3000', max_num, input_shape=input_shape)
+train_pos = getPositiveImages('Training/PositiveAll_top2000', max_num, input_shape=input_shape)
 print("Train Positive Shape: " + str(train_pos.shape))
 excel_headers.append("Train_Positive_Shape")
 excel_dictionary.append(train_pos.shape)
 
 # Get negative training data
-train_neg = getNegativeImages('Training/Negative', max_num, input_shape=input_shape)
+train_neg = getNegativeImages('Training/Negative_top2000', max_num, input_shape=input_shape)
 print("Train Negative Shape: " + str(train_neg.shape))
 excel_headers.append("Train_Negative_Shape")
 excel_dictionary.append(train_neg.shape)
@@ -468,7 +468,7 @@ if not os.path.exists('../Results/%s/NegativeResults/' % dt_string):
     os.mkdir('../Results/%s/NegativeResults/' % dt_string)
 
 # Plot original positive image
-img_positive_tensor = getPositiveImages('Training/Positive3000', 1, input_shape=input_shape)
+img_positive_tensor = getPositiveImages('Training/PositiveAll_top2000', 1, input_shape=input_shape)
 positive_train_figure = plt.figure()
 plt.imshow(img_positive_tensor[0])
 # plt.show()
@@ -480,7 +480,7 @@ plt.close()
 visualiseActivations(img_positive_tensor, base_dir='../Results/%s/PositiveResults/' % dt_string)
 
 # Plot original negative image
-img_negative_tensor = getNegativeImages('Training/Negative', 1, input_shape=input_shape)
+img_negative_tensor = getNegativeImages('Training/Negative_top2000', 1, input_shape=input_shape)
 negative_train_figure = plt.figure()
 plt.imshow(img_negative_tensor[0])
 # plt.show()
@@ -492,8 +492,8 @@ plt.close()
 visualiseActivations(img_negative_tensor, base_dir='../Results/%s/NegativeResults/' % dt_string)
 
 # Classifier evaluation
-test_pos = getPositiveImages('Testing/Positive3000', max_num_testing, input_shape)
-test_neg = getNegativeImages('Testing/Negative', max_num_testing, input_shape)
+test_pos = getPositiveImages('Testing/Testing_PositiveAll_top2000', max_num_testing, input_shape)
+test_neg = getNegativeImages('Testing/Testing_Negative_top2000', max_num_testing, input_shape)
 testing_data, testing_labels, _ = makeImageSet(test_pos, test_neg, shuffle_needed=True)
 scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
 print("Test loss: %s" % scores[0])
@@ -582,5 +582,5 @@ executeKFoldValidation(images_84,
                        excel_dictionary)
 
 # add row to excel table
-#createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
+# createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
 writeToFile('../Results/kerasCNN_Results.csv', excel_dictionary)
