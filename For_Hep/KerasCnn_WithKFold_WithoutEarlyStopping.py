@@ -38,12 +38,12 @@ k_fold_num = 5  # A number between 1 and 10 that determines how many times the k
 # is trained.
 epochs = 20  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 100  # The number of items batched together during training.
-run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
 patience_num = 3  # Used in the early stopping to determine how quick/slow to react.
-use_early_stopping = True  # Determines whether to use early stopping or not.
+use_early_stopping = False  # Determines whether to use early stopping or not.
 use_model_checkpoint = True  # Determines whether the classifiers keeps track of the most accurate iteration of itself.
 monitor_early_stopping = 'val_loss'
 monitor_model_checkpoint = 'val_acc'
@@ -228,7 +228,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.compile(optimizer='adam',
                        loss='binary_crossentropy',
                        metrics=['accuracy'])
-    plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+    #plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
     return classifier
 
 
@@ -456,8 +456,8 @@ history, classifier = usingModelsWithOrWithoutAugmentedData(training_data,
                                                             val_data,
                                                             val_labels)
 
-classifier.load_weights('best_weights.hdf5')
-classifier.save_weights('galaxies_cnn.h5')
+#classifier.load_weights('best_weights.hdf5')
+#classifier.save_weights('galaxies_cnn.h5')
 
 excel_headers.append("Epochs")
 excel_dictionary.append(epochs)
@@ -471,8 +471,8 @@ executeKFoldValidation(training_data,
                        excel_dictionary)
 
 # Plot run metrics
-acc = history.history['acc']
-val_acc = history.history['val_acc']
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
 loss = history.history['loss']
 val_loss = history.history['val_loss']
 number_of_completed_epochs = range(1, len(acc) + 1)
