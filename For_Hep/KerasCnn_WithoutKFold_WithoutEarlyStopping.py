@@ -29,7 +29,7 @@ excel_dictionary.append(dt_string)
 
 
 # Globals
-max_num = 1000  # Set to sys.maxsize when running entire data set
+max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
@@ -619,5 +619,5 @@ executeKFoldValidation(images_84,
                        excel_dictionary)
 
 # add row to excel table
-createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
+#createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
 writeToFile('../Results/kerasCNN_Results.csv', excel_dictionary)
