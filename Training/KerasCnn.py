@@ -208,7 +208,6 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
     classifier.add(Dropout(0.5))  # added extra dropout layer
-
     classifier.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Dropout(0.2))  # antes era 0.25
