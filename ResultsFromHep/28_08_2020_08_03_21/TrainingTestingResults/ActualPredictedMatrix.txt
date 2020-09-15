@@ -1,0 +1,8 @@
+Predicted vs True Matrix: 
+[[5932  102]
+ [  20 6014]] 
+ True Negative: 5932 
+False Positive: 102 
+False Negative: 20 
+True Positive: 6014 
+
