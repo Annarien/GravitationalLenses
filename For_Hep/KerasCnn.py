@@ -208,7 +208,6 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
     classifier.add(Dropout(0.5))  # added extra dropout layer
-
     classifier.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Dropout(0.2))  # antes era 0.25
@@ -228,7 +227,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.compile(optimizer='adam',
                        loss='binary_crossentropy',
                        metrics=['accuracy'])
-    #plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+    plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
     return classifier
 
 
@@ -456,8 +455,8 @@ history, classifier = usingModelsWithOrWithoutAugmentedData(training_data,
                                                             val_data,
                                                             val_labels)
 
-#classifier.load_weights('best_weights.hdf5')
-#classifier.save_weights('galaxies_cnn.h5')
+classifier.load_weights('best_weights.hdf5')
+classifier.save_weights('galaxies_cnn.h5')
 
 excel_headers.append("Epochs")
 excel_dictionary.append(epochs)
@@ -483,6 +482,8 @@ plt.plot(number_of_completed_epochs, acc, label='Training acc')
 plt.plot(number_of_completed_epochs, val_acc, label='Validation acc')
 plt.title('Training and validation accuracy')
 plt.legend()
+plt.xlabel("Epochs")
+plt.ylabel("Accuracy")
 # plt.show()
 train_val_accuracy_figure.savefig('../Results/%s/TrainingValidationAccuracy.png' % dt_string)
 plt.close()
@@ -493,6 +494,8 @@ plt.plot(number_of_completed_epochs, loss, label='Training loss')
 plt.plot(number_of_completed_epochs, val_loss, label='Validation loss')
 plt.title('Training and validation loss')
 plt.legend()
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
 # plt.show()
 train_val_loss_figure.savefig('../Results/%s/TrainingValidationLoss.png' % dt_string)
 plt.close()
@@ -619,5 +622,5 @@ executeKFoldValidation(images_84,
                        excel_dictionary)
 
 # add row to excel table
-createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
+#createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
 writeToFile('../Results/kerasCNN_Results.csv', excel_dictionary)
