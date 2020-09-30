@@ -116,7 +116,7 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseles
     SOdraw = numpy.array(S.SOdraw)
     S.loadModel(model)
     S.stochasticObserving(mode="MP", SOdraw=SOdraw)
-    print (num, band)
+    print(num, band)
     S.ObserveLens()
 
     # Write FITS images
