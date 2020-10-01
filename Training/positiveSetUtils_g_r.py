@@ -1,6 +1,8 @@
 """
 Functions used in creating the positively simulated images.
 """
+import csv
+
 """
 This is to create the positively simulated images. 
 By using the g, r, and i magnitudes from the COSMOS_Ilbert2009.fits, the magnitudes are realistic,
@@ -15,6 +17,8 @@ import re
 import matplotlib
 import numpy as np
 from astLib import astImages
+from math import log10, floor
+from csv import writer
 
 matplotlib.use('Agg')
 import astropy.table as atpy
@@ -164,12 +168,12 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseles
 
         for band in S.bands:
             hdulist = fits.open('%s/%s_image_%s.fits' % (folder, num, band))
-            print('Lens Gmag: ' + str(hdulist[0].header.get('Lens_g_mag')))
-            print('Lens Rmag: ' + str(hdulist[0].header.get('Lens_r_mag')))
-            print('Lens Imag: ' + str(hdulist[0].header.get('Lens_i_mag')))
-            print('Source Gmag: ' + str(hdulist[0].header.get('Source_g_mag')))
-            print('Source Rmag: ' + str(hdulist[0].header.get('Source_r_mag')))
-            print('Source Imag: ' + str(hdulist[0].header.get('Source_i_mag')))
+            # print('Lens Gmag: ' + str(hdulist[0].header.get('Lens_g_mag')))
+            # print('Lens Rmag: ' + str(hdulist[0].header.get('Lens_r_mag')))
+            # print('Lens Imag: ' + str(hdulist[0].header.get('Lens_i_mag')))
+            # print('Source Gmag: ' + str(hdulist[0].header.get('Source_g_mag')))
+            # print('Source Rmag: ' + str(hdulist[0].header.get('Source_r_mag')))
+            # print('Source Imag: ' + str(hdulist[0].header.get('Source_i_mag')))
 
         return lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag
 
@@ -187,11 +191,10 @@ def addSky(num, positive_noiseless, sky_path, positive_path):
                                 the simulated images have background noise, so that the positive images are realistic.
                                 This is saved under the directory: positive_path/num/num_band_posSky.fits
     """
-
     if not os.path.exists('%s/%i' % (positive_path, num)):
         os.makedirs('%s/%i' % (positive_path, num))
 
-    for band in S.bands:
+    for band in ['g', 'r', 'i']:
         hdulist = fits.open('%s/%s/%s_image_%s_SDSS.fits' % (positive_noiseless, num, num, band))
         lens_g_mag = hdulist[0].header.get('Lens_g_mag')
         lens_r_mag = hdulist[0].header.get('Lens_r_mag')
@@ -200,12 +203,22 @@ def addSky(num, positive_noiseless, sky_path, positive_path):
         source_r_mag = hdulist[0].header.get('Source_r_mag')
         source_i_mag = hdulist[0].header.get('Source_i_mag')
 
-    for band in ['g', 'r', 'i']:
         band_sky_image = fits.open('%s/%i_%s_sky.fits' % (sky_path, num, band))
         band_pos_noiseless_image = fits.open('%s/%s/%s_image_%s_SDSS.fits' % (positive_noiseless, num, num, band))
         with_sky = band_sky_image[0].data + band_pos_noiseless_image[0].data
 
-        astImages.saveFITS('%s/%i/%i_%s_posSky.fits' % (positive_path, num, num, band), with_sky)
+        header = fits.Header()
+        header.set('Lens_g_mag', lens_g_mag)
+        header.set('Lens_r_mag', lens_r_mag)
+        header.set('Lens_i_mag', lens_i_mag)
+        header.set('Source_g_mag', source_g_mag)
+        header.set('Source_r_mag', source_r_mag)
+        header.set('Source_i_mag', source_i_mag)
+
+        fits.writeto('%s/%i/%i_%s_posSky.fits' % (positive_path, num, num, band), with_sky, header=header,
+                     overwrite=True)
+
+        # astImages.saveFITS('%s/%i/%i_%s_posSky.fits' % (positive_path, num, num, band), with_sky)
 
 
 def normalise(num, positive_path):
@@ -230,11 +243,29 @@ def normalise(num, positive_path):
     wcs = None
     for band in ['g', 'r', 'i']:
         with fits.open(paths[band + 'Img']) as image:
+
+            lens_g_mag = image[0].header.get('Lens_g_mag')
+            lens_r_mag = image[0].header.get('Lens_r_mag')
+            lens_i_mag = image[0].header.get('Lens_i_mag')
+            source_g_mag = image[0].header.get('Source_g_mag')
+            source_r_mag = image[0].header.get('Source_r_mag')
+            source_i_mag = image[0].header.get('Source_i_mag')
+
+            header = fits.Header()
+            header.set('Lens_g_mag', lens_g_mag)
+            header.set('Lens_r_mag', lens_r_mag)
+            header.set('Lens_i_mag', lens_i_mag)
+            header.set('Source_g_mag', source_g_mag)
+            header.set('Source_r_mag', source_r_mag)
+            header.set('Source_i_mag', source_i_mag)
+
             im = image[0].data
             norm_image = (im - im.mean()) / np.std(im)
             if wcs is None:
                 wcs = astWCS.WCS(image[0].header, mode='pyfits')
-            astImages.saveFITS('%s/%s/%s_%s_norm.fits' % (positive_path, num, num, band), norm_image, None)
+            # astImages.saveFITS('%s/%s/%s_%s_norm.fits' % (positive_path, num, num, band), norm_image, header= header)
+            fits.writeto('%s/%s/%s_%s_norm.fits' % (positive_path, num, num, band), norm_image, header=header,
+                         overwrite=True)
             rgb_dict[band] = norm_image
 
     min_cut, max_cut = -1, 3
@@ -276,3 +307,27 @@ def getNegativeNumbers(base_dir):
     # print(numbers)
 
     return numbers
+
+
+def round_sig(x, sig=3):
+    return round(x, sig - int(floor(log10(abs(x)))) - 1)
+
+
+def magnitudeTable(num, lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag, positive_path):
+    magTable_headers = ['Index', 'Lens_g_mag', 'Lens_r_mag', 'Lens_i_mag', 'Source_g_mag', 'Source_r_mag',
+                        'Source_i_mag', 'lens_gr', 'lens_ri', 'source_gr', 'source_ri']
+    lens_gr = round_sig(lens_g_mag - lens_r_mag)
+    lens_ri = round_sig(lens_r_mag - lens_i_mag)
+    magTable_dictionary = [num, lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag, lens_gr,
+                           lens_ri]
+
+    # tab = atpy.Table()
+    if not os.path.exists('%s_magnitudesTable.csv' % positive_path):
+        # tab.write('%s_magnitudesTable.csv' % positive_path)
+        with open('%s_magnitudesTable.csv' % positive_path, 'w') as out_csv:
+            magTableWithHeaders = csv.DictWriter(out_csv, magTable_headers)
+            magTableWithHeaders.writeheader()
+
+    with open('%s_magnitudesTable.csv' % positive_path, 'a+') as writeObj:
+        csvWriter = writer(writeObj)
+        csvWriter.writerow(magTable_dictionary)
