@@ -45,3 +45,4 @@ Miniconda2-latest-Linux-x86_64.sh
 Training/DESTileImages
 *.pyc
 *.txt
+*.csv
