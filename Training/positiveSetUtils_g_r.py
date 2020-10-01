@@ -39,7 +39,7 @@ def cutCosmosTable(cosmos):
     Returns:
         sourceTable(table):     The sources_table containing objects with the revelant magnitudes of typical
                                 strong galaxy-galaxy gravitational sources.
-        lens_table(table):       The lens_table containing objects with the revelant magnitudes of typical
+        lens_table(table):      The lens_table containing objects with the revelant magnitudes of typical
                                 strong galaxy-galaxy gravitational lenses.
     """
 
@@ -90,25 +90,33 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseles
     galaxy-galaxy gravitational lenses.
 
     Args:
-        ml(dictionary):     Apparent magnitude of the lens, by band (keys: 'g_SDSS', 'r_SDSS', 'i_SDSS').
-        rl(float):          Half-light radius of the lens, in arcsec.
-        ql(float):          Flattening of the lens (1 = circular, 0 = line).
-        b(float):           Einsten radius, in arcsec.
-        ms(dictionary):     Apparent magnitude of the source, by band (keys: 'g_SDSS', 'r_SDSS', 'i_SDSS').
-        xs(float):          Horizontal coord of the source relative to the lens centre, in arcsec.
-        ys(float):          Vertical coord of the source relative to the lens centre, in arcsec.
-        qs(float):          Flattening of the source (1 = circular, 0 = line).
-        ps(float):          Position angle of the source (degrees).
-        rs(float):          Half-light radius of the source, in arcsec.
-        num(integer):       The number of object that is made. This is the source number where working
-                            with the positive simulated data.
-        survey(str):        Name of survey (as defined by LensPop), and is set to default of DESc.
-                            "DESc" corresponds to optimally stacked DES images.
+        ml(dictionary):            Apparent magnitude of the lens, by band (keys: 'g_SDSS', 'r_SDSS', 'i_SDSS').
+        rl(float):                 Half-light radius of the lens, in arcsec.
+        ql(float):                 Flattening of the lens (1 = circular, 0 = line).
+        b(float):                  Einsten radius, in arcsec.
+        ms(dictionary):            Apparent magnitude of the source, by band (keys: 'g_SDSS', 'r_SDSS', 'i_SDSS').
+        xs(float):                 Horizontal coord of the source relative to the lens centre, in arcsec.
+        ys(float):                 Vertical coord of the source relative to the lens centre, in arcsec.
+        qs(float):                 Flattening of the source (1 = circular, 0 = line).
+        ps(float):                 Position angle of the source (degrees).
+        rs(float):                 Half-light radius of the source, in arcsec.
+        num(integer):              The number of object that is made. This is the source number where working
+                                   with the positive simulated data.
+        positive_noiseless(string):This is the file path name for the positively simulated images of the lenses.
+        survey(str):               Name of survey (as defined by LensPop), and is set to default of DESc. "DESc"
+                                   corresponds to optimally stacked DES images.
+    Returns:
+        lens_g_mag(float):    This is the g band magnitude of the simulated lens, rounded off to 5 significant figures.
+        lens_r_mag(float):    This is the r band magnitude of the simulated lens, rounded off to 5 significant figures.
+        lens_i_mag(float):    This is the i band magnitude of the simulated lens, rounded off to 5 significant figures.
+        source_g_mag(float):  This is the g band magnitude of the simulated source, rounded off to 5 significant figures.
+        source_r_mag(float):  This is the r band magnitude of the simulated source, rounded off to 5 significant figures.
+        source_i_mag(float):  This is the i band magnitude of the simulated source, rounded off to 5 significant figures.
     Saves:
-       img(fits image):     The images of each band g, r, and i for the source number are created and saved as fits
-                            images.
-       psf(fits image):     The psf images of each band g, r, and i for the source number are created and saved as fits
-                            images.
+       img(fits image):       The images of each band g, r, and i for the source number are created and saved as fits
+                              images.
+       psf(fits image):       The psf images of each band g, r, and i for the source number are created and saved as
+                              fits images.
     """
 
     S = FastLensSim(survey, fractionofseeing=1)
@@ -142,12 +150,12 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseles
     if not os.path.exists(folder):
         os.makedirs(folder)
 
-    lens_g_mag = round_sig(ml['g_SDSS'],5)
-    lens_r_mag = round_sig(ml['r_SDSS'],5)
-    lens_i_mag = round_sig(ml['i_SDSS'],5)
-    source_g_mag = round_sig(ms['g_SDSS'],5)
-    source_r_mag = round_sig(ms['r_SDSS'],5)
-    source_i_mag = round_sig(ms['i_SDSS'],5)
+    lens_g_mag = round_sig(ml['g_SDSS'], 5)
+    lens_r_mag = round_sig(ml['r_SDSS'], 5)
+    lens_i_mag = round_sig(ml['i_SDSS'], 5)
+    source_g_mag = round_sig(ms['g_SDSS'], 5)
+    source_r_mag = round_sig(ms['r_SDSS'], 5)
+    source_i_mag = round_sig(ms['i_SDSS'], 5)
 
     # Adding headers to the images
     for band in S.bands:
@@ -175,7 +183,12 @@ def addSky(num, positive_noiseless, sky_path, positive_path):
     This is saved to 'PositiveWithDESSky/%s/%s_posSky_%s.fits'%(num,num,band).
 
     Args:
-        num(integer):   This is the source number of the positively simulated data.
+        num(integer):              This is the source number of the positively simulated data.
+        positive_noiseless(string):This is the file path for the positively simulated images of the lenses.
+        sky_path(string):          This is the file path for the background sky from the DES images created in the
+                                   negativeDES.py file
+        positive_path(string):     This is the file path for the positive simulated images that has background sky now
+                                   added to it.
     Saves:
         with_sky(fits image):   This is the clipped sky added to the positively simulated images added together, so that
                                 the simulated images have background noise, so that the positive images are realistic.
@@ -208,8 +221,6 @@ def addSky(num, positive_noiseless, sky_path, positive_path):
         fits.writeto('%s/%i/%i_%s_posSky.fits' % (positive_path, num, num, band), with_sky, header=header,
                      overwrite=True)
 
-        # astImages.saveFITS('%s/%i/%i_%s_posSky.fits' % (positive_path, num, num, band), with_sky)
-
 
 def normalise(num, positive_path):
     """
@@ -219,11 +230,14 @@ def normalise(num, positive_path):
     a RGB composite images.
 
     Args:
-        num(integer):   This is the source number of the positively simulated data.
+        num(integer):           This is the source number of the positively simulated data.
+        positive_path(string):  This is the file path for the positive simulated images that has background sky now
+                                   added to it.
     Saves:
-        The normalised images with the wcs as headers.
-        These normalised images are saved under 'PositiveWithDESSky/num/'.
-        The rgb composite images are created and saved under 'PositiveWithDESSky/num/'.
+        norm_image(numpy array):An array containing the normalised image with the wcs as a header saved
+                                under 'PositiveWithDESSky/num/'.
+        figure(plot):           This is the rgb composite images are created and  are saved
+                                under 'PositiveWithDESSky/num/'.
     """
     paths = {'iImg': glob.glob('%s/%s/%s_i_posSky.fits' % (positive_path, num, num))[0],
              'rImg': glob.glob('%s/%s/%s_r_posSky.fits' % (positive_path, num, num))[0],
@@ -300,10 +314,36 @@ def getNegativeNumbers(base_dir):
 
 
 def round_sig(x, sig=3):
-    return round(x, sig - int(floor(log10(abs(x)))) - 1)
+    """
+    This is used to ensure that the specified value has no more than the specified significant figures, this is used to
+    ensure that calculations are done correctly and efficiently, whilst saving memory.
+    Args:
+        x(float):             This is the float number in question which has too many decimals.
+        sig(integer):         This is the amount of significant figures the float needs to contain.
+                              This default is set to 3.
+    Returns:
+        rounded_value(float): This is the float that is rounded to the specified significant figures.
+    """
+    rounded_value = round(x, sig - int(floor(log10(abs(x)))) - 1)
+    return rounded_value
 
 
 def magnitudeTable(num, lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag, positive_path):
+    """
+    This creates a csv file containing the source index and the g, r and i band magnitudes for the lens and the source.
+    The g-r and r-i values are also calculated and inserted into the table for each source and lens.
+    Args:
+        num(integer):   This is the index of the source as seen in the folders for these objects.
+        lens_g_mag(float):   This is the g band magnitude of the simulated lens, rounded off to 5 significant figures.
+        lens_r_mag(float):   This is the r band magnitude of the simulated lens, rounded off to 5 significant figures.
+        lens_i_mag(float):   This is the i band magnitude of the simulated lens, rounded off to 5 significant figures.
+        source_g_mag(float): This is the g band magnitude of the simulated source, rounded off to 5 significant figures.
+        source_r_mag(float): This is the r band magnitude of the simulated source, rounded off to 5 significant figures.
+        source_i_mag(float): This is the i band magnitude of the simulated source, rounded off to 5 significant figures.
+        positive_path(string):This is the file path for the positive simulated images that has background sky now
+                              added to it.
+    """
+
     magTable_headers = ['Index', 'Lens_g_mag', 'Lens_r_mag', 'Lens_i_mag', 'Source_g_mag', 'Source_r_mag',
                         'Source_i_mag', 'lens_gr', 'lens_ri', 'source_gr', 'source_ri']
     lens_gr = round_sig(lens_g_mag - lens_r_mag)
