@@ -16,14 +16,13 @@ import os
 import re
 import matplotlib
 import numpy as np
-from astLib import astImages
 from math import log10, floor
 from csv import writer
+from astLib import astWCS
+from astLib import astPlots
 
 matplotlib.use('Agg')
 import astropy.table as atpy
-
-from astLib import *
 from astropy.io import fits
 from __init__ import *
 
@@ -143,12 +142,12 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseles
     if not os.path.exists(folder):
         os.makedirs(folder)
 
-    lens_g_mag = ml['g_SDSS']
-    lens_r_mag = ml['r_SDSS']
-    lens_i_mag = ml['i_SDSS']
-    source_g_mag = ms['g_SDSS']
-    source_r_mag = ms['r_SDSS']
-    source_i_mag = ms['i_SDSS']
+    lens_g_mag = round_sig(ml['g_SDSS'],5)
+    lens_r_mag = round_sig(ml['r_SDSS'],5)
+    lens_i_mag = round_sig(ml['i_SDSS'],5)
+    source_g_mag = round_sig(ms['g_SDSS'],5)
+    source_r_mag = round_sig(ms['r_SDSS'],5)
+    source_i_mag = round_sig(ms['i_SDSS'],5)
 
     # Adding headers to the images
     for band in S.bands:
@@ -165,15 +164,6 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseles
 
         fits.writeto('%s/%s_image_%s.fits' % (folder, num, band), img, header=header, overwrite=True)
         fits.writeto('%s/%s_psf_%s.fits' % (folder, num, band), psf, header=header, overwrite=True)
-
-        for band in S.bands:
-            hdulist = fits.open('%s/%s_image_%s.fits' % (folder, num, band))
-            # print('Lens Gmag: ' + str(hdulist[0].header.get('Lens_g_mag')))
-            # print('Lens Rmag: ' + str(hdulist[0].header.get('Lens_r_mag')))
-            # print('Lens Imag: ' + str(hdulist[0].header.get('Lens_i_mag')))
-            # print('Source Gmag: ' + str(hdulist[0].header.get('Source_g_mag')))
-            # print('Source Rmag: ' + str(hdulist[0].header.get('Source_r_mag')))
-            # print('Source Imag: ' + str(hdulist[0].header.get('Source_i_mag')))
 
         return lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag
 
