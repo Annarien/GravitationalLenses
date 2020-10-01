@@ -21,6 +21,7 @@ from positiveSetUtils_g_r import cutCosmosTable, makeModelImage, addSky, normali
 numbers_train_neg = getNegativeNumbers('Training/Negative')
 numbers_test_neg = getNegativeNumbers('Testing/Negative')
 
+
 cosmos = atpy.Table().read("COSMOS_Ilbert2009.fits")
 # to take out all nans in cosmos
 for key in ['Rmag', 'Imag', 'Gmag']:
@@ -43,8 +44,8 @@ rs = 0
 
 source_random_table, lens_random_table = cutCosmosTable(cosmos)
 
-# for i in range(0, 2000):
-for i in range(0, len(numbers_train_neg)):
+# for i in range(0, len(numbers_train_neg)):
+for i in range(0, 50):
     num = numbers_train_neg[i]
 
     random_row = np.random.randint(0, len(lens_random_table))
@@ -77,15 +78,15 @@ for i in range(0, len(numbers_train_neg)):
     rs = float(random.uniform(1, 2))  # Half-light radius of the source, in arcsec.
 
     train_sky = 'Training/DESSky'
-    train_positive_noiseless = 'Training/PositiveNoiselessAll'
-    train_positive = 'Training/PositiveAll'
+    train_positive_noiseless = 'Training/g_r_PositiveNoiselessAll'
+    train_positive = 'Training/g_r_PositiveAll'
 
     makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, train_positive_noiseless)
     addSky(num, train_positive_noiseless, train_sky, train_positive)
     normalise(num, train_positive)
 
-for i in range(0, len(numbers_test_neg)):
-    # for i in range(0, 2000):
+# for i in range(0, len(numbers_test_neg)):
+for i in range(0, 50):
     num = numbers_test_neg[i]
 
     random_row = np.random.randint(0, len(lens_random_table))
@@ -118,9 +119,9 @@ for i in range(0, len(numbers_test_neg)):
     rs = float(random.uniform(1, 2))  # Half-light radius of the source, in arcsec.
 
     test_sky = 'Testing/DESSky'
-    test_positive_noiseless = 'Testing/PositiveNoiselessAll'
-    test_positive = 'Testing/PositiveAll'
+    test_positive_noiseless = 'Testing/g_r_PositiveNoiselessAll'
+    test_positive = 'Testing/g_r_PositiveAll'
 
-    makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, test_positive_noiseless)
+    lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag = makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, test_positive_noiseless)
     addSky(num, test_positive_noiseless, test_sky, test_positive)
     normalise(num, test_positive)
