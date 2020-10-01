@@ -14,7 +14,10 @@ import os
 import re
 import matplotlib
 import numpy as np
+from astLib import astImages
+
 matplotlib.use('Agg')
+import astropy.table as atpy
 
 from astLib import *
 from astropy.io import fits
@@ -48,7 +51,7 @@ def cutCosmosTable(cosmos):
     # DES2017
     sources_table = tab[np.logical_and(tab['zpbest'] > 1, tab['zpbest'] < 2)]
     lens_table = tab[np.logical_and(tab['zpbest'] > 0.1, tab['zpbest'] < 0.3)]
-    lens_table = lens_table[np.logical_and(lens_table['Imag'] > 18, lens_table['Imag'] < 22)] # The Imag<21 is
+    lens_table = lens_table[np.logical_and(lens_table['Imag'] > 18, lens_table['Imag'] < 22)]  # The Imag<21 is
     # changed from Imag<22
 
     source_max_r = max(sources_table['Rmag'])
@@ -71,7 +74,7 @@ def cutCosmosTable(cosmos):
 
     print('Row length of Sources Table ' + str(len(sources_table)) + '\n')
     print('Column length of Sources Table ' + str(len(sources_table[0])) + '\n')
-    print (sources_table)
+    print(sources_table)
     print('Row length of Lens Table ' + str(len(lens_table)) + '\n')
     print('Column length of Lens Table ' + str(len(lens_table[0])) + '\n')
     print(lens_table)
@@ -136,11 +139,39 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseles
     if not os.path.exists(folder):
         os.makedirs(folder)
 
+    lens_g_mag = ml['g_SDSS']
+    lens_r_mag = ml['r_SDSS']
+    lens_i_mag = ml['i_SDSS']
+    source_g_mag = ms['g_SDSS']
+    source_r_mag = ms['r_SDSS']
+    source_i_mag = ms['i_SDSS']
+
+    # Adding headers to the images
     for band in S.bands:
         img = S.image[band]
         psf = S.psf[band]
-        fits.PrimaryHDU(img).writeto('%s/%s_image_%s.fits' % (folder, num, band), overwrite=True)
-        fits.PrimaryHDU(psf).writeto('%s/%s_psf_%s.fits' % (folder, num, band), overwrite=True)
+
+        header = fits.Header()
+        header.set('Lens_g_mag', lens_g_mag)
+        header.set('Lens_r_mag', lens_r_mag)
+        header.set('Lens_i_mag', lens_i_mag)
+        header.set('Source_g_mag', source_g_mag)
+        header.set('Source_r_mag', source_r_mag)
+        header.set('Source_i_mag', source_i_mag)
+
+        fits.writeto('%s/%s_image_%s.fits' % (folder, num, band), img, header=header, overwrite=True)
+        fits.writeto('%s/%s_psf_%s.fits' % (folder, num, band), psf, header=header, overwrite=True)
+
+        for band in S.bands:
+            hdulist = fits.open('%s/%s_image_%s.fits' % (folder, num, band))
+            print('Lens Gmag: ' + str(hdulist[0].header.get('Lens_g_mag')))
+            print('Lens Rmag: ' + str(hdulist[0].header.get('Lens_r_mag')))
+            print('Lens Imag: ' + str(hdulist[0].header.get('Lens_i_mag')))
+            print('Source Gmag: ' + str(hdulist[0].header.get('Source_g_mag')))
+            print('Source Rmag: ' + str(hdulist[0].header.get('Source_r_mag')))
+            print('Source Imag: ' + str(hdulist[0].header.get('Source_i_mag')))
+
+        return lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag
 
 
 def addSky(num, positive_noiseless, sky_path, positive_path):
@@ -160,10 +191,20 @@ def addSky(num, positive_noiseless, sky_path, positive_path):
     if not os.path.exists('%s/%i' % (positive_path, num)):
         os.makedirs('%s/%i' % (positive_path, num))
 
+    for band in S.bands:
+        hdulist = fits.open('%s/%s/%s_image_%s_SDSS.fits' % (positive_noiseless, num, num, band))
+        lens_g_mag = hdulist[0].header.get('Lens_g_mag')
+        lens_r_mag = hdulist[0].header.get('Lens_r_mag')
+        lens_i_mag = hdulist[0].header.get('Lens_i_mag')
+        source_g_mag = hdulist[0].header.get('Source_g_mag')
+        source_r_mag = hdulist[0].header.get('Source_r_mag')
+        source_i_mag = hdulist[0].header.get('Source_i_mag')
+
     for band in ['g', 'r', 'i']:
         band_sky_image = fits.open('%s/%i_%s_sky.fits' % (sky_path, num, band))
         band_pos_noiseless_image = fits.open('%s/%s/%s_image_%s_SDSS.fits' % (positive_noiseless, num, num, band))
         with_sky = band_sky_image[0].data + band_pos_noiseless_image[0].data
+
         astImages.saveFITS('%s/%i/%i_%s_posSky.fits' % (positive_path, num, num, band), with_sky)
 
 
