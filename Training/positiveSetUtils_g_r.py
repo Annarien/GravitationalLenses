@@ -179,7 +179,7 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseles
 
     # Adding headers to the images
     # for band in S.bands:
-    print(S.bands)
+    # print(S.bands)
     for band in ['g_SDSS', 'r_SDSS', 'i_SDSS']:
         img = S.image[band]
         psf = S.psf[band]
@@ -192,7 +192,7 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseles
         header.set('Source_r_mag', source_r_mag)
         header.set('Source_i_mag', source_i_mag)
 
-        print('%s/%s_image_%s.fits' % (folder, num, band))
+        # print('%s/%s_image_%s.fits' % (folder, num, band))
         fits.writeto('%s/%s_image_%s.fits' % (folder, num, band), img, header=header, overwrite=True)
         fits.writeto('%s/%s_psf_%s.fits' % (folder, num, band), psf, header=header, overwrite=True)
 
@@ -221,7 +221,7 @@ def addSky(num, positive_noiseless, sky_path, positive_path):
         os.makedirs('%s/%i' % (positive_path, num))
 
     for band in ['g', 'r', 'i']:
-        print('%s/%s/%s_image_%s_SDSS.fits' % (positive_noiseless, num, num, band))
+        # print('%s/%s/%s_image_%s_SDSS.fits' % (positive_noiseless, num, num, band))
         hdulist = fits.open('%s/%s/%s_image_%s_SDSS.fits' % (positive_noiseless, num, num, band))
         lens_g_mag = hdulist[0].header.get('Lens_g_mag')
         lens_r_mag = hdulist[0].header.get('Lens_r_mag')
