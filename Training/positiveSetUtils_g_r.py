@@ -42,7 +42,7 @@ def cutCosmosTable(cosmos):
         lens_table(table):      The lens_table containing objects with the revelant magnitudes of typical
                                 strong galaxy-galaxy gravitational lenses.
     """
-    #cosmos = cosmos[cosmos['Rmag'] < 22]
+    # cosmos = cosmos[cosmos['Rmag'] < 22]
 
     # create a g-r column and limit it to 0<g-r<2
     cosmos.add_column(atpy.Column(cosmos['Gmag'] - cosmos['Rmag'], 'gr'))
@@ -63,7 +63,7 @@ def cutCosmosTable(cosmos):
 
     tableA = cosmos[abs(cosmos['c_perpendicular']) < 0.2]
     tab = tableA[np.logical_and(tableA['Rmag'] > 16, tableA['Rmag'] < 19.5)]
-    #tab = tableB[tableB['Rmag'] < 13.6 + (tableB['c_parallel'])/0.3]
+    # tab = tableB[tableB['Rmag'] < 13.6 + (tableB['c_parallel'])/0.3]
     fits.writeto('ReducedCOSMOS.fits', np.array(tab), overwrite=True)
 
     # sources_table = tab[np.logical_and(tab['zpbest'] > 1, tab['zpbest'] < 2)]
@@ -166,6 +166,7 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseles
 
     # For writing output
     folder = ('%s/%i' % (positive_noiseless, num))
+    print("Folder: " + str(folder))
     if not os.path.exists(folder):
         os.makedirs(folder)
 
@@ -177,7 +178,9 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseles
     source_i_mag = round_sig(ms['i_SDSS'], 5)
 
     # Adding headers to the images
-    for band in S.bands:
+    # for band in S.bands:
+    print(S.bands)
+    for band in ['g_SDSS', 'r_SDSS', 'i_SDSS']:
         img = S.image[band]
         psf = S.psf[band]
 
@@ -189,10 +192,11 @@ def makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, positive_noiseles
         header.set('Source_r_mag', source_r_mag)
         header.set('Source_i_mag', source_i_mag)
 
+        print('%s/%s_image_%s.fits' % (folder, num, band))
         fits.writeto('%s/%s_image_%s.fits' % (folder, num, band), img, header=header, overwrite=True)
         fits.writeto('%s/%s_psf_%s.fits' % (folder, num, band), psf, header=header, overwrite=True)
 
-        return lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag
+    return lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag
 
 
 def addSky(num, positive_noiseless, sky_path, positive_path):
@@ -217,6 +221,7 @@ def addSky(num, positive_noiseless, sky_path, positive_path):
         os.makedirs('%s/%i' % (positive_path, num))
 
     for band in ['g', 'r', 'i']:
+        print('%s/%s/%s_image_%s_SDSS.fits' % (positive_noiseless, num, num, band))
         hdulist = fits.open('%s/%s/%s_image_%s_SDSS.fits' % (positive_noiseless, num, num, band))
         lens_g_mag = hdulist[0].header.get('Lens_g_mag')
         lens_r_mag = hdulist[0].header.get('Lens_r_mag')
@@ -367,8 +372,8 @@ def magnitudeTable(num, lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source
                         'Source_i_mag', 'lens_gr', 'lens_ri', 'source_gr', 'source_ri']
     lens_gr = round_sig(lens_g_mag - lens_r_mag)
     lens_ri = round_sig(lens_r_mag - lens_i_mag)
-    source_gr = round_sig(source_g_mag-source_r_mag)
-    source_ri = round_sig(source_r_mag-source_i_mag)
+    source_gr = round_sig(source_g_mag - source_r_mag)
+    source_ri = round_sig(source_r_mag - source_i_mag)
     magTable_dictionary = [num, lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag, lens_gr,
                            lens_ri, source_gr, source_ri]
 
