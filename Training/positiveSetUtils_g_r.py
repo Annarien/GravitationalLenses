@@ -42,12 +42,12 @@ def cutCosmosTable(cosmos):
         lens_table(table):      The lens_table containing objects with the revelant magnitudes of typical
                                 strong galaxy-galaxy gravitational lenses.
     """
+    #cosmos = cosmos[cosmos['Rmag'] < 22]
 
     # create a g-r column and limit it to 0<g-r<2
     cosmos.add_column(atpy.Column(cosmos['Gmag'] - cosmos['Rmag'], 'gr'))
     # create a r-i column and limit it to 0<r-i<1
     cosmos.add_column(atpy.Column(cosmos['Rmag'] - cosmos['Imag'], 'ri'))
-
     gr = cosmos['gr']
     ri = cosmos['ri']
     # calculate c parallel = 0.7(g-r) + 1.2 (r-i -0.18)
@@ -57,18 +57,25 @@ def cutCosmosTable(cosmos):
     cosmos.add_column(atpy.Column(c_parallel, 'c_parallel'))
     cosmos.add_column(atpy.Column(c_perpendicular, 'c_perpendicular'))
 
-    tab = cosmos[np.logical_and(cosmos['c_parallel'] < 1.77, cosmos['c_perpendicular'] < 0.2)]
-    # tab = table[np.logical_and(table['c_perpendicular'] < 0.2)]
-    # tabA = cosmos[np.logical_and(cosmos['gr'] > 0.05, cosmos['gr'] < 1.5)]
-    # tabB = tabA[np.logical_and(tabA['ri'] > 0, tabA['ri'] < 1)]
-    # tab = tabB[tabB['Rmag'] < 22]
+    # limit the c_perpendicular  < 0.2
+    # limit the 16 < r < 19.5
+    # limit the r< 13.6 + c_// /0.3
 
-    # DES2017
-    sources_table = tab[np.logical_and(tab['zpbest'] > 1, tab['zpbest'] < 2)]
-    lens_table = tab[np.logical_and(tab['zpbest'] > 0.1, tab['zpbest'] < 0.3)]
+    tableA = cosmos[abs(cosmos['c_perpendicular']) < 0.2]
+    tab = tableA[np.logical_and(tableA['Rmag'] > 16, tableA['Rmag'] < 19.5)]
+    #tab = tableB[tableB['Rmag'] < 13.6 + (tableB['c_parallel'])/0.3]
+    fits.writeto('ReducedCOSMOS.fits', np.array(tab), overwrite=True)
+
+    # sources_table = tab[np.logical_and(tab['zpbest'] > 1, tab['zpbest'] < 2)]
+    # lens_table = tab[np.logical_and(tab['zpbest'] > 0.1, tab['zpbest'] < 0.3)]
+    sources_table = tab[np.logical_and(tab['zpbest'] > 0.2, tab['zpbest'] < 2)]
+    fits.writeto('SourcesCOSMOS.fits', np.array(tab), overwrite=True)
+
+    lens_table = tab[np.logical_and(tab['zpbest'] > 0, tab['zpbest'] < 0.2)]
     lens_table = lens_table[np.logical_and(lens_table['Imag'] > 18, lens_table['Imag'] < 22)]  # The Imag<21 is
-    # changed from Imag<22
+    fits.writeto('LensesCOSMOS.fits', np.array(tab), overwrite=True)
 
+    # changed from Imag<22
     source_max_r = max(sources_table['Rmag'])
     source_max_i = max(sources_table['Imag'])
     print('SourceMaxR:' + str(source_max_r))
@@ -360,8 +367,10 @@ def magnitudeTable(num, lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source
                         'Source_i_mag', 'lens_gr', 'lens_ri', 'source_gr', 'source_ri']
     lens_gr = round_sig(lens_g_mag - lens_r_mag)
     lens_ri = round_sig(lens_r_mag - lens_i_mag)
+    source_gr = round_sig(source_g_mag-source_r_mag)
+    source_ri = round_sig(source_r_mag-source_i_mag)
     magTable_dictionary = [num, lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag, lens_gr,
-                           lens_ri]
+                           lens_ri, source_gr, source_ri]
 
     # tab = atpy.Table()
     if not os.path.exists('%s_magnitudesTable.csv' % positive_path):
