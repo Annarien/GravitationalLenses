@@ -28,9 +28,9 @@ excel_headers.append("Date and Time")
 excel_dictionary.append(dt_string)
 
 # Globals
-max_num = 200  # Set to sys.maxsize when running entire data set
-max_num_testing = 200  # sys.maxsize  # Set to sys.maxsize when running entire data set
-max_num_prediction = 200  # sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num = 500  # Set to sys.maxsize when running entire data set
+max_num_testing = 1000  # sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num_prediction = 1000  # sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
 k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
