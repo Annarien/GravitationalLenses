@@ -47,9 +47,21 @@ def cutCosmosTable(cosmos):
     cosmos.add_column(atpy.Column(cosmos['Gmag'] - cosmos['Rmag'], 'gr'))
     # create a r-i column and limit it to 0<r-i<1
     cosmos.add_column(atpy.Column(cosmos['Rmag'] - cosmos['Imag'], 'ri'))
-    tabA = cosmos[np.logical_and(cosmos['gr'] > 0.05, cosmos['gr'] < 1.5)]
-    tabB = tabA[np.logical_and(tabA['ri'] > 0, tabA['ri'] < 1)]
-    tab = tabB[tabB['Rmag'] < 22]
+
+    gr = cosmos['gr']
+    ri = cosmos['ri']
+    # calculate c parallel = 0.7(g-r) + 1.2 (r-i -0.18)
+    c_parallel = 0.7 * gr + 1.2 * (ri - 0.18)
+    # calculate c perpendicular = (r-i) - (g-r)/4 -0.18
+    c_perpendicular = ri - (gr / 4) - 0.18
+    cosmos.add_column(atpy.Column(c_parallel, 'c_parallel'))
+    cosmos.add_column(atpy.Column(c_perpendicular, 'c_perpendicular'))
+
+    tab = cosmos[np.logical_and(cosmos['c_parallel'] < 1.77, cosmos['c_perpendicular'] < 0.2)]
+    # tab = table[np.logical_and(table['c_perpendicular'] < 0.2)]
+    # tabA = cosmos[np.logical_and(cosmos['gr'] > 0.05, cosmos['gr'] < 1.5)]
+    # tabB = tabA[np.logical_and(tabA['ri'] > 0, tabA['ri'] < 1)]
+    # tab = tabB[tabB['Rmag'] < 22]
 
     # DES2017
     sources_table = tab[np.logical_and(tab['zpbest'] > 1, tab['zpbest'] < 2)]
