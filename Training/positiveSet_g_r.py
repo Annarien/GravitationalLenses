@@ -57,7 +57,7 @@ if os.path.exists('%s_magnitudesTable.csv' % test_positive):
     os.remove('%s_magnitudesTable.csv' % test_positive)
 
 # for i in range(0, len(numbers_train_neg)+1):
-for i in range(0, 50):
+for i in range(0, 500):
     num = numbers_train_neg[i]
 
     random_row = np.random.randint(0, len(lens_random_table))
@@ -97,7 +97,7 @@ for i in range(0, 50):
     magnitudeTable(num, lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag, train_positive)
 
 # for i in range(0, len(numbers_test_neg)+1):
-for i in range(0, 50):
+for i in range(0, 500):
     num = numbers_test_neg[i]
 
     random_row = np.random.randint(0, len(lens_random_table))

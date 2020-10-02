@@ -27,17 +27,16 @@ excel_dictionary = []
 excel_headers.append("Date and Time")
 excel_dictionary.append(dt_string)
 
-
 # Globals
 max_num = 200  # Set to sys.maxsize when running entire data set
-max_num_testing = 200 #sys.maxsize  # Set to sys.maxsize when running entire data set
-max_num_prediction = 200 #sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num_testing = 200  # sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num_prediction = 200  # sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
 k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
 epochs = 20  # A number that dictates how many iterations should be run to train the classifier
-batch_size = 128  # The number of items batched together during training.
+batch_size = 100  # The number of items batched together during training.
 run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 5  # This uses data augmentation to generate x-many times as much data as there is on file.
@@ -203,7 +202,6 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
     classifier.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
     classifier.add(Dropout(0.5))  # added extra Dropout layer
-
     classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
@@ -214,6 +212,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     # Adding a third convolutional layer
     classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
     classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
+    classifier.add(Dense(units=10, activation='relu')) # Added this , this improved the results of 47
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Dropout(0.2))  # antes era 0.25
     # Step 3 - Flattening
@@ -622,5 +621,5 @@ executeKFoldValidation(images_84,
                        excel_dictionary)
 
 # add row to excel table
-#createExcelSheet('../Results/g_r_kerasCNN_Results.csv', excel_headers)
+# createExcelSheet('../Results/g_r_kerasCNN_Results.csv', excel_headers)
 writeToFile('../Results/g_r_kerasCNN_Results.csv', excel_dictionary)
