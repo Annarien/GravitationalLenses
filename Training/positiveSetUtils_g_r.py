@@ -369,13 +369,15 @@ def magnitudeTable(num, lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source
     """
 
     magTable_headers = ['Index', 'Lens_g_mag', 'Lens_r_mag', 'Lens_i_mag', 'Source_g_mag', 'Source_r_mag',
-                        'Source_i_mag', 'lens_gr', 'lens_ri', 'source_gr', 'source_ri']
+                        'Source_i_mag', 'lens_gr', 'lens_ri', 'lens_gi', 'source_gr', 'source_ri', 'source_gi']
     lens_gr = round_sig(lens_g_mag - lens_r_mag)
     lens_ri = round_sig(lens_r_mag - lens_i_mag)
+    lens_gi = round_sig(lens_g_mag - lens_i_mag)
     source_gr = round_sig(source_g_mag - source_r_mag)
     source_ri = round_sig(source_r_mag - source_i_mag)
+    source_gi = round_sig(source_g_mag - source_i_mag)
     magTable_dictionary = [num, lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag, lens_gr,
-                           lens_ri, source_gr, source_ri]
+                           lens_ri, lens_gi, source_gr, source_ri, source_gi]
 
     # tab = atpy.Table()
     if not os.path.exists('%s_magnitudesTable.csv' % positive_path):
