@@ -39,7 +39,7 @@ epochs = 20  # A number that dictates how many iterations should be run to train
 batch_size = 100  # The number of items batched together during training.
 run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
-augmented_multiple = 5  # This uses data augmentation to generate x-many times as much data as there is on file.
+augmented_multiple = 50  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
 patience_num = 3  # Used in the early stopping to determine how quick/slow to react.
 use_early_stopping = True  # Determines whether to use early stopping or not.
@@ -212,7 +212,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     # Adding a third convolutional layer
     classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
     classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
-    classifier.add(Dense(units=10, activation='relu')) # Added this , this improved the results of 47
+    #classifier.add(Dense(units=2, activation='sigmoid')) # Added this , this improved the results of 47
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Dropout(0.2))  # antes era 0.25
     # Step 3 - Flattening
