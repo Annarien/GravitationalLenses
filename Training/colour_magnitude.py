@@ -10,8 +10,8 @@ Make the colour magnitude diagram r vs g-r for the positive lenses
 import csv
 
 # Global Variables
-test_positive = 'Testing/g_r_PositiveAll'
 train_positive = 'Training/g_r_PositiveAll'
+test_positive = 'Testing/g_r_PositiveAll'
 
 
 def getTrainingMagnitudeTable(positive_path):
@@ -21,5 +21,6 @@ def getTrainingMagnitudeTable(positive_path):
             print(row)
 
 
-#______________________________________________________________________________________
+# ______________________________________________________________________________________
 # MAIN
+getTrainingMagnitudeTable(train_positive)
