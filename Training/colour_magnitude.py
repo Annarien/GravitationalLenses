@@ -9,7 +9,7 @@ Make the colour magnitude diagram r vs g-r for the positive lenses
 # imports
 import csv
 import matplotlib.pyplot as plt
-
+import numpy as np
 
 # Global Variables
 train_positive = 'Training/g_r_PositiveAll'
@@ -17,49 +17,76 @@ test_positive = 'Testing/g_r_PositiveAll'
 
 
 def getMagnitudeTable(positive_path):
-    with open('%s_magnitudesTable.csv' % positive_path, 'r') as file:
-        reader = csv.reader(file)
+    with open('%s_magnitudesTable.csv' % positive_path, 'r') as csvfile:
+        reader = csv.reader(csvfile)
         lens_r_array = []
         lens_gr_array = []
         source_r_array = []
         source_gr_array = []
-        for row in reader:
-            num = row['Index']
-            lens_g_mag = row['Lens_g_mag']
-            lens_r_mag = row['Lens_r_mag']
-            lens_i_mag = row['Lens_i_mag']
-            source_g_mag = row['Source_g_mag']
-            source_r_mag = row['Source_r_mag']
-            source_i_mag = row['Source_i_mag']
-            lens_gr = row['Lens_gr']
-            lens_ri = row['Lens_ri']
-            lens_gi = row['Lens_gi']
-            source_gr = row['Source_gr']
-            source_ri = row['Source_ri']
-            source_gi = row['Source_gi']
-            lens_r_array = lens_r_array.append(lens_r_mag)
-            lens_gr_array = lens_gr_array.append(lens_gr)
-            source_r_array = source_r_array.append(source_r_mag)
-            source_gr_array=source_gr_array.append(source_gr)
 
-            return lens_r_array,lens_gr_array,source_r_array,source_gr_array
+        for line in csvfile.readlines():
+            array = line.split(',')
+            first_item = array[0]
+            print(first_item)
+
+            num = array[0]
+            lens_g_mag = array[1]
+            lens_r_mag = array[2]
+            lens_i_mag = array[3]
+            source_g_mag = array[4]
+            source_r_mag = array[5]
+            source_i_mag = array[6]
+            lens_gr = array[7]
+            lens_ri = array[8]
+            # lens_gi =array ['Lens_gi']
+            source_gr = array[9]
+            source_ri = array[10]
+            # source_gi =array ['Source_gi']
+
+            lens_r_array.append(lens_r_mag)
+            lens_gr_array.append(lens_gr)
+            source_r_array.append(source_r_mag)
+            source_gr_array.append(source_gr)
+
+        return lens_r_array, lens_gr_array, source_r_array, source_gr_array
+
 
 def colourMagnitudeDiagram(lens_r_array, lens_gr_array, source_r_array, source_gr_array):
+    # plt.locator_params(axis='x', nbins=20)
+    fig, ax = plt.subplots()
+    lens_r_array = lens_r_array[1:]
+    lens_gr_array = lens_gr_array[1:]
+    source_r_array = source_r_array[1:]
+    source_gr_array = source_gr_array[1:]
 
-    for i in range(0,len(lens_r_array)):
-        x = lens_gr_array[i]
-        y = lens_r_array[i]
-        plt.scatterplot(x, y, 'o', color='blue')
-        x2 = source_gr_array[i]
-        y2 = source_r_array[i]
-        plt.scatter(x2, y2, 'o', color='red')
-    plt.xlabel('g-r')
-    plt.ylabel('r')
+    x = lens_gr_array
+    y = lens_r_array
+    ax.scatter(x, y, c='black', label='Lenses')
+    x2 = source_gr_array
+    y2 = source_r_array
+    ax.scatter(x2, y2, c='red', label='Sources')
+
+    ax.set_xlabel('g-r')
+    ax.set_ylabel('r')
+
+    max_x = max(source_gr_array)
+    print(max_x)
+    max_y = max(source_r_array)
+    print(max_y)
+
+    ax.set_xticks(ax.get_xticks()[::16])
+    ax.set_yticks(ax.get_yticks()[::16])
+
+    # plt.xticks(np.arange(0, 50,5))
+    # plt.yticks(np.arange(0, 20, 10))
+
+    ax.legend()
+    ax.grid(True)
+
+    plt.show()
 
 # ______________________________________________________________________________________
 # MAIN
 #
 lens_r_array, lens_gr_array, source_r_array, source_gr_array = getMagnitudeTable(train_positive)
 colourMagnitudeDiagram(lens_r_array, lens_gr_array, source_r_array, source_gr_array)
-
-
