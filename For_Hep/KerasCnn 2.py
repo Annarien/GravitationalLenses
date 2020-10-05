@@ -35,13 +35,13 @@ validation_split = 0.2  # A float value between 0 and 1 that determines what per
 # data is used for validation.
 k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 20  # A number that dictates how many iterations should be run to train the classifier
+epochs = 200  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 100  # The number of items batched together during training.
 run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
-patience_num = 3  # Used in the early stopping to determine how quick/slow to react.
+patience_num = 10  # Used in the early stopping to determine how quick/slow to react.
 use_early_stopping = True  # Determines whether to use early stopping or not.
 use_model_checkpoint = True  # Determines whether the classifiers keeps track of the most accurate iteration of itself.
 monitor_early_stopping = 'val_loss'
@@ -167,8 +167,6 @@ def makeImageSet(positive_images, negative_images=None, known_des_names=None, ne
     image_set = []
     label_set = []
     des_names_set = []
-    # print('positive images: %s' % positive_images)
-    # print('negative images: %s' % negative_images)
 
     # If there is none in objects for the known_des_names and neg_des_names
     if known_des_names is None and neg_des_names is None:
@@ -197,7 +195,6 @@ def makeImageSet(positive_images, negative_images=None, known_des_names=None, ne
         if shuffle_needed:
             image_set, label_set, des_names_set = shuffle(image_set, label_set, des_names_set)
 
-    # print('image_set: %s' % image_set)
     return np.array(image_set), np.array(label_set), np.array(des_names_set)
 
 
@@ -474,8 +471,8 @@ executeKFoldValidation(training_data,
                        excel_dictionary)
 
 # Plot run metrics
-acc = history.history['acc']
-val_acc = history.history['val_acc']
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
 loss = history.history['loss']
 val_loss = history.history['val_loss']
 number_of_completed_epochs = range(1, len(acc) + 1)
