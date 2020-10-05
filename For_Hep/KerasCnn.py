@@ -27,9 +27,8 @@ excel_dictionary = []
 excel_headers.append("Date and Time")
 excel_dictionary.append(dt_string)
 
-
 # Globals
-max_num = 1000  # Set to sys.maxsize when running entire data set
+max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
@@ -37,16 +36,17 @@ validation_split = 0.2  # A float value between 0 and 1 that determines what per
 k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
 epochs = 200  # A number that dictates how many iterations should be run to train the classifier
-batch_size = 100  # The number of items batched together during training.
+batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
-patience_num = 10  # Used in the early stopping to determine how quick/slow to react.
+patience_num = 3  # Used in the early stopping to determine how quick/slow to react.
 use_early_stopping = True  # Determines whether to use early stopping or not.
 use_model_checkpoint = True  # Determines whether the classifiers keeps track of the most accurate iteration of itself.
 monitor_early_stopping = 'val_loss'
 monitor_model_checkpoint = 'val_acc'
+use_shuffle = True
 
 # Adding global parameters to excel
 excel_headers.append("Max Training Num")
@@ -157,7 +157,8 @@ def getUnseenData(images_dir, max_num, input_shape):
         return des_tiles
 
 
-def makeImageSet(positive_images, negative_images=None, known_des_names=None, neg_des_names=None, shuffle_needed=False):
+def makeImageSet(positive_images, negative_images=None, known_des_names=None, neg_des_names=None,
+                 shuffle_needed=use_shuffle):
     if negative_images is None:
         negative_images = []
         known_des_names = {}
@@ -166,6 +167,8 @@ def makeImageSet(positive_images, negative_images=None, known_des_names=None, ne
     image_set = []
     label_set = []
     des_names_set = []
+    # print('positive images: %s' % positive_images)
+    # print('negative images: %s' % negative_images)
 
     # If there is none in objects for the known_des_names and neg_des_names
     if known_des_names is None and neg_des_names is None:
@@ -194,6 +197,7 @@ def makeImageSet(positive_images, negative_images=None, known_des_names=None, ne
         if shuffle_needed:
             image_set, label_set, des_names_set = shuffle(image_set, label_set, des_names_set)
 
+    # print('image_set: %s' % image_set)
     return np.array(image_set), np.array(label_set), np.array(des_names_set)
 
 
@@ -203,7 +207,6 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
     classifier.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
     classifier.add(Dropout(0.5))  # added extra Dropout layer
-
     classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
@@ -211,13 +214,15 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Dropout(0.2))  # antes era 0.25
-    # Adding a third convolutional layer
     classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
     classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
     classifier.add(Dropout(0.2))  # antes era 0.25
     # Step 3 - Flattening
     classifier.add(Flatten())
+    classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
+    classifier.add(Dense(units=256, activation='relu'))  # added new dense layer
     # Step 4 - Full connection
     classifier.add(Dropout(0.2))
     classifier.add(Dense(units=1, activation='sigmoid'))
@@ -427,7 +432,7 @@ print("Train Negative Shape: " + str(train_neg.shape))
 excel_headers.append("Train_Negative_Shape")
 excel_dictionary.append(train_neg.shape)
 
-all_training_data, all_training_labels, _ = makeImageSet(train_pos, train_neg)
+all_training_data, all_training_labels, _ = makeImageSet(train_pos, train_neg, shuffle_needed=use_shuffle)
 if use_augmented_data:
     all_training_data, all_training_labels = createAugmentedData(all_training_data, all_training_labels)
 
@@ -622,5 +627,5 @@ executeKFoldValidation(images_84,
                        excel_dictionary)
 
 # add row to excel table
-#createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
+# createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
 writeToFile('../Results/kerasCNN_Results.csv', excel_dictionary)
