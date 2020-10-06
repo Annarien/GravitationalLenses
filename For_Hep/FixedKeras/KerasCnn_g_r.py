@@ -624,5 +624,5 @@ executeKFoldValidation(images_84,
                        excel_dictionary)
 
 # add row to excel table
-# createExcelSheet('../Results/g_r_kerasCNN_Results.csv', excel_headers)
+createExcelSheet('../Results/g_r_kerasCNN_Results.csv', excel_headers)
 writeToFile('../Results/g_r_kerasCNN_Results.csv', excel_dictionary)
