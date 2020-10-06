@@ -56,8 +56,8 @@ if os.path.exists('%s_magnitudesTable.csv' % train_positive):
 if os.path.exists('%s_magnitudesTable.csv' % test_positive):
     os.remove('%s_magnitudesTable.csv' % test_positive)
 
-# for i in range(0, len(numbers_train_neg)+1):
-for i in range(0, 500):
+for i in range(0, len(numbers_train_neg)):
+    # for i in range(0, 500):
     num = numbers_train_neg[i]
 
     random_row = np.random.randint(0, len(lens_random_table))
@@ -96,8 +96,8 @@ for i in range(0, 500):
     normalise(num, train_positive)
     magnitudeTable(num, lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag, train_positive)
 
-# for i in range(0, len(numbers_test_neg)+1):
-for i in range(0, 500):
+for i in range(0, len(numbers_test_neg) + 1):
+    # for i in range(0, 500):
     num = numbers_test_neg[i]
 
     random_row = np.random.randint(0, len(lens_random_table))
@@ -129,9 +129,8 @@ for i in range(0, 500):
     ps = float(random.uniform(0, 360))  # Position angle of source (in degrees)
     rs = float(random.uniform(1, 2))  # Half-light radius of the source, in arcsec.
 
-    lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag = makeModelImage(ml, rl, ql, b, ms, xs,
-                                                                                                  ys, qs, ps, rs, num,
-                                                                                                  test_positive_noiseless)
+    lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag = \
+        makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, test_positive_noiseless)
     addSky(num, test_positive_noiseless, test_sky, test_positive)
     normalise(num, test_positive)
     magnitudeTable(num, lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag, test_positive)
