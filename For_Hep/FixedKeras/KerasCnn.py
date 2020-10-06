@@ -167,8 +167,6 @@ def makeImageSet(positive_images, negative_images=None, known_des_names=None, ne
     image_set = []
     label_set = []
     des_names_set = []
-    # print('positive images: %s' % positive_images)
-    # print('negative images: %s' % negative_images)
 
     # If there is none in objects for the known_des_names and neg_des_names
     if known_des_names is None and neg_des_names is None:
@@ -197,7 +195,6 @@ def makeImageSet(positive_images, negative_images=None, known_des_names=None, ne
         if shuffle_needed:
             image_set, label_set, des_names_set = shuffle(image_set, label_set, des_names_set)
 
-    # print('image_set: %s' % image_set)
     return np.array(image_set), np.array(label_set), np.array(des_names_set)
 
 
