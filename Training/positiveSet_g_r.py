@@ -129,9 +129,8 @@ for i in range(0, 500):
     ps = float(random.uniform(0, 360))  # Position angle of source (in degrees)
     rs = float(random.uniform(1, 2))  # Half-light radius of the source, in arcsec.
 
-    lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag = makeModelImage(ml, rl, ql, b, ms, xs,
-                                                                                                  ys, qs, ps, rs, num,
-                                                                                                  test_positive_noiseless)
+    lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag\
+        = makeModelImage(ml, rl, ql, b, ms, xs, ys, qs, ps, rs, num, test_positive_noiseless)
     addSky(num, test_positive_noiseless, test_sky, test_positive)
     normalise(num, test_positive)
     magnitudeTable(num, lens_g_mag, lens_r_mag, lens_i_mag, source_g_mag, source_r_mag, source_i_mag, test_positive)

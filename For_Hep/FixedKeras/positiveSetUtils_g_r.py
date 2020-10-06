@@ -13,7 +13,6 @@ These images are normalised and also used to create a RGB composite image.
 import matplotlib
 matplotlib.use('Agg')
 
-
 import csv
 
 import glob
