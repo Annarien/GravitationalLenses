@@ -8,6 +8,9 @@ Make the colour magnitude diagram r vs g-r for the positive lenses
 
 # imports
 import csv
+
+# import matplotlib
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -42,8 +45,8 @@ def getMagnitudeTable(positive_path):
             num = array[0]
             lens_g_mag = array[1]
             lens_r_mag = array[2]
-            print(lens_g_mag)
-            print(lens_r_mag)
+            # print(lens_g_mag)
+            # print(lens_r_mag)
             lens_i_mag = array[3]
             source_g_mag = array[4]
             source_r_mag = array[5]
@@ -80,26 +83,48 @@ def colourMagnitudeDiagram(lens_r_list, lens_gr_list, source_r_list, source_gr_l
     source_r_list = source_r_list[1:]
     source_gr_list = source_gr_list[1:]
 
-    # GETTING THE MIN AND MAX:
-    lens_r_min = min(lens_r_list)
-    lens_r_max = max(lens_r_list)
-    lens_gr_min = min(lens_gr_list)
-    lens_gr_max = max(lens_gr_list)
-    source_r_min = min(source_r_list)
-    source_r_max = max(source_r_list)
-    source_gr_min = min(source_gr_list)
-    source_gr_max = max(source_gr_list)
+    int_lens_r_list = []
+    int_lens_gr_list = []
+    int_source_r_list = []
+    int_source_gr_list = []
 
-    r_min = min(lens_r_min,source_r_min)
-    r_max = max(lens_r_max,source_r_max)
+    for i in range(0, len(lens_r_list)):
+        int_lens_r = float(lens_r_list[i])
+        int_lens_r_list.append(int_lens_r)
+        int_lens_gr = float(lens_gr_list[i])
+        int_lens_gr_list.append(int_lens_gr)
+        int_source_r = float(source_r_list[i])
+        int_source_r_list.append(int_source_r)
+        int_source_gr = float(source_gr_list[i])
+        int_source_gr_list.append(int_source_gr)
+
+    # # GETTING THE MIN AND MAX:
+    lens_r_min = min(int_lens_r_list)
+    lens_r_max = max(int_lens_r_list)
+    lens_gr_min = min(int_lens_gr_list)
+    lens_gr_max = max(int_lens_gr_list)
+    source_r_min = min(int_source_r_list)
+    source_r_max = max(int_source_r_list)
+    source_gr_min = min(int_source_gr_list)
+    source_gr_max = max(int_source_gr_list)
+
+    r_min = min(lens_r_min, source_r_min)
+    r_max = max(lens_r_max, source_r_max)
     gr_min = min(lens_gr_min, source_gr_min)
-    gr_max = max(lens_gr_max,source_gr_max)
+    gr_max = max(lens_gr_max, source_gr_max)
 
-    x = lens_gr_list
-    print(x)
-    y = lens_r_list
-    x2 = source_gr_list
-    y2 = source_r_list
+    y_min = r_min-0.5
+    y_max = r_max+0.5
+    x_min = gr_min-0.5
+    x_max = gr_max+0.5
+    print(r_min-0.5)
+    print(r_max+0.5)
+    print(gr_min-0.5)
+    print(gr_max+0.5)
+    x = int_lens_gr_list
+    y = int_lens_r_list
+    x2 = int_source_gr_list
+    y2 = int_source_r_list
 
     plt.scatter(x, y, c='blue', label='Lenses')
     plt.scatter(x2, y2, color='red', label='Sources')
@@ -107,27 +132,9 @@ def colourMagnitudeDiagram(lens_r_list, lens_gr_list, source_r_list, source_gr_l
     plt.ylabel('r')
 
     axes = plt.axes()
-    # x_min = min(float(gr_min), float(gr_max))
-    # print(x_min)
-    # # x_max = max(float(gr_min), float(gr_max))
-    # print((x_max))
-    x_min = float(gr_min)
-    x_max = float(gr_max)
-    print(x_min)
-    print(x_max)
-
-    # y_min = min(float(r_min), float(r_max))
-    y_min = float(r_min)
-    y_max = float(r_max)
-    print(y_min)
-    print(y_max)
-
-    # y_max = max(float(r_min), float(r_max))
-    # axes.set_xlim(0, 3)
-    # axes.set_ylim(16, 22)
-    # axes.set(xlim=(x_min, x_max), ylim=(y_min, y_max))
-    axes.get_yaxis().set_major_locator(LinearLocator(numticks=10))
-    axes.get_xaxis().set_major_locator(LinearLocator(numticks=10))
+    axes.set(xlim=(x_min, x_max), ylim=(y_min, y_max))
+    axes.get_yaxis().set_major_locator(LinearLocator(numticks=12))
+    axes.get_xaxis().set_major_locator(LinearLocator(numticks=12))
 
     if positive_path == 'Training/g_r_PositiveAll':
         plt.title('Training Colour Magnitude')
@@ -136,7 +143,6 @@ def colourMagnitudeDiagram(lens_r_list, lens_gr_list, source_r_list, source_gr_l
     plt.legend()
     plt.show()
     fig.savefig('%s_colourMagnitudeDiagram.png' % positive_path)
-
 
 # ______________________________________________________________________________________
 # MAIN
