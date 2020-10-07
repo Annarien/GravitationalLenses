@@ -251,7 +251,7 @@ def executeKFoldValidation(data,
         k_fold_scores = cross_val_score(neural_network, data, labels, scoring='accuracy', cv=k_fold_num)
         score_mean = k_fold_scores.mean() * 100
         print("kFold Scores Mean: " + str(score_mean))
-        k_fold_std = k_fold_scores.std()
+        k_fold_std = k_fold_scores.std() * 100
         print("kFold Scores Std: " + str(k_fold_std))
 
         excel_headers.append("K-Fold_Mean")
@@ -260,12 +260,17 @@ def executeKFoldValidation(data,
         excel_dictionary.append(k_fold_std)
         unseen_47_scores = cross_val_score(neural_network, image_47, label_47, scoring='accuracy', cv=k_fold_num)
         unseen_84_scores = cross_val_score(neural_network, image_84, label_84, scoring='accuracy', cv=k_fold_num)
-        unseen_47_mean = unseen_47_scores.mean()*100
-        unseen_47_std = unseen_47_scores.std()*100
-        unseen_84_mean = unseen_84_scores.mean()*100
-        unseen_84_std = unseen_84_scores.std()*100
+        unseen_47_mean = unseen_47_scores.mean() * 100
+        unseen_47_std = unseen_47_scores.std() * 100
+        unseen_84_mean = unseen_84_scores.mean() * 100
+        unseen_84_std = unseen_84_scores.std() * 100
+        print("kFold Scores: " + str(k_fold_scores))
+        print("kFold Scores Mean: " + str(score_mean))
+        print("kFold Scores Std: " + str(k_fold_std))
+        print("Unseen 47 Scores: " +str(unseen_47_scores))
         print("Unseen 47 Scores Mean: " + str(unseen_47_mean))
         print("Unseen 47 Scores Std: " + str(unseen_47_std))
+        print("Unseen 84 Scores: " + str(unseen_84_scores))
         print("Unseen 84 Scores Mean: " + str(unseen_84_mean))
         print("Unseen 84 Scores Std: " + str(unseen_84_std))
 
@@ -458,7 +463,6 @@ training_data, val_data, training_labels, val_labels = train_test_split(all_trai
                                                                         all_training_labels,
                                                                         test_size=validation_split,
                                                                         shuffle=True)
-
 
 # Evaluate known 47 with negative 47
 known_47_images = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=input_shape)
