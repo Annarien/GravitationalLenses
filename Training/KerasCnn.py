@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
 from pip._internal.req.req_file import preprocess
-from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.model_selection import cross_val_score, train_test_split, StratifiedKFold
 from tensorflow.python.keras import Sequential
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.callbacks import ModelCheckpoint, EarlyStopping
@@ -33,11 +33,11 @@ max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
+k_fold_num = 2  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 20  # A number that dictates how many iterations should be run to train the classifier
+epochs = 2  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
-run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
@@ -233,30 +233,6 @@ def buildClassifier(input_shape=(100, 100, 3)):
     return classifier
 
 
-def executeKFoldValidation(data,
-                           labels,
-                           excel_headers,
-                           excel_dictionary):
-    # global k_fold_std
-    num_of_epochs = epochs
-    classifier_batch_size = batch_size
-
-    if run_k_fold_validation:
-        neural_network = KerasClassifier(build_fn=buildClassifier,
-                                         epochs=num_of_epochs,
-                                         batch_size=classifier_batch_size)
-        k_fold_scores = cross_val_score(neural_network, data, labels, scoring='accuracy', cv=k_fold_num)
-        score_mean = k_fold_scores.mean() * 100
-        print("kFold Scores Mean: " + str(score_mean))
-        k_fold_std = k_fold_scores.std()
-        print("kFold Scores Std: " + str(k_fold_std))
-
-        excel_headers.append("K-Fold_Mean")
-        excel_dictionary.append(score_mean)
-        excel_headers.append("K-Fold_Std")
-        excel_dictionary.append(k_fold_std)
-
-
 def visualiseActivations(img_tensor, base_dir):
     global predicted_class, size
     # Run prediction on that image
@@ -414,6 +390,62 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
     text_file.close()
 
 
+def executeKFoldValidation(train_data, train_labels, val_data, val_labels, test_data, test_labels,
+                           images_47, labels_47, images_84, labels_84, all_unseen_images, all_unseen_labels):
+    if run_k_fold_validation:
+        print("In executingKFoldValidation")
+
+        # this is doing it manually:
+        kfold = StratifiedKFold(n_splits=k_fold_num, shuffle=True)
+
+        test_scores_list = []
+        unseen_47_scores_list = []
+        unseen_84_scores_list = []
+        all_unseen_scores_list = []
+
+        for train, test in kfold.split(train_data, train_labels):
+            # make the model
+            model = buildClassifier()
+            # fit the model
+            model.fit(train_data[train],
+                      train_labels[train],
+                      epochs=epochs,
+                      validation_data=(val_data, val_labels),
+                      batch_size=batch_size
+                      )
+
+            unseen_47_scores = model.evaluate(images_47, labels_47, batch_size=batch_size)
+            unseen_47_scores_list.append(unseen_47_scores[1] * 100)
+            unseen_84_scores = model.evaluate(images_84, labels_84, batch_size=batch_size)
+            unseen_84_scores_list.append(unseen_84_scores[1] * 100)
+            test_scores = model.evaluate(test_data, test_labels, batch_size=batch_size)
+            test_scores_list.append(test_scores[1] * 100)
+            all_unseen_score = model.evaluate(all_unseen_images, all_unseen_labels, batch_size=batch_size)
+            all_unseen_scores_list.append(all_unseen_score[1] * 100)
+
+        test_scores_mean = np.mean(test_scores_list)
+        test_scores_std = np.std(test_scores_list)
+        unseen_47_mean = np.mean(unseen_47_scores_list)
+        unseen_47_std = np.std(unseen_47_scores_list)
+        unseen_84_mean = np.mean(unseen_84_scores_list)
+        unseen_84_std = np.std(unseen_84_scores_list)
+        all_unseen_mean = np.mean(all_unseen_scores_list)
+        all_unseen_std = np.std(all_unseen_scores_list)
+
+        print("Test Scores: " + str(test_scores_list))
+        print("Test Scores Mean: " + str(test_scores_mean))
+        print("Test Scores Std: " + str(test_scores_std))
+        print("Unseen 47 Scores: " + str(unseen_47_scores_list))
+        print("Unseen 47 Scores Mean: " + str(unseen_47_mean))
+        print("Unseen 47 Scores Std: " + str(unseen_47_std))
+        print("Unseen 84 Scores: " + str(unseen_84_scores_list))
+        print("Unseen 84 Scores Mean: " + str(unseen_84_mean))
+        print("Unseen 84 Scores Std: " + str(unseen_84_std))
+        print("All Unseen Scores: " + str(all_unseen_scores_list))
+        print("All Unseen Scores Mean: " + str(all_unseen_mean))
+        print("All Unseen Scores Std: " + str(all_unseen_std))
+
+
 # __________________________________________________________________________
 # MAIN
 
@@ -464,12 +496,6 @@ excel_headers.append("Epochs")
 excel_dictionary.append(epochs)
 excel_headers.append("Batch_size")
 excel_dictionary.append(batch_size)
-
-# K fold for training data
-executeKFoldValidation(training_data,
-                       training_labels,
-                       excel_headers,
-                       excel_dictionary)
 
 # Plot run metrics
 acc = history.history['acc']
@@ -537,6 +563,10 @@ visualiseActivations(img_negative_tensor, base_dir='../Results/%s/NegativeResult
 test_pos = getPositiveImages('Testing/PositiveAll', max_num_testing, input_shape)
 test_neg = getNegativeImages('Testing/Negative', max_num_testing, input_shape)
 testing_data, testing_labels, _ = makeImageSet(test_pos, test_neg, shuffle_needed=True)
+print("Testing Data Shape:  " + str(testing_data.shape))
+print("Testing Labels Shape: " + str(testing_labels.shape))
+print("Got Unseen Testing data")
+
 scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
 print("Test loss: %s" % scores[0])
 print("Test accuracy: %s" % scores[1])
@@ -559,6 +589,9 @@ images_47, labels_47, des_47_names = makeImageSet(list(known_47_images.values())
                                                   list(known_47_images.keys()),
                                                   list(negative_47_images.keys()),
                                                   shuffle_needed=True)
+print("47 Data Shape:  " + str(images_47.shape))
+print("47 Labels Shape: " + str(labels_47.shape))
+print("Got Unseen 47 data")
 
 predicted_class_probabilities_47 = classifier.predict_classes(images_47, batch_size=batch_size)
 lens_predicted_count_47 = np.count_nonzero(predicted_class_probabilities_47 == 1)
@@ -589,6 +622,9 @@ images_84, labels_84, des_84_names = makeImageSet(list(known_84_images.values())
                                                   list(known_84_images.keys()),
                                                   list(negative_84_images.keys()),
                                                   shuffle_needed=True)
+print("84 Data Shape:  " + str(images_84.shape))
+print("84 Labels Shape: " + str(labels_84.shape))
+print("Got Unseen 84 data")
 
 predicted_class_probabilities_84 = classifier.predict_classes(images_84, batch_size=batch_size)
 lens_predicted_count_84 = np.count_nonzero(predicted_class_probabilities_84 == 1)
@@ -611,17 +647,39 @@ excel_dictionary.append(lens_predicted_count_84)
 excel_headers.append("Predicted_No_Lens_84")
 excel_dictionary.append(non_lens_predicted_count_84)
 
-# K-Fold for known 47
-executeKFoldValidation(images_47,
-                       labels_47,
-                       excel_headers,
-                       excel_dictionary)
+all_unseen_images = np.concatenate((images_47, images_84))
+all_unseen_labels = np.concatenate((labels_47, labels_84))
+all_des_names = np.concatenate((des_47_names, des_84_names))
+print("All Data Shape: " + str(all_unseen_images.shape))
+print("All Data Labels: " + str(all_unseen_labels.shape))
 
-# K-Fold for known 84
-executeKFoldValidation(images_84,
-                       labels_84,
-                       excel_headers,
-                       excel_dictionary)
+all_predicted_class_probabilities = classifier.predict_classes(all_unseen_images, batch_size=batch_size)
+all_lens_predicted_count = np.count_nonzero(all_predicted_class_probabilities == 1)
+all_non_lens_predicted_count = np.count_nonzero(all_predicted_class_probabilities == 0)
+print("%s/131 known images predicted" % all_lens_predicted_count)
+print("%s/131 non lensed images predicted" % all_non_lens_predicted_count)
+
+gettingTrueFalsePositiveNegatives(all_unseen_images,
+                                  all_unseen_labels,
+                                  text_file_path='../Results/%s/PredictedAll/All_LensesPredicted.txt' % dt_string,
+                                  predicted_lenses_filepath='../Results/%s/PredictedAll' % dt_string)
+
+savePredictedLenses(all_des_names,
+                    all_predicted_class_probabilities,
+                    predicted_lenses_filepath='../Results/%s/PredictedAll' % dt_string,
+                    text_file_path='../Results/%s/Predicted84/All_LensesPredicted.txt' % dt_string)
+
+excel_headers.append("Predicted_Lens_All")
+excel_dictionary.append(all_lens_predicted_count)
+excel_headers.append("Predicted_No_Lens_All")
+excel_dictionary.append(all_non_lens_predicted_count)
+
+# K fold for training data
+executeKFoldValidation(training_data, training_labels, val_data, val_labels, testing_data, testing_labels,
+                       images_47, labels_47, images_84, labels_84, all_unseen_images, all_unseen_labels)
+
+print("Test loss of normal CNN: %s" % scores[0])
+print("Test accuracy of normal CNN: %s" % scores[1])
 
 # add row to excel table
 # createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
