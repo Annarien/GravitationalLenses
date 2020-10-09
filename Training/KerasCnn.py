@@ -1,23 +1,23 @@
 import os
 import sys
+from datetime import datetime
+
 import numpy as np
-from matplotlib import pyplot as plt
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
-from pip._internal.req.req_file import preprocess
-from sklearn.model_selection import cross_val_score, train_test_split, StratifiedKFold
-from tensorflow.python.keras import Sequential
-from tensorflow.python.keras.models import Model
-from tensorflow.python.keras.callbacks import ModelCheckpoint, EarlyStopping
-from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
-from tensorflow.python.keras.layers.core import Dense, Dropout, Flatten
-from tensorflow.python.keras.layers.convolutional import Conv2D, MaxPooling2D
-from ExcelUtils import createExcelSheet, writeToFile
+from matplotlib import pyplot as plt
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.utils import shuffle
+from tensorflow.python.keras import Sequential
+from tensorflow.python.keras.callbacks import ModelCheckpoint, EarlyStopping
+from tensorflow.python.keras.layers.convolutional import Conv2D, MaxPooling2D
+from tensorflow.python.keras.layers.core import Dense, Dropout, Flatten
+from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
-from sklearn.metrics import classification_report, confusion_matrix
 from tensorflow.python.keras.utils.vis_utils import plot_model
-from datetime import datetime
+
+from ExcelUtils import createExcelSheet, writeToFile
 
 now = datetime.now()
 dt_string = now.strftime("%d_%m_%Y_%H_%M_%S")
@@ -28,20 +28,21 @@ excel_headers.append("Date and Time")
 excel_dictionary.append(dt_string)
 
 # Globals
-max_num = 1998  # Set to sys.maxsize when running entire data set
+makeNewCSVFile = True
+max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 2  # A number between 1 and 10 that determines how many times the k-fold classifier
+k_fold_num = 10  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 2  # A number that dictates how many iterations should be run to train the classifier
+epochs = 200  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
-patience_num = 3  # Used in the early stopping to determine how quick/slow to react.
+patience_num = 10  # Used in the early stopping to determine how quick/slow to react.
 use_early_stopping = True  # Determines whether to use early stopping or not.
 use_model_checkpoint = True  # Determines whether the classifiers keeps track of the most accurate iteration of itself.
 monitor_early_stopping = 'val_loss'
@@ -445,6 +446,22 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, test_
         print("All Unseen Scores Mean: " + str(all_unseen_mean))
         print("All Unseen Scores Std: " + str(all_unseen_std))
 
+        excel_headers.append("Test Scores Mean")
+        excel_dictionary.append(test_scores_mean)
+        excel_headers.append("Test Scores Std")
+        excel_dictionary.append(test_scores_std)
+        excel_headers.append("Unseen 47 Scores Mean")
+        excel_dictionary.append(unseen_47_mean)
+        excel_headers.append("Unseen 47 Scores Std")
+        excel_dictionary.append(unseen_47_std)
+        excel_headers.append("Unseen 84 Scores Mean")
+        excel_dictionary.append(unseen_84_mean)
+        excel_headers.append("Unseen 84 Scores Std")
+        excel_dictionary.append(unseen_84_std)
+        excel_headers.append("All Unseen Scores Mean")
+        excel_dictionary.append(all_unseen_mean)
+        excel_headers.append("All Unseen Scores Std")
+        excel_dictionary.append(all_unseen_std)
 
 # __________________________________________________________________________
 # MAIN
@@ -682,5 +699,7 @@ print("Test loss of normal CNN: %s" % scores[0])
 print("Test accuracy of normal CNN: %s" % scores[1])
 
 # add row to excel table
-# createExcelSheet('../Results/kerasCNN_Results.csv', excel_headers)
-writeToFile('../Results/kerasCNN_Results.csv', excel_dictionary)
+if makeNewCSVFile:
+    createExcelSheet('../Results/new_kerasCNN_Results.csv', excel_headers)
+else:
+    writeToFile('../Results/new_kerasCNN_Results.csv', excel_dictionary)
