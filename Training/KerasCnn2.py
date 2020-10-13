@@ -808,11 +808,8 @@ gettingTrueFalsePositiveNegatives(testing_data,
 
 # Evaluate known 47 with negative 47
 known_47_images = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=input_shape)
-negative_47_images = getUnseenData('UnseenData/Negative47', 47, input_shape=input_shape)
 images_47, labels_47, des_47_names = makeImageSet(list(known_47_images.values()),
-                                                  list(negative_47_images.values()),
                                                   list(known_47_images.keys()),
-                                                  list(negative_47_images.keys()),
                                                   shuffle_needed=True)
 print("47 Data Shape:  " + str(images_47.shape))
 print("47 Labels Shape: " + str(labels_47.shape))
@@ -841,11 +838,8 @@ excel_dictionary.append(non_lens_predicted_count_47)
 
 # Evaluate known 84 with negative 84
 known_84_images = getUnseenData('UnseenData/Known84', max_num_prediction, input_shape=input_shape)
-negative_84_images = getUnseenData('UnseenData/Negative84', 84, input_shape=input_shape)
 images_84, labels_84, des_84_names = makeImageSet(list(known_84_images.values()),
-                                                  list(negative_84_images.values()),
                                                   list(known_84_images.keys()),
-                                                  list(negative_84_images.keys()),
                                                   shuffle_needed=True)
 print("84 Data Shape:  " + str(images_84.shape))
 print("84 Labels Shape: " + str(labels_84.shape))
