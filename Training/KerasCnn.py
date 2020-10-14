@@ -41,7 +41,7 @@ validation_split = 0.2  # A float value between 0 and 1 that determines what per
 # data is used for validation.
 k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 10  # A number that dictates how many iterations should be run to train the classifier
+epochs = 5  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
@@ -206,9 +206,9 @@ def makeImageSet(positive_images, negative_images=None, known_des_names=None, ne
         positive_images(numpy array):   This is the numpy array of the positively simulated images.
         negative_images(numpy array):   This is the numpy array of the negative images, this is set to a
                                         default of None.
-        known_des_names(dictionary):    This is the dictionary of the unseen known lenses, this is set to a
+        known_des_names(list):    This is the dictionary of the unseen known lenses, this is set to a
                                         default of None.
-        neg_des_names(dictionary):      This is the dictionary of the negative images, this is set to a
+        neg_des_names(list):      This is the dictionary of the negative images, this is set to a
                                         default of None.
         shuffle_needed(boolean):        This is a boolean value to determine whether or not shuffling of the given data
                                         sets is required.
@@ -446,7 +446,7 @@ def savePredictedLenses(des_names_array, predicted_class_probabilities, predicte
     """
     This saves the names of the predicted lenses in the respective textfiles.
     Args:
-        des_names_array(list): This is a list of the des names of the sources.
+        des_names_array(array): This is a list of the des names of the sources.
         predicted_class_probabilities(list):    This is a list of the probabilities in which lenses are predicted by
                                                 the algorithm.
         predicted_lenses_filepath(string):      This is the string of the predicted lenses filepath, where this needs
@@ -515,7 +515,7 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
 
 
 def gettingKFoldConfusionMatrix(test_data, test_labels, images_47, labels_47, images_84, labels_84, all_unseen_images,
-                                all_unseen_labels, makekfold_list=True):
+                                all_unseen_labels):
     test_confusion_matrix = gettingTrueFalsePositiveNegatives(test_data,
                                                               test_labels,
                                                               text_file_path='../Results/%s/TrainingTestingResults'
@@ -909,5 +909,6 @@ print("Test accuracy of normal CNN: %s" % scores[1])
 # add row to excel table
 if makeNewCSVFile:
     createExcelSheet('../Results/new_kerasCNN_Results.csv', excel_headers)
+    writeToFile('../Results/new_kerasCNN_Results.csv', excel_dictionary)
 else:
     writeToFile('../Results/new_kerasCNN_Results.csv', excel_dictionary)
