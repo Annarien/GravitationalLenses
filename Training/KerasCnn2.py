@@ -483,7 +483,7 @@ def savePredictedLenses(des_names_array, predicted_class_probabilities, predicte
 
 
 def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_path,
-                                      predicted_lenses_filepath, makekfold_list=False):
+                                      predicted_lenses_filepath):
     """
     This is used to get the True/False Positive and Negative values gained from the CNN confusion matrix.
     Args:
@@ -518,13 +518,12 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
     text_file.write("\n")
     text_file.close()
 
-    if makekfold_list:
-        confusion_matrix_array = [true_negative, false_positive, false_negative, true_positive]
-        return confusion_matrix_array
+    confusion_matrix_array = [true_negative, false_positive, false_negative, true_positive]
+    return confusion_matrix_array
 
 
 def gettingKFoldConfusionMatrix(test_data, test_labels, images_47, labels_47, images_84, labels_84, all_unseen_images,
-                                all_unseen_labels, makekfold_list=True):
+                                all_unseen_labels):
     test_confusion_matrix = gettingTrueFalsePositiveNegatives(test_data,
                                                               test_labels,
                                                               text_file_path='../Results/%s/TrainingTestingResults'
@@ -595,9 +594,12 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, test_
         matrix_47_list = []
         matrix_84_list = []
         all_matrix_list = []
+        kf_counter = 0
 
         for train, test in kfold.split(train_data, train_labels):
-            # make the model
+            kf_counter += 1
+            print('KFold #:', kf_counter)
+
             model = buildClassifier()
             # fit the model
             model.fit(train_data[train],

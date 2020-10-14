@@ -586,8 +586,13 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, test_
         matrix_47_list = []
         matrix_84_list = []
         all_matrix_list = []
+        kf_counter = 0
+
 
         for train, test in kfold.split(train_data, train_labels):
+            kf_counter += 1
+            print('KFold #:', kf_counter)
+
             # make the model
             model = buildClassifier()
             # fit the model
