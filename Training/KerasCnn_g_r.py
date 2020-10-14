@@ -1,23 +1,28 @@
+"""
+This is file performs the convolutional neural network algorithm, in which the k fold is performed as well.
+The results were saved in a csv file.
+"""
+
 import os
 import sys
+from datetime import datetime
+
 import numpy as np
-from matplotlib import pyplot as plt
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
-from pip._internal.req.req_file import preprocess
-from sklearn.model_selection import cross_val_score, train_test_split
-from tensorflow.python.keras import Sequential
-from tensorflow.python.keras.models import Model
-from tensorflow.python.keras.callbacks import ModelCheckpoint, EarlyStopping
-from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
-from tensorflow.python.keras.layers.core import Dense, Dropout, Flatten
-from tensorflow.python.keras.layers.convolutional import Conv2D, MaxPooling2D
-from ExcelUtils import createExcelSheet, writeToFile
+from matplotlib import pyplot as plt
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.utils import shuffle
+from tensorflow.python.keras import Sequential
+from tensorflow.python.keras.callbacks import ModelCheckpoint, EarlyStopping
+from tensorflow.python.keras.layers.convolutional import Conv2D, MaxPooling2D
+from tensorflow.python.keras.layers.core import Dense, Dropout, Flatten
+from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
-from sklearn.metrics import classification_report, confusion_matrix
 from tensorflow.python.keras.utils.vis_utils import plot_model
-from datetime import datetime
+
+from ExcelUtils import createExcelSheet, writeToFile
 
 now = datetime.now()
 dt_string = now.strftime("%d_%m_%Y_%H_%M_%S")
@@ -28,20 +33,21 @@ excel_headers.append("Date and Time")
 excel_dictionary.append(dt_string)
 
 # Globals
-max_num = 500  # Set to sys.maxsize when running entire data set
-max_num_testing = 1000  # sys.maxsize  # Set to sys.maxsize when running entire data set
-max_num_prediction = 1000  # sys.maxsize  # Set to sys.maxsize when running entire data set
+makeNewCSVFile = True
+max_num = 1990  # Set to sys.maxsize when running entire data set
+max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
 k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 20  # A number that dictates how many iterations should be run to train the classifier
+epochs = 5  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
-run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
-patience_num = 3  # Used in the early stopping to determine how quick/slow to react.
+patience_num = 10  # Used in the early stopping to determine how quick/slow to react.
 use_early_stopping = True  # Determines whether to use early stopping or not.
 use_model_checkpoint = True  # Determines whether the classifiers keeps track of the most accurate iteration of itself.
 monitor_early_stopping = 'val_loss'
@@ -88,6 +94,17 @@ if not os.path.exists('../Results/g_r_%s/' % dt_string):
 
 # Helper methods
 def getPositiveImages(images_dir, max_num, input_shape):
+    """
+    This gets the positively simulated images in the g, r and  i bands.
+    Args:
+        images_dir(string): This is the file path address of the positively simulated images.
+        max_num(integer):   This is the number of sources of the positively simulated images to be used.
+        input_shape(tuple): This is the shape of the images.
+    Returns:
+        positive_images(numpy array):   This is the numpy array of the positively simulated images with the shape of
+                                        (num of images, input_shape[0], input_shape[1], input_shape[2]) =
+                                        (num_of_images, 100, 100, 3).
+    """
     for root, dirs, _ in os.walk(images_dir):
         num_of_images = min(max_num, len(dirs))
         positive_images = np.zeros([num_of_images, 3, 100, 100])
@@ -111,6 +128,17 @@ def getPositiveImages(images_dir, max_num, input_shape):
 
 
 def getNegativeImages(images_dir, max_num, input_shape):
+    """
+    This gets the negative images in the g, r and  i bands.
+    Args:
+        images_dir(string): This is the file path address of the negative images.
+        max_num(integer):   This is the number of sources of the negative images to be used.
+        input_shape(tuple): This is the shape of the images.
+    Returns:
+        negative_images(numpy array):   This is the numpy array of the negative images with the shape of
+                                        (num of images, input_shape[0], input_shape[1], input_shape[2]) =
+                                        (num_of_images, 100, 100, 3).
+    """
     for root, dirs, _ in os.walk(images_dir):
         num_of_images = min(max_num, len(dirs))
         negative_images = np.zeros([num_of_images, 3, 100, 100])
@@ -134,6 +162,18 @@ def getNegativeImages(images_dir, max_num, input_shape):
 
 
 def getUnseenData(images_dir, max_num, input_shape):
+    """
+        This gets the unseen images in the g, r and  i bands containing the identified known lenses.
+        Args:
+            images_dir(string): This is the file path address of the unseen images.
+            max_num(integer):   This is the number of sources of the unseen images to be used.
+            input_shape(tuple): This is the shape of the images.
+        Returns:
+            des_tiles(dictionary):   This is the dictionary of the unseen images with the shape of
+                                            (num of images, input_shape[0], input_shape[1], input_shape[2]) =
+                                            (num_of_images, 100, 100, 3).
+        """
+
     des_tiles = {}
 
     for root, dirs, _ in os.walk(images_dir):
@@ -159,6 +199,26 @@ def getUnseenData(images_dir, max_num, input_shape):
 
 def makeImageSet(positive_images, negative_images=None, known_des_names=None, neg_des_names=None,
                  shuffle_needed=use_shuffle):
+    """
+    This is used to create data set of images and labels, in which the positive and negative images are all
+    combined and shuffled.
+    Args:
+        positive_images(numpy array):   This is the numpy array of the positively simulated images.
+        negative_images(numpy array):   This is the numpy array of the negative images, this is set to a
+                                        default of None.
+        known_des_names(list):    This is the dictionary of the unseen known lenses, this is set to a
+                                        default of None.
+        neg_des_names(list):      This is the dictionary of the negative images, this is set to a
+                                        default of None.
+        shuffle_needed(boolean):        This is a boolean value to determine whether or not shuffling of the given data
+                                        sets is required.
+    Returns:
+        image_set(numpy array):         This is the image data set of  numpy array of the combination positive
+                                        and negative images.
+        label_set(numpy array):         This is the label data set of  numpy array of the combination positive
+                                        and negative label.
+        des_names_set(numpy array):     This is the des name data set of the known lenses and negative images used.
+    """
     if negative_images is None:
         negative_images = []
         known_des_names = {}
@@ -199,10 +259,17 @@ def makeImageSet(positive_images, negative_images=None, known_des_names=None, ne
 
 
 def buildClassifier(input_shape=(100, 100, 3)):
+    """
+    This creates the CNN algorithm.
+    Args:
+        input_shape(tuple): This is the image shape of (100,100,3)
+    Returns:
+        classifier(sequential): This is the sequential model.
+    """
     # Initialising the CNN
     classifier = Sequential()
     classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(3, 3), padding='same'))
     classifier.add(Dropout(0.5))  # added extra Dropout layer
     classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
@@ -233,31 +300,15 @@ def buildClassifier(input_shape=(100, 100, 3)):
     return classifier
 
 
-def executeKFoldValidation(data,
-                           labels,
-                           excel_headers,
-                           excel_dictionary):
-    # global k_fold_std
-    num_of_epochs = epochs
-    classifier_batch_size = batch_size
-
-    if run_k_fold_validation:
-        neural_network = KerasClassifier(build_fn=buildClassifier,
-                                         epochs=num_of_epochs,
-                                         batch_size=classifier_batch_size)
-        k_fold_scores = cross_val_score(neural_network, data, labels, scoring='accuracy', cv=k_fold_num)
-        score_mean = k_fold_scores.mean() * 100
-        print("kFold Scores Mean: " + str(score_mean))
-        k_fold_std = k_fold_scores.std()
-        print("kFold Scores Std: " + str(k_fold_std))
-
-        excel_headers.append("K-Fold_Mean")
-        excel_dictionary.append(score_mean)
-        excel_headers.append("K-Fold_Std")
-        excel_dictionary.append(k_fold_std)
-
-
 def visualiseActivations(img_tensor, base_dir):
+    """
+    This makes images of the activations, as the selected image passed through the model
+    Args:
+        img_tensor(numpy array):    This is the numpy array of the selected image
+        base_dir(string):           This is the file path name
+    Saves:
+        This saves the activation images of the selected source.
+    """
     global predicted_class, size
     # Run prediction on that image
     predicted_class = classifier.predict_classes(img_tensor, batch_size=10)
@@ -297,7 +348,18 @@ def visualiseActivations(img_tensor, base_dir):
         count += 1
 
 
-def usingModelsWithOrWithoutAugmentedData(training_data, training_labels, val_data, val_labels):
+def usingCnnModel(training_data, training_labels, val_data, val_labels):
+    """
+    This is using the CNN model and setting it up.
+    Args:
+        training_data(numpy arrays):    This is the numpy array of the training data.
+        training_labels(numpy arrays):  This is the numpy array of the training labels.
+        val_data(numpy arrays):         This is the numpy array of the validation data.
+        val_labels(numpy arrays):       This is the numpy array of the validation labels.
+    Returns:
+        history(history):               This is the history of the classifier.
+        classifier(sequential):         This is the cnn model classifier fitted to the training data and labels.
+    """
     model_checkpoint = ModelCheckpoint(filepath="best_weights.hdf5",
                                        monitor=monitor_model_checkpoint,
                                        save_best_only=True)
@@ -324,6 +386,17 @@ def usingModelsWithOrWithoutAugmentedData(training_data, training_labels, val_da
 
 
 def createAugmentedData(training_data, training_labels):
+    """
+    This is creates the augmented data.
+    Args:
+        training_data(numpy arrays):    This is the numpy array of the training data.
+        training_labels(numpy arrays):  This is the numpy array of the training labels.
+    Returns:
+        complete_training_data_set(numpy array):    This is the numpy array of the total training data, which is has
+                                                    undergone augmentation.
+        complete_training_labels_set(numpy array):  This is the numpy array of the total training labels, which is has
+                                                    undergone augmentation.
+    """
     complete_training_data_set = []
     complete_training_labels_set = []
 
@@ -370,6 +443,18 @@ def createAugmentedData(training_data, training_labels):
 
 
 def savePredictedLenses(des_names_array, predicted_class_probabilities, predicted_lenses_filepath, text_file_path):
+    """
+    This saves the names of the predicted lenses in the respective textfiles.
+    Args:
+        des_names_array(array): This is a list of the des names of the sources.
+        predicted_class_probabilities(list):    This is a list of the probabilities in which lenses are predicted by
+                                                the algorithm.
+        predicted_lenses_filepath(string):      This is the string of the predicted lenses filepath, where this needs
+                                                to be saved in the directory.
+        text_file_path(string):                 This is the text file path address to which these images are saved.
+    Saves:
+        text_file(.txt file):                   This is the text file saved containing the predicted lenses DES names.
+    """
     if not os.path.exists(predicted_lenses_filepath):
         os.mkdir('%s/' % predicted_lenses_filepath)
     text_file = open('%s' % text_file_path, "a+")
@@ -389,7 +474,18 @@ def savePredictedLenses(des_names_array, predicted_class_probabilities, predicte
 
 
 def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_path,
-                                      predicted_lenses_filepath):
+                                      predicted_lenses_filepath, makekfold_list=False):
+    """
+    This is used to get the True/False Positive and Negative values gained from the CNN confusion matrix.
+    Args:
+        testing_data(numpy array):          This is the unseen testing data numpy array.
+        testing_labels(numpy array):        This is the unseen testing label numpy array.
+        text_file_path(string):             This is the file path name of the text file in which the confusion
+                                            matrix is saved.
+        predicted_lenses_filepath(string):  This is the file path in which the text file is saved.
+    Saves:
+        This saves a confusion matrix of the True/False Positive and Negative values.
+    """
     if not os.path.exists(predicted_lenses_filepath):
         os.mkdir('%s/' % predicted_lenses_filepath)
 
@@ -412,6 +508,167 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
     text_file.write("True Positive: %s \n" % str(true_positive))
     text_file.write("\n")
     text_file.close()
+
+    if makekfold_list:
+        confusion_matrix_array = [true_negative, false_positive, false_negative, true_positive]
+        return confusion_matrix_array
+
+
+def gettingKFoldConfusionMatrix(test_data, test_labels, images_47, labels_47, images_84, labels_84, all_unseen_images,
+                                all_unseen_labels):
+    test_confusion_matrix = gettingTrueFalsePositiveNegatives(test_data,
+                                                              test_labels,
+                                                              text_file_path='../Results/%s/TrainingTestingResults'
+                                                                             '/KFold_PredictedMatrix.txt' % dt_string,
+                                                              predicted_lenses_filepath='../Results/%s/TrainingTestingResults'
+                                                                                        % dt_string)
+
+    confusion_matrix_47 = gettingTrueFalsePositiveNegatives(images_47,
+                                                            labels_47,
+                                                            text_file_path='../Results/%s/Predicted47'
+                                                                           '/KFold_47_LensesPredicted.txt' %
+                                                                           dt_string,
+                                                            predicted_lenses_filepath='../Results/%s/Predicted47'
+                                                                                      % dt_string)
+
+    confusion_matrix_84 = gettingTrueFalsePositiveNegatives(images_84,
+                                                            labels_84,
+                                                            text_file_path='../Results/%s/Predicted84'
+                                                                           '/KFold_84_LensesPredicted.txt' %
+                                                                           dt_string,
+                                                            predicted_lenses_filepath='../Results/%s/Predicted84'
+                                                                                      % dt_string)
+
+    all_confusion_matrix = gettingTrueFalsePositiveNegatives(all_unseen_images,
+                                                             all_unseen_labels,
+                                                             text_file_path='../Results/%s/All_Predicted'
+                                                                            '/KFold_All_LensesPredicted.txt' % dt_string,
+                                                             predicted_lenses_filepath='../Results/%s'
+                                                                                       '/All_Predicted' %
+                                                                                       dt_string)
+
+    return test_confusion_matrix, confusion_matrix_47, confusion_matrix_84, all_confusion_matrix
+
+
+def executeKFoldValidation(train_data, train_labels, val_data, val_labels, test_data, test_labels,
+                           images_47, labels_47, images_84, labels_84, all_unseen_images, all_unseen_labels):
+    """
+    This does the k fold cross validation which is tested against the unseen testing and known lenses.
+    Args:
+        train_data(numpy arrays):           This is the numpy array of the training data.
+        train_labels(numpy arrays):         This is the numpy array of the training labels.
+        val_data(numpy arrays):             This is the numpy array of the validation data.
+        val_labels(numpy arrays):           This is the numpy array of the validation labels.
+        testing_data(numpy array):          This is the numpy array of the unseen testing data.
+        testing_labels(numpy array):        This is the numpy array of the unseen testing label.
+        images_47(numpy array):             This is the numpy array of the unseen DES images data.
+        labels_47(numpy array):             This is the numpy array of the unseen DES images labels.
+        images_84(numpy array):             This is the numpy array of the unseen Jacobs images data.
+        labels_84(numpy array):             This is the numpy array of the unseen Jacobs images labels.
+        all_unseen_images(numpy array):     This is the numpy array of the unseen DES + Jacobs images data.
+        all_unseen_labels(numpy array):     This is the numpy array of the unseen DES + Jacobs images labels.
+
+    Saves:
+        This saves the scores, mean and std. of the unseen data that is evaluated in the k fold cross validation.
+    """
+    if run_k_fold_validation:
+        print("In executingKFoldValidation")
+
+        # this is doing it manually:
+        kfold = StratifiedKFold(n_splits=k_fold_num, shuffle=True)
+
+        test_scores_list = []
+        unseen_47_scores_list = []
+        unseen_84_scores_list = []
+        all_unseen_scores_list = []
+
+        test_matrix_list = []
+        matrix_47_list = []
+        matrix_84_list = []
+        all_matrix_list = []
+
+        for train, test in kfold.split(train_data, train_labels):
+            # make the model
+            model = buildClassifier()
+            # fit the model
+            model.fit(train_data[train],
+                      train_labels[train],
+                      epochs=epochs,
+                      validation_data=(val_data, val_labels),
+                      batch_size=batch_size
+                      )
+
+            unseen_47_scores = model.evaluate(images_47, labels_47, batch_size=batch_size)
+            unseen_47_scores_list.append(unseen_47_scores[1] * 100)
+            unseen_84_scores = model.evaluate(images_84, labels_84, batch_size=batch_size)
+            unseen_84_scores_list.append(unseen_84_scores[1] * 100)
+            test_scores = model.evaluate(test_data, test_labels, batch_size=batch_size)
+            test_scores_list.append(test_scores[1] * 100)
+            all_unseen_score = model.evaluate(all_unseen_images, all_unseen_labels, batch_size=batch_size)
+            all_unseen_scores_list.append(all_unseen_score[1] * 100)
+
+            # show confusion matrix
+            test_confusion_matrix, confusion_matrix_47, confusion_matrix_84, all_confusion_matrix = \
+                gettingKFoldConfusionMatrix(test_data, test_labels, images_47, labels_47, images_84, labels_84,
+                                            all_unseen_images,
+                                            all_unseen_labels)
+            test_matrix_list.append(test_confusion_matrix)
+            matrix_47_list.append(confusion_matrix_47)
+            matrix_84_list.append(confusion_matrix_84)
+            all_matrix_list.append(all_confusion_matrix)
+
+        test_scores_mean = np.mean(test_scores_list)
+        test_scores_std = np.std(test_scores_list)
+        unseen_47_mean = np.mean(unseen_47_scores_list)
+        unseen_47_std = np.std(unseen_47_scores_list)
+        unseen_84_mean = np.mean(unseen_84_scores_list)
+        unseen_84_std = np.std(unseen_84_scores_list)
+        all_unseen_mean = np.mean(all_unseen_scores_list)
+        all_unseen_std = np.std(all_unseen_scores_list)
+
+        print("Test Scores: " + str(test_scores_list))
+        print("Test Scores Mean: " + str(test_scores_mean))
+        print("Test Scores Std: " + str(test_scores_std))
+        print("Unseen 47 Scores: " + str(unseen_47_scores_list))
+        print("Unseen 47 Scores Mean: " + str(unseen_47_mean))
+        print("Unseen 47 Scores Std: " + str(unseen_47_std))
+        print("Unseen 84 Scores: " + str(unseen_84_scores_list))
+        print("Unseen 84 Scores Mean: " + str(unseen_84_mean))
+        print("Unseen 84 Scores Std: " + str(unseen_84_std))
+        print("All Unseen Scores: " + str(all_unseen_scores_list))
+        print("All Unseen Scores Mean: " + str(all_unseen_mean))
+        print("All Unseen Scores Std: " + str(all_unseen_std))
+        print("Test Confusion Matrices: " +str(test_matrix_list))
+        print("47 Confusion Matrices: " +str(matrix_47_list))
+        print("84 Confusion Matrices: "+str(matrix_84_list))
+        print("All Confusion Matrices: "+str(all_matrix_list))
+
+        excel_headers.append("Test Scores Mean")
+        excel_dictionary.append(test_scores_mean)
+        excel_headers.append("Test Scores Std")
+        excel_dictionary.append(test_scores_std)
+        excel_headers.append("Unseen 47 Scores Mean")
+        excel_dictionary.append(unseen_47_mean)
+        excel_headers.append("Unseen 47 Scores Std")
+        excel_dictionary.append(unseen_47_std)
+        excel_headers.append("Unseen 84 Scores Mean")
+        excel_dictionary.append(unseen_84_mean)
+        excel_headers.append("Unseen 84 Scores Std")
+        excel_dictionary.append(unseen_84_std)
+        excel_headers.append("All Unseen Scores Mean")
+        excel_dictionary.append(all_unseen_mean)
+        excel_headers.append("All Unseen Scores Std")
+        excel_dictionary.append(all_unseen_std)
+
+        plt.plot(test_scores_list, color='red', label='Testing Scores')
+        plt.plot(unseen_47_scores_list, color='blue', label='Unseen 47 Scores')
+        plt.plot(unseen_84_scores_list, color='black', label='Unseen 84 Scores')
+        plt.plot(all_unseen_scores_list, color='green', label='Unseen Scores')
+        plt.xlabel('Folds')
+        plt.ylabel('Accuracy')
+        plt.legend()
+
+        plt.show()
 
 
 # __________________________________________________________________________
@@ -452,10 +709,10 @@ excel_dictionary.append(val_labels.shape)
 excel_headers.append("Validation_Split")
 excel_dictionary.append(validation_split)
 
-history, classifier = usingModelsWithOrWithoutAugmentedData(training_data,
-                                                            training_labels,
-                                                            val_data,
-                                                            val_labels)
+history, classifier = usingCnnModel(training_data,
+                                    training_labels,
+                                    val_data,
+                                    val_labels)
 
 classifier.load_weights('best_weights.hdf5')
 classifier.save_weights('galaxies_cnn.h5')
@@ -464,12 +721,6 @@ excel_headers.append("Epochs")
 excel_dictionary.append(epochs)
 excel_headers.append("Batch_size")
 excel_dictionary.append(batch_size)
-
-# K fold for training data
-executeKFoldValidation(training_data,
-                       training_labels,
-                       excel_headers,
-                       excel_dictionary)
 
 # Plot run metrics
 acc = history.history['acc']
@@ -553,7 +804,7 @@ gettingTrueFalsePositiveNegatives(testing_data,
 
 # Evaluate known 47 with negative 47
 known_47_images = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=input_shape)
-negative_47_images = getUnseenData('UnseenData/Negative', 47, input_shape=input_shape)
+negative_47_images = getUnseenData('UnseenData/Negative47', 47, input_shape=input_shape)
 images_47, labels_47, des_47_names = makeImageSet(list(known_47_images.values()),
                                                   list(negative_47_images.values()),
                                                   list(known_47_images.keys()),
@@ -583,7 +834,7 @@ excel_dictionary.append(non_lens_predicted_count_47)
 
 # Evaluate known 84 with negative 84
 known_84_images = getUnseenData('UnseenData/Known84', max_num_prediction, input_shape=input_shape)
-negative_84_images = getUnseenData('UnseenData/Negative', 84, input_shape=input_shape)
+negative_84_images = getUnseenData('UnseenData/Negative84', 84, input_shape=input_shape)
 images_84, labels_84, des_84_names = makeImageSet(list(known_84_images.values()),
                                                   list(negative_84_images.values()),
                                                   list(known_84_images.keys()),
@@ -611,18 +862,43 @@ excel_dictionary.append(lens_predicted_count_84)
 excel_headers.append("Predicted_No_Lens_84")
 excel_dictionary.append(non_lens_predicted_count_84)
 
-# K-Fold for known 47
-executeKFoldValidation(images_47,
-                       labels_47,
-                       excel_headers,
-                       excel_dictionary)
+all_unseen_images = np.concatenate((images_47, images_84))
+all_unseen_labels = np.concatenate((labels_47, labels_84))
+all_des_names = np.concatenate((des_47_names, des_84_names))
+print("All Data Shape: " + str(all_unseen_images.shape))
+print("All Data Labels: " + str(all_unseen_labels.shape))
 
-# K-Fold for known 84
-executeKFoldValidation(images_84,
-                       labels_84,
-                       excel_headers,
-                       excel_dictionary)
+all_predicted_class_probabilities = classifier.predict_classes(all_unseen_images, batch_size=batch_size)
+all_lens_predicted_count = np.count_nonzero(all_predicted_class_probabilities == 1)
+all_non_lens_predicted_count = np.count_nonzero(all_predicted_class_probabilities == 0)
+print("%s/131 known images predicted" % all_lens_predicted_count)
+print("%s/131 non lensed images predicted" % all_non_lens_predicted_count)
+
+gettingTrueFalsePositiveNegatives(all_unseen_images,
+                                  all_unseen_labels,
+                                  text_file_path='../Results/g_r_%s/PredictedAll/All_LensesPredicted.txt' % dt_string,
+                                  predicted_lenses_filepath='../Results/g_r_%s/PredictedAll' % dt_string)
+
+savePredictedLenses(all_des_names,
+                    all_predicted_class_probabilities,
+                    predicted_lenses_filepath='../Results/g_r_%s/PredictedAll' % dt_string,
+                    text_file_path='../Results/g_r_%s/Predicted84/All_LensesPredicted.txt' % dt_string)
+
+excel_headers.append("Predicted_Lens_All")
+excel_dictionary.append(all_lens_predicted_count)
+excel_headers.append("Predicted_No_Lens_All")
+excel_dictionary.append(all_non_lens_predicted_count)
+
+# K fold for training data
+executeKFoldValidation(training_data, training_labels, val_data, val_labels, testing_data, testing_labels,
+                       images_47, labels_47, images_84, labels_84, all_unseen_images, all_unseen_labels)
+
+print("Test loss of normal CNN: %s" % scores[0])
+print("Test accuracy of normal CNN: %s" % scores[1])
 
 # add row to excel table
-# createExcelSheet('../Results/g_r_kerasCNN_Results.csv', excel_headers)
-writeToFile('../Results/g_r_kerasCNN_Results.csv', excel_dictionary)
+if makeNewCSVFile:
+    createExcelSheet('../Results/new_kerasCNN_Results.csv', excel_headers)
+    writeToFile('../Results/new_kerasCNN_Results.csv', excel_dictionary)
+else:
+    writeToFile('../Results/new_kerasCNN_Results.csv', excel_dictionary)
