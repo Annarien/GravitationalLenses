@@ -206,7 +206,7 @@ def makeImageSet(positive_images, negative_images=None, known_des_names=None, ne
         positive_images(numpy array):   This is the numpy array of the positively simulated images.
         negative_images(numpy array):   This is the numpy array of the negative images, this is set to a
                                         default of None.
-        known_des_names(dictionary):    This is the dictionary of the unseen known lenses, this is set to a
+        known_des_names(list):    This is the dictionary of the unseen known lenses, this is set to a
                                         default of None.
         neg_des_names(dictionary):      This is the dictionary of the negative images, this is set to a
                                         default of None.
@@ -240,6 +240,15 @@ def makeImageSet(positive_images, negative_images=None, known_des_names=None, ne
 
         if shuffle_needed:
             image_set, label_set = shuffle(image_set, label_set)
+
+    elif negative_images is None and neg_des_names is None:
+        for index in range(0, len(positive_images)):
+            image_set.append(positive_images[index])
+            label_set.append(1)
+            des_names_set.append(known_des_names[index])
+        if shuffle_needed:
+            image_set, label_set, des_names_set = shuffle(image_set, label_set, des_names_set)
+
 
     else:  # if there is names for des
         for index_des in range(0, len(positive_images)):
@@ -446,7 +455,7 @@ def savePredictedLenses(des_names_array, predicted_class_probabilities, predicte
     """
     This saves the names of the predicted lenses in the respective textfiles.
     Args:
-        des_names_array(list): This is a list of the des names of the sources.
+        des_names_array(numpy array): This is a list of the des names of the sources.
         predicted_class_probabilities(list):    This is a list of the probabilities in which lenses are predicted by
                                                 the algorithm.
         predicted_lenses_filepath(string):      This is the string of the predicted lenses filepath, where this needs
@@ -808,10 +817,10 @@ gettingTrueFalsePositiveNegatives(testing_data,
 
 # Evaluate known 47 with negative 47
 known_47_images = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=input_shape)
-images_47, labels_47, des_47_names = makeImageSet(list(known_47_images.values()),
-                                                  list(known_47_images.keys()),
+images_47, labels_47, des_47_names = makeImageSet(positive_images=list(known_47_images.values()),
+                                                  known_des_names=list(known_47_images.keys()),
                                                   shuffle_needed=True)
-print("47 Data Shape:  " + str(images_47.shape))
+print("47 Images Shape:  " + str(images_47.shape))
 print("47 Labels Shape: " + str(labels_47.shape))
 print("Got Unseen 47 data")
 
@@ -838,10 +847,10 @@ excel_dictionary.append(non_lens_predicted_count_47)
 
 # Evaluate known 84 with negative 84
 known_84_images = getUnseenData('UnseenData/Known84', max_num_prediction, input_shape=input_shape)
-images_84, labels_84, des_84_names = makeImageSet(list(known_84_images.values()),
-                                                  list(known_84_images.keys()),
+images_84, labels_84, des_84_names = makeImageSet(positive_images=list(known_84_images.values()),
+                                                  known_des_names=list(known_84_images.keys()),
                                                   shuffle_needed=True)
-print("84 Data Shape:  " + str(images_84.shape))
+print("84 Images Shape:  " + str(images_84.shape))
 print("84 Labels Shape: " + str(labels_84.shape))
 print("Got Unseen 84 data")
 
