@@ -41,9 +41,9 @@ validation_split = 0.2  # A float value between 0 and 1 that determines what per
 # data is used for validation.
 k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 3  # A number that dictates how many iterations should be run to train the classifier
+epochs = 5  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
-run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
@@ -219,10 +219,10 @@ def makeImageSet(positive_images, negative_images=None, known_des_names=None, ne
                                         and negative label.
         des_names_set(numpy array):     This is the des name data set of the known lenses and negative images used.
     """
-    if negative_images is None:
-        negative_images = []
-        known_des_names = {}
-        neg_des_names = {}
+    # if negative_images is None:
+    #     negative_images = []
+    #     # known_des_names = {}
+    #     neg_des_names = {}
 
     image_set = []
     label_set = []
@@ -241,28 +241,28 @@ def makeImageSet(positive_images, negative_images=None, known_des_names=None, ne
         if shuffle_needed:
             image_set, label_set = shuffle(image_set, label_set)
 
-    elif negative_images is None and neg_des_names is None:
-        for index in range(0, len(positive_images)):
-            image_set.append(positive_images[index])
-            label_set.append(1)
-            des_names_set.append(known_des_names[index])
-        if shuffle_needed:
-            image_set, label_set, des_names_set = shuffle(image_set, label_set, des_names_set)
+    # elif negative_images is None and neg_des_names is None:
+    #     for index in range(0, len(positive_images)):
+    #         image_set.append(positive_images[index])
+    #         label_set.append(1)
+    #         des_names_set.append(known_des_names[index])
+    #     if shuffle_needed:
+    #         image_set, label_set, des_names_set = shuffle(image_set, label_set, des_names_set)
 
     #
-    # else:  # if there is names for des
-    #     for index_des in range(0, len(positive_images)):
-    #         image_set.append(positive_images[index_des])
-    #         label_set.append(1)
-    #         des_names_set.append(known_des_names[index_des])
-    #
+    else:  # if there is names for des
+        for index_des in range(0, len(positive_images)):
+            image_set.append(positive_images[index_des])
+            label_set.append(1)
+            des_names_set.append(known_des_names[index_des])
+
     #     for index_des in range(0, len(negative_images)):
     #         image_set.append(negative_images[index_des])
     #         label_set.append(0)
     #         des_names_set.append(neg_des_names[index_des])
     #
-    #     if shuffle_needed:
-    #         image_set, label_set, des_names_set = shuffle(image_set, label_set, des_names_set)
+        if shuffle_needed:
+            image_set, label_set, des_names_set = shuffle(image_set, label_set, des_names_set)
 
     return np.array(image_set), np.array(label_set), np.array(des_names_set)
 
@@ -907,7 +907,7 @@ executeKFoldValidation(training_data, training_labels, val_data, val_labels, tes
                        images_47, labels_47, images_84, labels_84, all_unseen_images, all_unseen_labels)
 
 print("Test loss of normal CNN: %s" % scores[0])
-print("Test accuracy of normal CNN: %s" % scores[1])
+print("Test accuracy of normal CNN: %s" % scores[1]*100)
 
 # add row to excel table
 if makeNewCSVFile:
