@@ -106,20 +106,22 @@ while table != 'Jacobs' and table != 'DES2017':
 
     elif table == 'DES2017':
 
-        location_of_file = "KnownLenses/DES2017.xlsx"  # location of a file
+        # location_of_file = "KnownLenses/DES2017.xlsx"  # location of a file
+        location_of_file = "UnseenData/Unseen_KnownLenses.xlsx"
         workbook = xlrd.open_workbook(location_of_file)  # opening a workbook
         sheet = workbook.sheet_by_index(0)
         num_of_rows = sheet.nrows
         ra = 0.0
         dec = 0.0
 
-        for num in range(0, sheet.nrows):
+        for num in range(1, sheet.nrows):
             print("Num: " + str(num))
             des_tile = sheet.cell_value(num, 0).encode('utf-8')
             print("DESTILE: " + (des_tile) + " TYPE: " + str(type(des_tile)))
-            ra = sheet.cell_value(num, 1).encode('utf-8')
+            ra = str(sheet.cell_value(num, 1)).encode('utf-8')
             col_c = sheet.cell_value(num, 2)  # index of whether or not dec is +ve or -ve
-            dec_degree = sheet.cell_value(num, 4).encode('utf-8')
+
+            dec_degree = str(sheet.cell_value(num, 4)).encode('utf-8')
 
             ra = float(ra)
             if col_c == 1:
@@ -138,10 +140,11 @@ while table != 'Jacobs' and table != 'DES2017':
             print('TileName: ' + tile_name)
 
             # How to fetch all images for tile which contains given coords
-            tiler.fetchTileImages(ra_deg, dec_deg, num, tile_name)
-
+            tiler.fetchTileImages(ra_deg, dec_deg, tile_name)
+            print('done')
             path_processed = 'KnownLenses/DES2017'
             # get g_mag, r_mag, i_mag
             loadDES(tile_name)
+            print('loaded image from DES')
             clipWCS(tile_name, num, ra_deg, dec_deg, path_processed, des_tile)
             normaliseRGB(num, tile_name, base_dir=path_processed)
