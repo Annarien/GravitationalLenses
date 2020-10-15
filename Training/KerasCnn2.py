@@ -21,8 +21,9 @@ from tensorflow.python.keras.layers.core import Dense, Dropout, Flatten
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.keras.utils.vis_utils import plot_model
-
 from ExcelUtils import createExcelSheet, writeToFile
+import tensorflow
+print(tensorflow.__version__)
 
 now = datetime.now()
 dt_string = now.strftime("%d_%m_%Y_%H_%M_%S")
@@ -34,14 +35,14 @@ excel_dictionary.append(dt_string)
 
 # Globals
 makeNewCSVFile = True
-max_num = 1990  # Set to sys.maxsize when running entire data set
+max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
+k_fold_num = 2  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 5  # A number that dictates how many iterations should be run to train the classifier
+epochs = 2  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
@@ -241,26 +242,12 @@ def makeImageSet(positive_images, negative_images=None, known_des_names=None, ne
         if shuffle_needed:
             image_set, label_set = shuffle(image_set, label_set)
 
-    # elif negative_images is None and neg_des_names is None:
-    #     for index in range(0, len(positive_images)):
-    #         image_set.append(positive_images[index])
-    #         label_set.append(1)
-    #         des_names_set.append(known_des_names[index])
-    #     if shuffle_needed:
-    #         image_set, label_set, des_names_set = shuffle(image_set, label_set, des_names_set)
-
-    #
     else:  # if there is names for des
         for index_des in range(0, len(positive_images)):
             image_set.append(positive_images[index_des])
             label_set.append(1)
             des_names_set.append(known_des_names[index_des])
 
-    #     for index_des in range(0, len(negative_images)):
-    #         image_set.append(negative_images[index_des])
-    #         label_set.append(0)
-    #         des_names_set.append(neg_des_names[index_des])
-    #
         if shuffle_needed:
             image_set, label_set, des_names_set = shuffle(image_set, label_set, des_names_set)
 
@@ -483,7 +470,7 @@ def savePredictedLenses(des_names_array, predicted_class_probabilities, predicte
 
 
 def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_path,
-                                      predicted_lenses_filepath):
+                                      predicted_lenses_filepath, kf_counter=0):
     """
     This is used to get the True/False Positive and Negative values gained from the CNN confusion matrix.
     Args:
@@ -508,7 +495,8 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
     print("False Positive: %s \n" % false_positive)
     print("True Negative: %s \n" % true_negative)
 
-    text_file = open('%s' % text_file_path, "w")
+    text_file = open('%s' % text_file_path, "a+")
+    text_file.write('KFold Number: %s \n' % str(kf_counter))
     text_file.write('Predicted vs True Matrix: \n')
     text_file.write(str(matrix) + " \n ")
     text_file.write("True Negative: %s \n" % str(true_negative))
@@ -523,13 +511,14 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
 
 
 def gettingKFoldConfusionMatrix(test_data, test_labels, images_47, labels_47, images_84, labels_84, all_unseen_images,
-                                all_unseen_labels):
+                                all_unseen_labels, kf_counter):
     test_confusion_matrix = gettingTrueFalsePositiveNegatives(test_data,
                                                               test_labels,
                                                               text_file_path='../Results/%s/TrainingTestingResults'
                                                                              '/KFold_PredictedMatrix.txt' % dt_string,
                                                               predicted_lenses_filepath='../Results/%s/TrainingTestingResults'
-                                                                                        % dt_string)
+                                                                                        % dt_string,
+                                                              kf_counter=kf_counter)
 
     confusion_matrix_47 = gettingTrueFalsePositiveNegatives(images_47,
                                                             labels_47,
@@ -537,7 +526,8 @@ def gettingKFoldConfusionMatrix(test_data, test_labels, images_47, labels_47, im
                                                                            '/KFold_47_LensesPredicted.txt' %
                                                                            dt_string,
                                                             predicted_lenses_filepath='../Results/%s/Predicted47'
-                                                                                      % dt_string)
+                                                                                      % dt_string,
+                                                            kf_counter=kf_counter)
 
     confusion_matrix_84 = gettingTrueFalsePositiveNegatives(images_84,
                                                             labels_84,
@@ -545,7 +535,8 @@ def gettingKFoldConfusionMatrix(test_data, test_labels, images_47, labels_47, im
                                                                            '/KFold_84_LensesPredicted.txt' %
                                                                            dt_string,
                                                             predicted_lenses_filepath='../Results/%s/Predicted84'
-                                                                                      % dt_string)
+                                                                                      % dt_string,
+                                                            kf_counter=kf_counter)
 
     all_confusion_matrix = gettingTrueFalsePositiveNegatives(all_unseen_images,
                                                              all_unseen_labels,
@@ -553,7 +544,8 @@ def gettingKFoldConfusionMatrix(test_data, test_labels, images_47, labels_47, im
                                                                             '/KFold_All_LensesPredicted.txt' % dt_string,
                                                              predicted_lenses_filepath='../Results/%s'
                                                                                        '/All_Predicted' %
-                                                                                       dt_string)
+                                                                                       dt_string,
+                                                             kf_counter = kf_counter)
 
     return test_confusion_matrix, confusion_matrix_47, confusion_matrix_84, all_confusion_matrix
 
@@ -622,7 +614,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, test_
             test_confusion_matrix, confusion_matrix_47, confusion_matrix_84, all_confusion_matrix = \
                 gettingKFoldConfusionMatrix(test_data, test_labels, images_47, labels_47, images_84, labels_84,
                                             all_unseen_images,
-                                            all_unseen_labels)
+                                            all_unseen_labels, kf_counter)
             test_matrix_list.append(test_confusion_matrix)
             matrix_47_list.append(confusion_matrix_47)
             matrix_84_list.append(confusion_matrix_84)
@@ -649,10 +641,10 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, test_
         print("All Unseen Scores: " + str(all_unseen_scores_list))
         print("All Unseen Scores Mean: " + str(all_unseen_mean))
         print("All Unseen Scores Std: " + str(all_unseen_std))
-        print("Test Confusion Matrices: " +str(test_matrix_list))
-        print("47 Confusion Matrices: " +str(matrix_47_list))
-        print("84 Confusion Matrices: "+str(matrix_84_list))
-        print("All Confusion Matrices: "+str(all_matrix_list))
+        print("Test Confusion Matrices: " + str(test_matrix_list))
+        print("47 Confusion Matrices: " + str(matrix_47_list))
+        print("84 Confusion Matrices: " + str(matrix_84_list))
+        print("All Confusion Matrices: " + str(all_matrix_list))
 
         excel_headers.append("Test Scores Mean")
         excel_dictionary.append(test_scores_mean)
@@ -814,7 +806,8 @@ excel_dictionary.append(scores[1])
 
 gettingTrueFalsePositiveNegatives(testing_data,
                                   testing_labels,
-                                  text_file_path='../Results/%s/TrainingTestingResults/ActualPredictedMatrix.txt' % dt_string,
+                                  text_file_path='../Results/%s/TrainingTestingResults/ActualPredictedMatrix.txt'
+                                                 % dt_string,
                                   predicted_lenses_filepath='../Results/%s/TrainingTestingResults' % dt_string)
 
 # Evaluate known 47 with negative 47
@@ -909,7 +902,7 @@ executeKFoldValidation(training_data, training_labels, val_data, val_labels, tes
                        images_47, labels_47, images_84, labels_84, all_unseen_images, all_unseen_labels)
 
 print("Test loss of normal CNN: %s" % scores[0])
-print("Test accuracy of normal CNN: %s" % scores[1]*100)
+print("Test accuracy of normal CNN: %s" % (scores[1] * 100))
 
 # add row to excel table
 if makeNewCSVFile:
