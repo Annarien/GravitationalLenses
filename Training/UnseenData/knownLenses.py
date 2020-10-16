@@ -13,7 +13,7 @@ import glob
 # importing modules needed
 import os
 import sys
-import desTiler
+import DESTiler
 import astropy.table as atpy
 import xlrd
 from astLib import *
@@ -100,7 +100,7 @@ for num in range(1, sheet.nrows):
     print("ra: " + str(ra) + " TYPE: " + str(type(ra)))
     print("dec: " + str(dec) + " TYPE: " + str(type(dec)))
 
-    tiler = desTiler.DESTiler("UnseenData/DES_DR1_TILE_INFO.csv")
+    tiler = DESTiler.DESTiler("UnseenData/DES_DR1_TILE_INFO.csv")
 
     # How to get tile name
     ra_deg, dec_deg = ra, dec
@@ -112,7 +112,7 @@ for num in range(1, sheet.nrows):
     print('done')
     path_processed = 'UnseenData/KnownLenses'
     # get g_mag, r_mag, i_mag
-    #loadDES(tile_name)
+    loadDES(tile_name)
     print('loaded image from DES')
     clipWCS(tile_name, num, ra_deg, dec_deg, path_processed, des_tile)
     normaliseRGB(num, tile_name, base_dir=path_processed)
