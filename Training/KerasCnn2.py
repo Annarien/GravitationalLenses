@@ -23,6 +23,7 @@ from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.keras.utils.vis_utils import plot_model
 from ExcelUtils import createExcelSheet, writeToFile
 import tensorflow
+
 print(tensorflow.__version__)
 
 now = datetime.now()
@@ -550,7 +551,7 @@ def gettingKFoldConfusionMatrix(test_data, test_labels, images_47, labels_47, im
                                                              predicted_lenses_filepath='../Results/%s'
                                                                                        '/All_Predicted' %
                                                                                        dt_string,
-                                                             kf_counter = kf_counter)
+                                                             kf_counter=kf_counter)
 
     return test_confusion_matrix, confusion_matrix_47, confusion_matrix_84, all_confusion_matrix
 
@@ -814,6 +815,41 @@ gettingTrueFalsePositiveNegatives(testing_data,
                                   text_file_path='../Results/%s/TrainingTestingResults/ActualPredictedMatrix.txt'
                                                  % dt_string,
                                   predicted_lenses_filepath='../Results/%s/TrainingTestingResults' % dt_string)
+
+# # Getting Unseen Known Lenses
+# unseen_known_images = getUnseenData('UnseenData/KnownLenses', max_num_prediction, input_shape=input_shape)
+# known_images, known_labels, known_des_names = makeImageSet(positive_images=list(unseen_known_images.values()),
+#                                                            known_des_names=list(unseen_known_images.keys()),
+#                                                            shuffle_needed=True)
+# print("Unseen Known Images Shape:  " + str(known_images.shape))
+# print("Unseen Known Labels Shape: " + str(known_labels.shape))
+# print("Got Unseen Known Lenses Data")
+#
+# predicted_class_probabilities_known_lenses = classifier.predict_classes(known_images, batch_size=batch_size)
+# lens_predicted = np.count_nonzero(predicted_class_probabilities_known_lenses == 1)
+# non_lens_predicted = np.count_nonzero(predicted_class_probabilities_known_lenses == 0)
+# print("%s/%s known lenses predicted" % lens_predicted, known_images.shape[0])
+# print("%s/%s  non known lenses predicted" % lens_predicted, known_images.shape[0])
+#
+# gettingTrueFalsePositiveNegatives(known_images, known_labels,
+#                                   text_file_path='../Results/%s/UnseenKnownLenses/LensesPredicted.txt' % dt_string,
+#                                   predicted_lenses_filepath='../Results/%s/UnseenKnownLenses' % dt_string)
+#
+# savePredictedLenses(known_des_names,
+#                     predicted_class_probabilities_known_lenses,
+#                     text_file_path = '../Results/%s/UnseenKnownLenses/LensesPredicted.txt' % dt_string,
+#                     predicted_lenses_filepath = '../Results/%s/UnseenKnownLenses' % dt_string)
+#
+#
+# excel_headers.append("Unseen_Known_Lenses_Predicted")
+# excel_dictionary.append(lens_predicted)
+# excel_headers.append("Unseen_Known_Lenses_No_Lens_Predicted")
+# excel_dictionary.append(non_lens_predicted)
+#
+#
+# # K fold for training data
+# executeKFoldValidation(training_data, training_labels, val_data, val_labels, testing_data, testing_labels,
+#                        known_images, known_labels)
 
 # Evaluate known 47 with negative 47
 known_47_images = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=input_shape)
