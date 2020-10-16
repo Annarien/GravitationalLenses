@@ -67,7 +67,7 @@ def clipWCS(tile_name, num, ra, dec, path_processed, des_tile='', base_dir='DES/
             header = bandDES[1].header
             header.set('RA', ra)
             header.set('DEC', dec)
-            header.set('DESJ', des_tile)
+            # header.set('DES', des_tile)
             wcs = astWCS.WCS(header, mode="pyfits")
             wcs_clipped = astImages.clipImageSectionWCS(bandDES[1].data, wcs, ra, dec, size_wcs)
             astImages.saveFITS('%s/%s_WCSClipped.fits' % (new_path, band), wcs_clipped['data'], wcs)
@@ -76,7 +76,8 @@ def clipWCS(tile_name, num, ra, dec, path_processed, des_tile='', base_dir='DES/
 
 # ____________________________________________________________________________________________________________________
 # MAIN
-
+start_number = int(sys.argv[1])
+print(start_number)
 location_of_file = "UnseenData/Unseen_KnownLenses.xlsx"
 workbook = xlrd.open_workbook(location_of_file)  # opening a workbook
 sheet = workbook.sheet_by_index(0)
@@ -84,7 +85,7 @@ num_of_rows = sheet.nrows
 ra = 0.0
 dec = 0.0
 
-for num in range(1, sheet.nrows):
+for num in range(start_number, sheet.nrows):
     print("Num: " + str(num))
     des_tile = sheet.cell_value(num, 0).encode('utf-8')
     print("DESTILE: " + (des_tile) + " TYPE: " + str(type(des_tile)))
