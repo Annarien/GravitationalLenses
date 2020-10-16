@@ -11,6 +11,8 @@ a 100*100 pixel image. These images are then normalised and a RGB composite is m
 """
 import glob
 # importing modules needed
+import matplotlib
+matplotlib.use('Agg')
 import os
 import sys
 import desTiler
