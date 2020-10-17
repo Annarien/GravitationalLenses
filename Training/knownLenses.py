@@ -108,8 +108,11 @@ for num in range(start_number, sheet.nrows):
     # How to get tile name
     ra_deg, dec_deg = ra, dec
     tile_name = tiler.getTileName(ra_deg, dec_deg)
-    print('TileName: ' + tile_name)
+    if tile_name is None:
+        print('TileName is NONE')
+        continue
 
+    print('TileName: ' + tile_name)
     # How to fetch all images for tile which contains given coords
     tiler.fetchTileImages(ra_deg, dec_deg, tile_name)
     print('done')
