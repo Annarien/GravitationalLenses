@@ -218,10 +218,6 @@ def makeImageSet(positive_images, negative_images=None, tile_names=None, shuffle
                                         and negative label.
         des_names_set(numpy array):     This is the des name data set of the known lenses and negative images used.
     """
-    # if negative_images is None:
-    #     negative_images = []
-    #     # known_des_names = {}
-    #     neg_des_names = {}
 
     image_set = []
     label_set = []
