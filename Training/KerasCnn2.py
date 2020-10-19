@@ -41,9 +41,9 @@ max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
+k_fold_num = 2  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 5  # A number that dictates how many iterations should be run to train the classifier
+epochs = 1  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
@@ -199,8 +199,7 @@ def getUnseenData(images_dir, max_num, input_shape):
         return des_tiles
 
 
-def makeImageSet(positive_images, negative_images=None, known_des_names=None, neg_des_names=None,
-                 shuffle_needed=use_shuffle):
+def makeImageSet(positive_images, negative_images=None, tile_names=None, shuffle_needed=use_shuffle):
     """
     This is used to create data set of images and labels, in which the positive and negative images are all
     combined and shuffled.
@@ -208,9 +207,7 @@ def makeImageSet(positive_images, negative_images=None, known_des_names=None, ne
         positive_images(numpy array):   This is the numpy array of the positively simulated images.
         negative_images(numpy array):   This is the numpy array of the negative images, this is set to a
                                         default of None.
-        known_des_names(list):    This is the dictionary of the unseen known lenses, this is set to a
-                                        default of None.
-        neg_des_names(list):      This is the dictionary of the negative images, this is set to a
+        tile_names(list):               This is the dictionary of the unseen known lenses, this is set to a
                                         default of None.
         shuffle_needed(boolean):        This is a boolean value to determine whether or not shuffling of the given data
                                         sets is required.
@@ -228,36 +225,52 @@ def makeImageSet(positive_images, negative_images=None, known_des_names=None, ne
 
     image_set = []
     label_set = []
-    des_names_set = []
+    tile_name_set = []
+
+    if positive_images is not None:
+        for index in range(0, len(positive_images)):
+            image_set.append(positive_images[index])
+            label_set.append(1)
+            if tile_names is not None:
+                tile_name_set.append(tile_names[index])
+
+    if negative_images is not None:
+        for index in range(0, len(negative_images)):
+            image_set.append(negative_images[index])
+            label_set.append(0)
+            if tile_names is not None:
+                tile_name_set.append(tile_names[index])
 
     # If there is none in objects for the known_des_names and neg_des_names
-    if known_des_names is None and neg_des_names is None:
-        for index_none in range(0, len(positive_images)):
-            image_set.append(positive_images[index_none])
-            label_set.append(1)
+    # if known_des_names is None and neg_des_names is None:
+    #     for index_none in range(0, len(positive_images)):
+    #         image_set.append(positive_images[index_none])
+    #         label_set.append(1)
+    #
+    #     for index_none in range(0, len(negative_images)):
+    #         image_set.append(negative_images[index_none])
+    #         label_set.append(0)
+    #
+    #     if shuffle_needed:
+    #         image_set, label_set = shuffle(image_set, label_set)
+    #
+    # else:  # if there is names for des
+    #     for index_des in range(0, len(positive_images)):
+    #         image_set.append(positive_images[index_des])
+    #         label_set.append(1)
+    #         des_names_set.append(known_des_names[index_des])
 
-        for index_none in range(0, len(negative_images)):
-            image_set.append(negative_images[index_none])
-            label_set.append(0)
+    # for index_des in range(0, len(negative_images)):
+    #     image_set.append(negative_images[index_des])
+    #     label_set.append(0)
+    #     des_names_set.append(neg_des_names[index_des])
 
-        if shuffle_needed:
-            image_set, label_set = shuffle(image_set, label_set)
+    if tile_names is not None and shuffle_needed:
+        image_set, label_set, tile_name_set = shuffle(image_set, label_set, tile_name_set)
+    elif tile_names is None and shuffle_needed:
+        image_set, label_set = shuffle(image_set, label_set)
 
-    else:  # if there is names for des
-        for index_des in range(0, len(positive_images)):
-            image_set.append(positive_images[index_des])
-            label_set.append(1)
-            des_names_set.append(known_des_names[index_des])
-
-        for index_des in range(0, len(negative_images)):
-            image_set.append(negative_images[index_des])
-            label_set.append(0)
-            des_names_set.append(neg_des_names[index_des])
-
-        if shuffle_needed:
-            image_set, label_set, des_names_set = shuffle(image_set, label_set, des_names_set)
-
-    return np.array(image_set), np.array(label_set), np.array(des_names_set)
+    return np.array(image_set), np.array(label_set), np.array(tile_name_set)
 
 
 def buildClassifier(input_shape=(100, 100, 3)):
@@ -492,19 +505,32 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
         os.mkdir('%s/' % predicted_lenses_filepath)
 
     predicted_data = classifier.predict_classes(testing_data)
-    true_negative, false_positive, false_negative, true_positive = confusion_matrix(testing_labels,
-                                                                                    predicted_data.round()).ravel()
-    matrix = (confusion_matrix(testing_labels, predicted_data.round()))
-    print(str(matrix) + ' \n ')
+    rounded_predicted_data = predicted_data.round()
+    conf_matrix = confusion_matrix(testing_labels, rounded_predicted_data, labels=[0, 1])
+    print(str(conf_matrix) + ' \n ')
+    true_negative, false_positive, false_negative, true_positive = conf_matrix.ravel()
+    # true_negative = conf_matrix[0][0]
+    # false_positive = conf_matrix[0][1]
+    # false_negative = conf_matrix[1][0]
+    # true_positive = conf_matrix[1][1]
     print("True Positive: %s \n" % true_positive)
     print("False Negative: %s \n" % false_negative)
     print("False Positive: %s \n" % false_positive)
     print("True Negative: %s \n" % true_negative)
 
+    # else:
+    #     predicted_class_probabilities = classifier.predict_classes(testing_data, batch_size=batch_size)
+    #     lens_predicted_count = np.count_nonzero(predicted_class_probabilities == 1)
+    #     non_lens_predicted_count = np.count_nonzero(predicted_class_probabilities == 0)
+    #     print("%s/47 known images predicted" % lens_predicted_count)
+    #     print("%s/47 non lensed images predicted" % non_lens_predicted_count)
+    #     matrix = {[0, 0], [non_lens_predicted_count, lens_predicted_count]}
+    #     print(matrix)
+
     text_file = open('%s' % text_file_path, "a+")
     text_file.write('KFold Number: %s \n' % str(kf_counter))
     text_file.write('Predicted vs True Matrix: \n')
-    text_file.write(str(matrix) + " \n ")
+    text_file.write(str(conf_matrix) + " \n ")
     text_file.write("True Negative: %s \n" % str(true_negative))
     text_file.write("False Positive: %s \n" % str(false_positive))
     text_file.write("False Negative: %s \n" % str(false_negative))
@@ -854,7 +880,7 @@ gettingTrueFalsePositiveNegatives(testing_data,
 # Evaluate known 47 with negative 47
 known_47_images = getUnseenData('UnseenData/Known47', max_num_prediction, input_shape=input_shape)
 images_47, labels_47, des_47_names = makeImageSet(positive_images=list(known_47_images.values()),
-                                                  known_des_names=list(known_47_images.keys()),
+                                                  tile_names=list(known_47_images.keys()),
                                                   shuffle_needed=True)
 print("47 Images Shape:  " + str(images_47.shape))
 print("47 Labels Shape: " + str(labels_47.shape))
@@ -884,7 +910,7 @@ excel_dictionary.append(non_lens_predicted_count_47)
 # Evaluate known 84 with negative 84
 known_84_images = getUnseenData('UnseenData/Known84', max_num_prediction, input_shape=input_shape)
 images_84, labels_84, des_84_names = makeImageSet(positive_images=list(known_84_images.values()),
-                                                  known_des_names=list(known_84_images.keys()),
+                                                  tile_names=list(known_84_images.keys()),
                                                   shuffle_needed=True)
 print("84 Images Shape:  " + str(images_84.shape))
 print("84 Labels Shape: " + str(labels_84.shape))
@@ -920,8 +946,8 @@ print("All Data Labels: " + str(all_unseen_labels.shape))
 all_predicted_class_probabilities = classifier.predict_classes(all_unseen_images, batch_size=batch_size)
 all_lens_predicted_count = np.count_nonzero(all_predicted_class_probabilities == 1)
 all_non_lens_predicted_count = np.count_nonzero(all_predicted_class_probabilities == 0)
-print("%s/131 known images predicted" % all_lens_predicted_count)
-print("%s/131 non lensed images predicted" % all_non_lens_predicted_count)
+print("%s/%s known images predicted" % (all_lens_predicted_count, len(all_unseen_images)))
+print("%s/%s non lensed images predicted" % (all_non_lens_predicted_count, len(all_unseen_images)))
 
 gettingTrueFalsePositiveNegatives(all_unseen_images,
                                   all_unseen_labels,
