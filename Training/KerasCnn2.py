@@ -482,23 +482,10 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
     conf_matrix = confusion_matrix(testing_labels, rounded_predicted_data, labels=[0, 1])
     print(str(conf_matrix) + ' \n ')
     true_negative, false_positive, false_negative, true_positive = conf_matrix.ravel()
-    # true_negative = conf_matrix[0][0]
-    # false_positive = conf_matrix[0][1]
-    # false_negative = conf_matrix[1][0]
-    # true_positive = conf_matrix[1][1]
     print("True Positive: %s \n" % true_positive)
     print("False Negative: %s \n" % false_negative)
     print("False Positive: %s \n" % false_positive)
     print("True Negative: %s \n" % true_negative)
-
-    # else:
-    #     predicted_class_probabilities = classifier.predict_classes(testing_data, batch_size=batch_size)
-    #     lens_predicted_count = np.count_nonzero(predicted_class_probabilities == 1)
-    #     non_lens_predicted_count = np.count_nonzero(predicted_class_probabilities == 0)
-    #     print("%s/47 known images predicted" % lens_predicted_count)
-    #     print("%s/47 non lensed images predicted" % non_lens_predicted_count)
-    #     matrix = {[0, 0], [non_lens_predicted_count, lens_predicted_count]}
-    #     print(matrix)
 
     text_file = open('%s' % text_file_path, "a+")
     text_file.write('KFold Number: %s \n' % str(kf_counter))
