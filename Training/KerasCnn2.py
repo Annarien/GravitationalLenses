@@ -36,7 +36,7 @@ excel_dictionary.append(dt_string)
 
 # Globals
 makeNewCSVFile = True
-max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num = 100  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
@@ -241,34 +241,11 @@ def makeImageSet(positive_images, negative_images=None, tile_names=None, shuffle
             if tile_names is not None:
                 tile_name_set.append(tile_names[index])
 
-    # If there is none in objects for the known_des_names and neg_des_names
-    # if known_des_names is None and neg_des_names is None:
-    #     for index_none in range(0, len(positive_images)):
-    #         image_set.append(positive_images[index_none])
-    #         label_set.append(1)
-    #
-    #     for index_none in range(0, len(negative_images)):
-    #         image_set.append(negative_images[index_none])
-    #         label_set.append(0)
-    #
-    #     if shuffle_needed:
-    #         image_set, label_set = shuffle(image_set, label_set)
-    #
-    # else:  # if there is names for des
-    #     for index_des in range(0, len(positive_images)):
-    #         image_set.append(positive_images[index_des])
-    #         label_set.append(1)
-    #         des_names_set.append(known_des_names[index_des])
-
-    # for index_des in range(0, len(negative_images)):
-    #     image_set.append(negative_images[index_des])
-    #     label_set.append(0)
-    #     des_names_set.append(neg_des_names[index_des])
-
-    if tile_names is not None and shuffle_needed:
-        image_set, label_set, tile_name_set = shuffle(image_set, label_set, tile_name_set)
-    elif tile_names is None and shuffle_needed:
-        image_set, label_set = shuffle(image_set, label_set)
+    if shuffle_needed:
+        if tile_names is not None:
+            image_set, label_set, tile_name_set = shuffle(image_set, label_set, tile_name_set)
+        else:
+            image_set, label_set = shuffle(image_set, label_set)
 
     return np.array(image_set), np.array(label_set), np.array(tile_name_set)
 
