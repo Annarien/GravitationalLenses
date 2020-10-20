@@ -36,7 +36,7 @@ excel_dictionary.append(dt_string)
 
 # Globals
 makeNewCSVFile = True
-max_num = 10  # Set to sys.maxsize when running entire data set
+max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
@@ -186,7 +186,9 @@ def getUnseenData(images_dir, max_num, input_shape):
             r_img_path = get_pkg_data_filename('%s/r_norm.fits' % (os.path.join(root, folder)))
             i_img_path = get_pkg_data_filename('%s/i_norm.fits' % (os.path.join(root, folder)))
 
+            # print(g_img_path)
             g_data = fits.open(g_img_path)[0].data[0:100, 0:100]
+            # print(np.shape(g_data))
             r_data = fits.open(r_img_path)[0].data[0:100, 0:100]
             i_data = fits.open(i_img_path)[0].data[0:100, 0:100]
 
