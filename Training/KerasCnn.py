@@ -239,13 +239,13 @@ def makeImageSet(positive_images, negative_images=None, tile_names=None, shuffle
             if tile_names is not None:
                 tile_name_set.append(tile_names[index])
 
-    print("Label Set: " + str(label_set))
+    #print("Label Set: " + str(label_set))
     if shuffle_needed:
         if tile_names is not None:
             image_set, label_set, tile_name_set = shuffle(image_set, label_set, tile_name_set)
         else:
             image_set, label_set = shuffle(image_set, label_set)
-    print("Shuffled Label Set: " + str(label_set))
+    #print("Shuffled Label Set: " + str(label_set))
 
     return np.array(image_set), np.array(label_set), np.array(tile_name_set)
 
