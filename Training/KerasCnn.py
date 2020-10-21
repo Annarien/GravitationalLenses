@@ -36,15 +36,15 @@ excel_dictionary.append(dt_string)
 
 # Globals
 makeNewCSVFile = True
-max_num = 500 # Set to sys.maxsize when running entire data set
-max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
-max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num = 100  # Set to sys.maxsize when running entire data set
+max_num_testing = 50  # Set to sys.maxsize when running entire data set
+max_num_prediction = 50  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 10  # A number between 1 and 10 that determines how many times the k-fold classifier
+k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
 epochs = 5  # A number that dictates how many iterations should be run to train the classifier
-batch_size = 256  # The number of items batched together during training.
+batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
@@ -239,13 +239,13 @@ def makeImageSet(positive_images, negative_images=None, tile_names=None, shuffle
             if tile_names is not None:
                 tile_name_set.append(tile_names[index])
 
-    #print("Label Set: " + str(label_set))
+    # print("Label Set: " + str(label_set))
     if shuffle_needed:
         if tile_names is not None:
             image_set, label_set, tile_name_set = shuffle(image_set, label_set, tile_name_set)
         else:
             image_set, label_set = shuffle(image_set, label_set)
-    #print("Shuffled Label Set: " + str(label_set))
+    # print("Shuffled Label Set: " + str(label_set))
 
     return np.array(image_set), np.array(label_set), np.array(tile_name_set)
 
@@ -450,14 +450,13 @@ def savePredictedLenses(des_names_array, predicted_class_probabilities, predicte
     if not os.path.exists(predicted_lenses_filepath):
         os.mkdir('%s/' % predicted_lenses_filepath)
     text_file = open('%s' % text_file_path, "a+")
+    text_file.write('\n')
     text_file.write('Predicted Lenses: \n')
     for lens_index in range(len(predicted_class_probabilities)):
         if predicted_class_probabilities[lens_index] == 1:
             text_file.write("%s \n " % des_names_array[lens_index])
 
     text_file.write('\n')
-    text_file.write('\n')
-
     text_file.write('No Lenses Predicted: \n')
     for lens_index in range(len(predicted_class_probabilities)):
         if predicted_class_probabilities[lens_index] == 0:
@@ -492,6 +491,7 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
     print("True Negative: %s \n" % true_negative)
 
     text_file = open('%s' % text_file_path, "a+")
+    text_file.write('\n')
     text_file.write('KFold Number: %s \n' % str(kf_counter))
     text_file.write('Predicted vs True Matrix: \n')
     text_file.write(str(conf_matrix) + " \n ")
@@ -516,15 +516,16 @@ def gettingKFoldConfusionMatrix(test_data, test_labels, unseen_images, unseen_la
                                                               kf_counter=kf_counter)
     unseen_confusion_matrix = gettingTrueFalsePositiveNegatives(unseen_images,
                                                                 unseen_labels,
-                                                                text_file_path='../Results/%s/UnseenLenses/'
-                                                                               'KFold_PredictedMatrix.txt' % dt_string,
-                                                                predicted_lenses_filepath='../Results/%s/UnseenLenses/'
-                                                                                          % dt_string)
+                                                                text_file_path='../Results/%s/UnseenKnownLenses/'
+                                                                               'KFold_LensesPredicted.txt' % dt_string,
+                                                                predicted_lenses_filepath='../Results/%s/UnseenKnownLenses/'
+                                                                                          % dt_string,
+                                                                kf_counter=kf_counter)
     return test_confusion_matrix, unseen_confusion_matrix
 
 
 def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testing_data, testing_labels,
-                           known_images, known_labels):
+                           known_images, known_labels, known_des_names):
     """
     This does the k fold cross validation which is tested against the unseen testing and known lenses.
     Args:
@@ -574,13 +575,26 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
             unseen_scores = model.evaluate(known_images, known_labels, batch_size=batch_size)
             unseen_scores_list.append(unseen_scores[1] * 100)
 
-            print("Finished Evaluating")
             # show confusion matrix
             test_confusion_matrix, unseen_confusion_matrix = gettingKFoldConfusionMatrix(testing_data,
                                                                                          testing_labels, known_images,
                                                                                          known_labels, kf_counter)
+
+            probabilities_known_lenses = classifier.predict_classes(known_images, batch_size=batch_size)
+            predicted_lens = np.count_nonzero(probabilities_known_lenses == 1)
+            predicted_no_lens = np.count_nonzero(probabilities_known_lenses == 0)
+            print("%s/%s known lenses predicted" % (predicted_lens, len(known_images)))
+            print("%s/%s  non known lenses predicted" % (predicted_no_lens, len(known_images)))
+
+            savePredictedLenses(known_des_names,
+                                predicted_class_probabilities_known_lenses,
+                                text_file_path='../Results/%s/UnseenKnownLenses/KFold_LensesPredicted.txt' % dt_string,
+                                predicted_lenses_filepath='../Results/%s/UnseenKnownLenses' % dt_string)
+
             test_matrix_list.append(test_confusion_matrix)
             unseen_matrix_list.append(unseen_confusion_matrix)
+            print("Finished Evaluating")
+
 
         test_scores_mean = np.mean(test_scores_list)
         test_scores_std = np.std(test_scores_list)
@@ -612,6 +626,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         plt.ylabel('Accuracy')
         plt.legend()
         plt.show()
+        plt.savefig('../Results/%s/KFoldAccuracyScores.png' % dt_string)
 
 
 def viewActivationLayers():
@@ -713,7 +728,7 @@ plt.title('Training and validation accuracy')
 plt.legend()
 plt.xlabel("Epochs")
 plt.ylabel("Accuracy")
-# plt.show()
+plt.show()
 train_val_accuracy_figure.savefig('../Results/%s/TrainingValidationAccuracy.png' % dt_string)
 plt.close()
 
@@ -725,7 +740,7 @@ plt.title('Training and validation loss')
 plt.legend()
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
-# plt.show()
+plt.show()
 train_val_loss_figure.savefig('../Results/%s/TrainingValidationLoss.png' % dt_string)
 plt.close()
 
@@ -751,7 +766,7 @@ excel_dictionary.append(scores[1])
 
 gettingTrueFalsePositiveNegatives(testing_data,
                                   testing_labels,
-                                  text_file_path='../Results/%s/TrainingTestingResults/ActualPredictedMatrix.txt'
+                                  text_file_path='../Results/%s/TrainingTestingResults/PredictedMatrixBeforeKFOLD.txt'
                                                  % dt_string,
                                   predicted_lenses_filepath='../Results/%s/TrainingTestingResults' % dt_string)
 
@@ -771,12 +786,12 @@ print("%s/%s known lenses predicted" % (lens_predicted, len(known_images)))
 print("%s/%s  non known lenses predicted" % (non_lens_predicted, len(known_images)))
 
 gettingTrueFalsePositiveNegatives(known_images, known_labels,
-                                  text_file_path='../Results/%s/UnseenKnownLenses/LensesPredicted.txt' % dt_string,
+                                  text_file_path='../Results/%s/UnseenKnownLenses/PredictedMatrixBeforeKFOLD.txt' % dt_string,
                                   predicted_lenses_filepath='../Results/%s/UnseenKnownLenses' % dt_string)
 
 savePredictedLenses(known_des_names,
                     predicted_class_probabilities_known_lenses,
-                    text_file_path='../Results/%s/UnseenKnownLenses/LensesPredicted.txt' % dt_string,
+                    text_file_path='../Results/%s/UnseenKnownLenses/PredictedMatrixBeforeKFOLD.txt' % dt_string,
                     predicted_lenses_filepath='../Results/%s/UnseenKnownLenses' % dt_string)
 
 excel_headers.append("Unseen_Known_Lenses_Predicted")
@@ -784,11 +799,11 @@ excel_dictionary.append(lens_predicted)
 excel_headers.append("Unseen_Known_Lenses_No_Lens_Predicted")
 excel_dictionary.append(non_lens_predicted)
 
-print("Done MLP Classifier")
+print("Done Classifier")
 
 # K fold for training data
 executeKFoldValidation(training_data, training_labels, val_data, val_labels, testing_data, testing_labels,
-                       known_images, known_labels)
+                       known_images, known_labels, known_des_names)
 if makeNewCSVFile:
     createExcelSheet('../Results/new_kerasCNN_Results.csv', excel_headers)
     writeToFile('../Results/new_kerasCNN_Results.csv', excel_dictionary)
