@@ -768,7 +768,7 @@ predicted_class_probabilities_known_lenses = classifier.predict_classes(known_im
 lens_predicted = np.count_nonzero(predicted_class_probabilities_known_lenses == 1)
 non_lens_predicted = np.count_nonzero(predicted_class_probabilities_known_lenses == 0)
 print("%s/%s known lenses predicted" % (lens_predicted, len(known_images)))
-print("%s/%s  non known lenses predicted" % (lens_predicted, len(known_images)))
+print("%s/%s  non known lenses predicted" % (non_lens_predicted, len(known_images)))
 
 gettingTrueFalsePositiveNegatives(known_images, known_labels,
                                   text_file_path='../Results/%s/UnseenKnownLenses/LensesPredicted.txt' % dt_string,
