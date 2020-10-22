@@ -42,7 +42,7 @@ max_num_testing = 100  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 10  # A number between 1 and 10 that determines how many times the k-fold classifier
+k_fold_num = 2  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
 epochs = 2  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
@@ -576,8 +576,10 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         test_matrix_list = []
         unseen_matrix_list = []
         unseen_list_tp = []
+        unseen_list_tp_names = []
         unseen_list_fn = []
         kf_counter = 0
+        unseen_list_fn_names = []
         # kfoldUnseenplot, axis = plt.subplots(k_fold_num, 2)
         # plt.title('Random Unseen Images selected during k-fold for True Positive and False Negative')
         # for ax in axis.flat:
@@ -648,8 +650,11 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
 
             unseen_list_tp.append(imageTP)
             unseen_list_fn.append(imageFN)
-            print("List TP: " + str(unseen_list_tp))
-            print("List FN: " + str(unseen_list_fn))
+            unseen_list_tp_names.append(randomTP)
+            unseen_list_fn_names.append(randomFN)
+            # print("List TP: " + str(unseen_list_tp))
+            # print("List FN: " + str(unseen_list_fn))
+
             test_matrix_list.append(test_confusion_matrix)
             unseen_matrix_list.append(unseen_confusion_matrix)
 
@@ -684,7 +689,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         plt.legend()
         plt.show()
         plt.savefig('../Results/%s/KFoldAccuracyScores.png' % dt_string)
-        return unseen_list_tp, unseen_list_fn
+        return unseen_list_tp, unseen_list_tp_names, unseen_list_fn, unseen_list_tp_names
 
 
 def viewActivationLayers():
@@ -720,9 +725,18 @@ def viewActivationLayers():
     visualiseActivations(img_negative_tensor, base_dir='../Results/%s/NegativeResults/' % dt_string)
 
 
-def plotKFold(random_lenses_tp, random_lenses_fn):
+def plotKFold(random_lenses_tp, random_lenses_tp_names, random_lenses_fn, random_lenses_fn_names):
     fig, axs = plt.subplots(k_fold_num, 2)
-    images = []
+
+    cols = ['True Positive', 'False Negative']
+    rows = ['k = {}'.format(row) for row in range(1, k_fold_num)]
+
+    for ax, col in zip(axs[0], cols):
+        ax.set_title(col)
+
+    for ax, row in zip(axs[:, 0], rows):
+        ax.set_ylabel(row, rotation=0, size='large')
+
     for i in range(k_fold_num):
         # if not random_lenses_tp[i] == 0:
         image_tp = random_lenses_tp[i]
@@ -733,8 +747,10 @@ def plotKFold(random_lenses_tp, random_lenses_fn):
         # else:
         # image_fn = plt.new()
 
-        images.append(axs[i, 0].imshow(image_tp))
-        images.append(axs[i, 1].imshow(image_fn))
+        axs[i, 0].imshow(image_tp)
+        axs[i, 1].imshow(image_fn)
+        axs[i, 0].set_title(random_lenses_tp_names[i])
+        axs[i, 1].set_title(random_lenses_fn_names[i])
     plt.show()
 
 
@@ -880,10 +896,13 @@ excel_dictionary.append(non_lens_predicted)
 print("Done Classifier")
 
 # K fold for training data
-lenses_tp, lenses_fn = executeKFoldValidation(training_data, training_labels, val_data, val_labels, testing_data,
-                                              testing_labels,
-                                              known_images, known_labels, known_des_names)
-plotKFold(lenses_tp, lenses_fn)
+lenses_tp, lenses_tp_names, lenses_fn, lenses_fn_names = executeKFoldValidation(training_data, training_labels,
+                                                                                val_data, val_labels, testing_data,
+                                                                                testing_labels,
+                                                                                known_images, known_labels,
+                                                                                known_des_names)
+
+plotKFold(lenses_tp, lenses_tp_names, lenses_fn, lenses_fn_names)
 
 if makeNewCSVFile:
     createExcelSheet('../Results/new_kerasCNN_Results.csv', excel_headers)
