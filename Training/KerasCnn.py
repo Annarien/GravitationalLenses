@@ -732,10 +732,10 @@ def plotKFold(random_lenses_tp, random_lenses_tp_names, random_lenses_fn, random
     rows = ['k = {}'.format(row) for row in range(1, k_fold_num)]
 
     for ax, col in zip(axs[0], cols):
-        ax.set_title(col)
+        axs.set_title(col)
 
     for ax, row in zip(axs[:, 0], rows):
-        ax.set_ylabel(row, rotation=0, size='large')
+        axs.set_ylabel(row, rotation=0, size='large')
 
     for i in range(k_fold_num):
         # if not random_lenses_tp[i] == 0:
