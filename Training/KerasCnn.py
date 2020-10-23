@@ -4,11 +4,10 @@ The results were saved in a csv file.
 """
 
 import os
-import sys
 import random
 from datetime import datetime
-
 import numpy as np
+import tensorflow
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
 from matplotlib import pyplot as plt
@@ -22,8 +21,8 @@ from tensorflow.python.keras.layers.core import Dense, Dropout, Flatten
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.keras.utils.vis_utils import plot_model
+
 from ExcelUtils import createExcelSheet, writeToFile
-import tensorflow
 
 print(tensorflow.__version__)
 
@@ -37,14 +36,14 @@ excel_dictionary.append(dt_string)
 
 # Globals
 makeNewCSVFile = True
-max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
-max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
-max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num = 10  # Set to sys.maxsize when running entire data set
+max_num_testing = 10  # Set to sys.maxsize when running entire data set
+max_num_prediction = 10  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
+k_fold_num = 2  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 3  # A number that dictates how many iterations should be run to train the classifier
+epochs = 2  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
@@ -534,9 +533,7 @@ def gettingRandomUnseenImage(filepath):
     r_img_path = get_pkg_data_filename('%s/r_norm.fits' % filepath)
     i_img_path = get_pkg_data_filename('%s/i_norm.fits' % filepath)
 
-    # print(g_img_path)
     g_data = fits.open(g_img_path)[0].data[0:100, 0:100]
-    # print(np.shape(g_data))
     r_data = fits.open(r_img_path)[0].data[0:100, 0:100]
     i_data = fits.open(i_img_path)[0].data[0:100, 0:100]
 
@@ -575,23 +572,13 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         unseen_scores_list = []
         test_matrix_list = []
         unseen_matrix_list = []
-        unseen_list_tp = []
-        unseen_list_tp_names = []
-        unseen_list_fn = []
         kf_counter = 0
-        unseen_list_fn_names = []
-        # kfoldUnseenplot, axis = plt.subplots(k_fold_num, 2)
-        # plt.title('Random Unseen Images selected during k-fold for True Positive and False Negative')
-        # for ax in axis.flat:
-        #     ax.set(xlabel='True Positive')
-        #     ax.set(xlabel='False Negative')
-        #     ax.label_outer()
+        true_positives = {}
+        false_negatives = {}
 
         for train, test in kfold.split(train_data, train_labels):
             kf_counter += 1
             print('KFold #:', kf_counter)
-            # axis.set(ylabel='K = %s' % kf_counter)
-            # plt.setp(axisarray[:, 0], ylabel='k = %$' % kf_counter)
 
             model = buildClassifier()
             # fit the model
@@ -599,8 +586,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
                       train_labels[train],
                       epochs=epochs,
                       validation_data=(val_data, val_labels),
-                      batch_size=batch_size
-                      )
+                      batch_size=batch_size)
 
             test_scores = model.evaluate(testing_data, testing_labels, batch_size=batch_size)
             test_scores_list.append(test_scores[1] * 100)
@@ -628,32 +614,24 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
                                                                                                   'UnseenKnownLenses'
                                                                                                   % dt_string)
 
+            randomTP = None
+            imageTP = None
             if predicted_lenses:
                 randomTP = random.choice(predicted_lenses)
                 filepathTP = 'UnseenData/KnownLenses/%s' % randomTP
                 imageTP = gettingRandomUnseenImage(filepathTP)
-            else:
-                randomTP = ' '
-                imageTP = 0
+            true_positives[kf_counter] = (randomTP, imageTP)
 
+            randomFN = None
+            imageFN = None
             if predicted_no_lenses:
                 randomFN = random.choice(predicted_no_lenses)
                 filepathFN = 'UnseenData/KnownLenses/%s' % randomFN
                 imageFN = gettingRandomUnseenImage(filepathFN)
-
-            else:
-                randomFN = ' '
-                imageFN = 0
+            false_negatives[kf_counter] = (randomFN, imageFN)
 
             print("Lenses Predicted: " + str(randomTP))
             print("Lenses Not Predicted: " + str(randomFN))
-
-            unseen_list_tp.append(imageTP)
-            unseen_list_fn.append(imageFN)
-            unseen_list_tp_names.append(randomTP)
-            unseen_list_fn_names.append(randomFN)
-            # print("List TP: " + str(unseen_list_tp))
-            # print("List FN: " + str(unseen_list_fn))
 
             test_matrix_list.append(test_confusion_matrix)
             unseen_matrix_list.append(unseen_confusion_matrix)
@@ -689,7 +667,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         plt.legend()
         plt.show()
         plt.savefig('../Results/%s/KFoldAccuracyScores.png' % dt_string)
-        return unseen_list_tp, unseen_list_tp_names, unseen_list_fn, unseen_list_tp_names
+        return true_positives, false_negatives
 
 
 def viewActivationLayers():
@@ -725,32 +703,35 @@ def viewActivationLayers():
     visualiseActivations(img_negative_tensor, base_dir='../Results/%s/NegativeResults/' % dt_string)
 
 
-def plotKFold(random_lenses_tp, random_lenses_tp_names, random_lenses_fn, random_lenses_fn_names):
+def plotKFold(true_positives, false_negatives):
     fig, axs = plt.subplots(k_fold_num, 2)
+    fig.tight_layout(pad=3.0)
 
     cols = ['True Positive', 'False Negative']
-    rows = ['k = {}'.format(row) for row in range(1, k_fold_num)]
-
-    for ax, col in zip(axs[0], cols):
-        ax.set_title(col)
-
-    for ax, row in zip(axs[:, 0], rows):
-        ax.set_ylabel(row, rotation=0, size='large')
+    for i in range(len(cols)):
+        axs[0, i].text(x=0.5, y=12, s="", ha="center")
+        axs[k_fold_num - 1, i].set_xlabel(cols[i])
 
     for i in range(k_fold_num):
-        if not random_lenses_tp[i] == 0:
-            image_tp = random_lenses_tp[i]
-        else:
-            image_tp = plt.figure()
-        if not random_lenses_fn[i] == 0:
-            image_fn = random_lenses_fn[i]
-        else:
-            image_fn = plt.figure()
+        axs[i, 0].text(x=-0.8, y=5, s="", rotation=90, va="center")
+        axs[i, 0].set_ylabel("k = %s" % (i + 1))
 
-        axs[i, 0].imshow(image_tp)
-        axs[i, 1].imshow(image_fn)
-        axs[i, 0].set_title(random_lenses_tp_names[i])
-        axs[i, 1].set_title(random_lenses_fn_names[i])
+        true_positive_tuple = true_positives[k_fold_num]
+        if not true_positive_tuple[0] is None:
+            axs[i, 0].set_title(true_positive_tuple[0])
+            axs[i, 0].imshow(true_positive_tuple[1])
+        else:
+            axs[i, 0].set_xticks([], [])
+            axs[i, 0].set_yticks([], [])
+
+        false_negative_tuple = false_negatives[k_fold_num]
+        if not false_negative_tuple[0] is None:
+            axs[i, 1].set_title(false_negative_tuple[0])
+            axs[i, 1].imshow(false_negative_tuple[1])
+        else:
+            axs[i, 1].set_xticks([], [])
+            axs[i, 1].set_yticks([], [])
+
     plt.show()
 
 
@@ -896,13 +877,16 @@ excel_dictionary.append(non_lens_predicted)
 print("Done Classifier")
 
 # K fold for training data
-lenses_tp, lenses_tp_names, lenses_fn, lenses_fn_names = executeKFoldValidation(training_data, training_labels,
-                                                                                val_data, val_labels, testing_data,
-                                                                                testing_labels,
-                                                                                known_images, known_labels,
-                                                                                known_des_names)
-
-#plotKFold(lenses_tp, lenses_tp_names, lenses_fn, lenses_fn_names)
+true_positives, false_negatives = executeKFoldValidation(training_data,
+                                                         training_labels,
+                                                         val_data,
+                                                         val_labels,
+                                                         testing_data,
+                                                         testing_labels,
+                                                         known_images,
+                                                         known_labels,
+                                                         known_des_names)
+plotKFold(true_positives, false_negatives)
 
 if makeNewCSVFile:
     createExcelSheet('../Results/new_kerasCNN_Results.csv', excel_headers)
