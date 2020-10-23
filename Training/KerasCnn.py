@@ -37,20 +37,20 @@ excel_dictionary.append(dt_string)
 
 # Globals
 makeNewCSVFile = True
-max_num = 1000  # Set to sys.maxsize when running entire data set
-max_num_testing = 100  # Set to sys.maxsize when running entire data set
+max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 2  # A number between 1 and 10 that determines how many times the k-fold classifier
+k_fold_num = 5  # A number between 1 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 2  # A number that dictates how many iterations should be run to train the classifier
+epochs = 3  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
-patience_num = 10  # Used in the early stopping to determine how quick/slow to react.
+patience_num = 3  # Used in the early stopping to determine how quick/slow to react.
 use_early_stopping = True  # Determines whether to use early stopping or not.
 use_model_checkpoint = True  # Determines whether the classifiers keeps track of the most accurate iteration of itself.
 monitor_early_stopping = 'val_loss'
@@ -187,9 +187,9 @@ def getUnseenData(images_dir, max_num, input_shape):
             r_img_path = get_pkg_data_filename('%s/r_norm.fits' % (os.path.join(root, folder)))
             i_img_path = get_pkg_data_filename('%s/i_norm.fits' % (os.path.join(root, folder)))
 
-            # print(g_img_path)
+            print(g_img_path)
             g_data = fits.open(g_img_path)[0].data[0:100, 0:100]
-            # print(np.shape(g_data))
+            print(np.shape(g_data))
             r_data = fits.open(r_img_path)[0].data[0:100, 0:100]
             i_data = fits.open(i_img_path)[0].data[0:100, 0:100]
 
@@ -732,20 +732,20 @@ def plotKFold(random_lenses_tp, random_lenses_tp_names, random_lenses_fn, random
     rows = ['k = {}'.format(row) for row in range(1, k_fold_num)]
 
     for ax, col in zip(axs[0], cols):
-        axs.set_title(col)
+        ax.set_title(col)
 
     for ax, row in zip(axs[:, 0], rows):
-        axs.set_ylabel(row, rotation=0, size='large')
+        ax.set_ylabel(row, rotation=0, size='large')
 
     for i in range(k_fold_num):
-        # if not random_lenses_tp[i] == 0:
-        image_tp = random_lenses_tp[i]
-        # else:
-        # image_tp = plt.new()
-        # if not random_lenses_fn[i] == 0:
-        image_fn = random_lenses_fn[i]
-        # else:
-        # image_fn = plt.new()
+        if not random_lenses_tp[i] == 0:
+            image_tp = random_lenses_tp[i]
+        else:
+            image_tp = plt.figure()
+        if not random_lenses_fn[i] == 0:
+            image_fn = random_lenses_fn[i]
+        else:
+            image_fn = plt.figure()
 
         axs[i, 0].imshow(image_tp)
         axs[i, 1].imshow(image_fn)
@@ -902,7 +902,7 @@ lenses_tp, lenses_tp_names, lenses_fn, lenses_fn_names = executeKFoldValidation(
                                                                                 known_images, known_labels,
                                                                                 known_des_names)
 
-plotKFold(lenses_tp, lenses_tp_names, lenses_fn, lenses_fn_names)
+#plotKFold(lenses_tp, lenses_tp_names, lenses_fn, lenses_fn_names)
 
 if makeNewCSVFile:
     createExcelSheet('../Results/new_kerasCNN_Results.csv', excel_headers)
