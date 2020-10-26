@@ -20,10 +20,10 @@ from astropy.io import fits
 from imageProcessorUtils import plotprogressNegativePositive, makeRandomRGBArray, plotAndSaveRgbGrid, plotKnownLenses
 from positiveSetUtils import getNegativeNumbers
 
-train_positive_path = 'Training/PositiveAll_top2000'
-train_negative_path = 'Training/Negative_top2000'
+train_positive_path = 'Training/PositiveAll'
+train_negative_path = 'Training/Negative'
 
-number_iterations = 9
+number_iterations = 9  #or 12
 # ___________________________________________________________________________________________________________________________________________
 # MAIN 
 # Number of Images creating grids to view.
