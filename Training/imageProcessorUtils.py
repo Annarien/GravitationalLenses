@@ -1,4 +1,3 @@
-
 import glob
 import os
 import random
@@ -12,7 +11,6 @@ from positiveSetUtils import getNegativeNumbers
 
 train_positive_path = 'Training/PositiveAll'
 train_negative_path = 'Training/Negative'
-number_iterations = 9
 
 
 # Open DES Processed WCS .fits files, and assign a variable to the g, r, i images.
@@ -220,8 +218,8 @@ def getKnownRGBPath(num, known_path):
         des_j(string):       Provides the DESJ2000 name of the known lenses.
         tilename(string):   Provides the DES DR1 tilename for the known lenses.
     """
-    print('known path: ' +str(known_path))
-    print('num: '+str(num))
+    print('known path: ' + str(known_path))
+    print('num: ' + str(num))
     # get path of KnownRGBPath
     rgb_known = glob.glob('%s/%s_*/rgb.png' % (known_path, num))[0]
 
@@ -229,10 +227,9 @@ def getKnownRGBPath(num, known_path):
 
     g_band = glob.glob('%s/%s_*/g_WCSClipped.fits' % (known_path, num))[0]
     hdu1 = fits.open(g_band)
-    des_j = hdu1[0].header['DESJ']
     tilename = hdu1[0].header['TILENAME']
 
-    return rgb_known, des_j, tilename
+    return rgb_known, tilename
 
 
 def makeRandomRGBArray(rgb_path, number_iterations, numbers_train_neg):
@@ -515,22 +512,40 @@ def plotKnownLenses(number_iterations, known_path=''):
         This saves the figure containing the rgb image grids of the knownlenses.
     """
 
+    random_list = []
+    folders = {}
+    random_numbers = []
+
+    for root, dirs, files in os.walk(known_path):
+        for folder in dirs:
+            key = folder
+            value = os.path.join(root, folder)
+            folders[key] = value
+            print(key)
+
+            num = int(re.search(r'\d+', key).group())
+            random_numbers.append(num)
+
+    print('Numbers: ' + str(random_numbers))
+    print('Numbers Length: ' + str(len(random_numbers)))
+
     # for i in range(0, 388):
+    #     random_num = random.int(0, 388):
         # get random num in range 0_388, append this to a random list.
         # Call this  in for loop below as num = random[i]
         # This retrieve 9 random rgb known lenses.
 
     rgb_known_image_paths = []
     image_title_array = []
-    for num in range(0, number_iterations):
-
-        rgbKnown, desJ, tileName = getKnownRGBPath(num, known_path)
+    for i in range(0, number_iterations):
+        num = random_numbers[i]
+        print('Random Number Selected: ' + str(num))
+        rgbKnown, tileName = getKnownRGBPath(num, known_path)
         rgb_known_image_paths.append(rgbKnown)
-        imageTitle = '%s_%s' % (num, desJ)
+        imageTitle = '%s_%s' % (num, tileName)
         image_title_array.append(imageTitle)
 
     file_path5 = '%s_RGB_ImageGrid.png' % known_path
     # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
     # list( paths of rgb images)))
     plotAndSaveRgbGrid(file_path5, rgb_known_image_paths, image_title_array)
-
