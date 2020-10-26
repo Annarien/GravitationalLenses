@@ -10,8 +10,9 @@ from astropy.io import fits
 
 from positiveSetUtils import getNegativeNumbers
 
-train_positive_path = 'Training/PositiveAll_top2000'
-train_negative_path = 'Training/Negative_top2000'
+train_positive_path = 'Training/PositiveAll'
+train_negative_path = 'Training/Negative'
+number_iterations = 9
 
 
 # Open DES Processed WCS .fits files, and assign a variable to the g, r, i images.
@@ -86,7 +87,7 @@ def getDESSky(num, base_dir='Training/DESSky'):
 
 
 # Open PositiveNoiseless .fits files and assign a variable to the ..._SDSS_g, r, images.
-def getPosNoiseless(num, base_dir='Training/PositiveNoiselessAll_top2000'):
+def getPosNoiseless(num, base_dir='Training/PositiveNoiselessAll'):
     """
     This is to open files of the smoothly positively simulated images of gravitational lensing for the g, r, and i bands.
 
@@ -219,13 +220,14 @@ def getKnownRGBPath(num, known_path):
         des_j(string):       Provides the DESJ2000 name of the known lenses.
         tilename(string):   Provides the DES DR1 tilename for the known lenses.
     """
-
+    print('known path: ' +str(known_path))
+    print('num: '+str(num))
     # get path of KnownRGBPath
-    rgb_known = glob.glob('UnseenData/%s/%s_*/rgb.png' % (known_path, num))[0]
+    rgb_known = glob.glob('%s/%s_*/rgb.png' % (known_path, num))[0]
 
     # get header of g image so that we can get the DESJ tile name
 
-    g_band = glob.glob('UnseenData/%s/%s_*/g_WCSClipped.fits' % (known_path, num))[0]
+    g_band = glob.glob('%s/%s_*/g_WCSClipped.fits' % (known_path, num))[0]
     hdu1 = fits.open(g_band)
     des_j = hdu1[0].header['DESJ']
     tilename = hdu1[0].header['TILENAME']
@@ -512,15 +514,22 @@ def plotKnownLenses(number_iterations, known_path=''):
     Returns:
         This saves the figure containing the rgb image grids of the knownlenses.
     """
+
+    # for i in range(0, 388):
+        # get random num in range 0_388, append this to a random list.
+        # Call this  in for loop below as num = random[i]
+        # This retrieve 9 random rgb known lenses.
+
     rgb_known_image_paths = []
     image_title_array = []
     for num in range(0, number_iterations):
+
         rgbKnown, desJ, tileName = getKnownRGBPath(num, known_path)
         rgb_known_image_paths.append(rgbKnown)
         imageTitle = '%s_%s' % (num, desJ)
         image_title_array.append(imageTitle)
 
-    file_path5 = 'UnseenData/%s_RGB_ImageGrid.png' % known_path
+    file_path5 = '%s_RGB_ImageGrid.png' % known_path
     # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
     # list( paths of rgb images)))
     plotAndSaveRgbGrid(file_path5, rgb_known_image_paths, image_title_array)
