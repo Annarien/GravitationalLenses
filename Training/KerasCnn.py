@@ -752,7 +752,6 @@ def plotKFold(true_positives, false_negatives):
     plt.show()
     fig.savefig('../Results/%s/UnseenKnownLenses/KFoldImages.png' % dt_string)
 
-
 # __________________________________________________________________________
 # MAIN
 
