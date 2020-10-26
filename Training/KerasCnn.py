@@ -41,14 +41,14 @@ excel_dictionary.append(dt_string)
 
 # Globals
 makeNewCSVFile = True
-max_num = 10  # Set to sys.maxsize when running entire data set
-max_num_testing = 10  # Set to sys.maxsize when running entire data set
-max_num_prediction = 10  # Set to sys.maxsize when running entire data set
+max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
 k_fold_num = 5  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 3  # A number that dictates how many iterations should be run to train the classifier
+epochs = 7  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
@@ -279,6 +279,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
     classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(Flatten()) # This is added before dense layer a flatten is needed
     classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
     classifier.add(Dropout(0.2))  # antes era 0.25
     # Step 3 - Flattening
