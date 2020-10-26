@@ -23,6 +23,10 @@ from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.keras.utils.vis_utils import plot_model
 
+#added Adam opt for learning rate
+from tensorflow.python.keras.optimizers import Adam
+from tensorflow.python.keras import backend as K
+
 from ExcelUtils import createExcelSheet, writeToFile
 
 print(tensorflow.__version__)
@@ -260,6 +264,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
         classifier(sequential): This is the sequential model.
     """
     # Initialising the CNN
+    opt = Adam(lr=0.0002) #lr = learning rate
     classifier = Sequential()
     classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
     classifier.add(MaxPooling2D(pool_size=(3, 3), padding='same'))
@@ -286,7 +291,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.summary()
 
     # Compiling the CNN
-    classifier.compile(optimizer='adam',
+    classifier.compile(optimizer=opt,
                        loss='binary_crossentropy',
                        metrics=['accuracy'])
     plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
@@ -751,6 +756,7 @@ def plotKFold(true_positives, false_negatives):
     fig.tight_layout()
     plt.show()
     fig.savefig('../Results/%s/UnseenKnownLenses/KFoldImages.png' % dt_string)
+
 
 # __________________________________________________________________________
 # MAIN
