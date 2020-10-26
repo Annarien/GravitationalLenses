@@ -4,6 +4,7 @@ The results were saved in a csv file.
 """
 
 import os
+import sys
 import random
 from datetime import datetime
 import numpy as np
@@ -41,9 +42,9 @@ max_num_testing = 10  # Set to sys.maxsize when running entire data set
 max_num_prediction = 10  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 2  # A number between 2 and 10 that determines how many times the k-fold classifier
+k_fold_num = 5  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 2  # A number that dictates how many iterations should be run to train the classifier
+epochs = 3  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
@@ -704,35 +705,52 @@ def viewActivationLayers():
 
 
 def plotKFold(true_positives, false_negatives):
+    print('True Positives: ' + str(true_positives))
+    print('False Negatives: ' + str(false_negatives))
     fig, axs = plt.subplots(k_fold_num, 2)
     fig.tight_layout(pad=3.0)
 
     cols = ['True Positive', 'False Negative']
-    for i in range(len(cols)):
-        axs[0, i].text(x=0.5, y=12, s="", ha="center")
-        axs[k_fold_num - 1, i].set_xlabel(cols[i])
 
-    for i in range(k_fold_num):
+    for ax, col in zip(axs[0], cols):
+        ax.set_title(col)
+
+    # for ax, col in zip(axs[0], cols):
+    # for i in range(len(cols)):
+    #     #     axs[0, i].text(x=0.5, y=12, s="", ha="center", fontsize=12)
+    #     # axs[k_fold_num - 1, i].set_xlabel(cols[i])
+    #     axs[0, i].set_title(cols[i])
+    #     # ax.set_title(col)
+
+    for i in range(0, k_fold_num):
         axs[i, 0].text(x=-0.8, y=5, s="", rotation=90, va="center")
         axs[i, 0].set_ylabel("k = %s" % (i + 1))
 
         true_positive_tuple = true_positives[k_fold_num]
         if not true_positive_tuple[0] is None:
-            axs[i, 0].set_title(true_positive_tuple[0])
+            axs[i, 0].set_xlabel(true_positive_tuple[0], fontsize=8)
+            # axs[i, 0].set_title(true_positive_tuple[0], fontsize=6)
             axs[i, 0].imshow(true_positive_tuple[1])
+            axs[i, 0].set_xticks([], [])
+            axs[i, 0].set_yticks([], [])
         else:
             axs[i, 0].set_xticks([], [])
             axs[i, 0].set_yticks([], [])
 
         false_negative_tuple = false_negatives[k_fold_num]
         if not false_negative_tuple[0] is None:
-            axs[i, 1].set_title(false_negative_tuple[0])
+            axs[i, 1].set_xlabel(false_negative_tuple[0], fontsize=8)
+            # axs[i, 1].set_title(false_negative_tuple[0], fontsize=6)
             axs[i, 1].imshow(false_negative_tuple[1])
+            axs[i, 1].set_xticks([], [])
+            axs[i, 1].set_yticks([], [])
         else:
             axs[i, 1].set_xticks([], [])
             axs[i, 1].set_yticks([], [])
 
+    fig.tight_layout()
     plt.show()
+    fig.savefig('../Results/%s/UnseenKnownLenses/KFoldImages.png' % dt_string)
 
 
 # __________________________________________________________________________
