@@ -43,3 +43,4 @@ plotAndSaveRgbGrid(file_path7, rgb_random, image_title_array)
 
 # plot KnownLenses rgb images
 plotKnownLenses(number_iterations, known_path='UnseenData/KnownLenses')
+plotKnownLenses(number_iterations, known_path='UnseenData/SelectingSimilarLensesToPositiveSimulated')
