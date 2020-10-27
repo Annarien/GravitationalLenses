@@ -23,7 +23,7 @@ from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.keras.utils.vis_utils import plot_model
 
-#added Adam opt for learning rate
+# added Adam opt for learning rate
 from tensorflow.python.keras.optimizers import Adam
 from tensorflow.python.keras import backend as K
 
@@ -41,14 +41,14 @@ excel_dictionary.append(dt_string)
 
 # Globals
 makeNewCSVFile = True
-max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num = 100  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 5  # A number between 2 and 10 that determines how many times the k-fold classifier
+k_fold_num = 2  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 4  # A number that dictates how many iterations should be run to train the classifier
+epochs = 3  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
@@ -60,6 +60,14 @@ use_model_checkpoint = True  # Determines whether the classifiers keeps track of
 monitor_early_stopping = 'val_loss'
 monitor_model_checkpoint = 'val_acc'
 use_shuffle = True
+
+training_positive_path = 'Training/PositiveAll'
+training_negative_path = 'Training/Negative'
+testing_positive_path = 'Testing/PositiveAll'
+testing_negative_path = 'Testing/Negative'
+unseen_known_file_path = 'UnseenData/SelectingSimilarLensesToPositiveSimulated'
+# unseen_known_file_path = 'UnseenData/KnownLenses'
+
 
 # Adding global parameters to excel
 excel_headers.append("Max Training Num")
@@ -191,9 +199,9 @@ def getUnseenData(images_dir, max_num, input_shape):
             r_img_path = get_pkg_data_filename('%s/r_norm.fits' % (os.path.join(root, folder)))
             i_img_path = get_pkg_data_filename('%s/i_norm.fits' % (os.path.join(root, folder)))
 
-            print(g_img_path)
+            # print(g_img_path)
             g_data = fits.open(g_img_path)[0].data[0:100, 0:100]
-            print(np.shape(g_data))
+            # print(np.shape(g_data))
             r_data = fits.open(r_img_path)[0].data[0:100, 0:100]
             i_data = fits.open(i_img_path)[0].data[0:100, 0:100]
 
@@ -264,7 +272,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
         classifier(sequential): This is the sequential model.
     """
     # Initialising the CNN
-    opt = Adam(lr=0.0002) #lr = learning rate
+    opt = Adam(lr=0.0002)  # lr = learning rate
     classifier = Sequential()
     classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
     classifier.add(MaxPooling2D(pool_size=(3, 3), padding='same'))
@@ -279,7 +287,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
     classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Flatten()) # This is added before dense layer a flatten is needed
+    classifier.add(Flatten())  # This is added before dense layer a flatten is needed
     classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
     classifier.add(Dropout(0.2))  # antes era 0.25
     # Step 3 - Flattening
@@ -625,7 +633,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
             imageTP = None
             if predicted_lenses:
                 randomTP = random.choice(predicted_lenses)
-                filepathTP = 'UnseenData/KnownLenses/%s' % randomTP
+                filepathTP = unseen_known_file_path+'/%s' % randomTP
                 imageTP = gettingRandomUnseenImage(filepathTP)
             true_positives[kf_counter] = (randomTP, imageTP)
 
@@ -633,7 +641,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
             imageFN = None
             if predicted_no_lenses:
                 randomFN = random.choice(predicted_no_lenses)
-                filepathFN = 'UnseenData/KnownLenses/%s' % randomFN
+                filepathFN = unseen_known_file_path + '/%s' % randomFN
                 imageFN = gettingRandomUnseenImage(filepathFN)
             false_negatives[kf_counter] = (randomFN, imageFN)
 
@@ -763,13 +771,13 @@ def plotKFold(true_positives, false_negatives):
 # MAIN
 
 # Get positive training data
-train_pos = getPositiveImages('Training/PositiveAll', max_num, input_shape=input_shape)
+train_pos = getPositiveImages(images_dir=training_positive_path, max_num=max_num, input_shape=input_shape)
 print("Train Positive Shape: " + str(train_pos.shape))
 excel_headers.append("Train_Positive_Shape")
 excel_dictionary.append(train_pos.shape)
 
 # Get negative training data
-train_neg = getNegativeImages('Training/Negative', max_num, input_shape=input_shape)
+train_neg = getNegativeImages(images_dir=training_negative_path, max_num=max_num, input_shape=input_shape)
 print("Train Negative Shape: " + str(train_neg.shape))
 excel_headers.append("Train_Negative_Shape")
 excel_dictionary.append(train_neg.shape)
@@ -845,8 +853,8 @@ plt.close()
 viewActivationLayers()
 
 # Classifier evaluation
-test_pos = getPositiveImages('Testing/PositiveAll', max_num_testing, input_shape)
-test_neg = getNegativeImages('Testing/Negative', max_num_testing, input_shape)
+test_pos = getPositiveImages(images_dir=testing_positive_path, max_num=max_num_testing, input_shape=input_shape)
+test_neg = getNegativeImages(images_dir=testing_negative_path, max_num=max_num_testing, input_shape=input_shape)
 testing_data, testing_labels, _ = makeImageSet(test_pos, test_neg, shuffle_needed=True)
 print("Testing Data Shape:  " + str(testing_data.shape))
 print("Testing Labels Shape: " + str(testing_labels.shape))
@@ -867,8 +875,10 @@ gettingTrueFalsePositiveNegatives(testing_data,
                                                  % dt_string,
                                   predicted_lenses_filepath='../Results/%s/TrainingTestingResults' % dt_string)
 
-# # Getting Unseen Known Lenses
-unseen_known_images = getUnseenData('UnseenData/KnownLenses', max_num_prediction, input_shape=input_shape)
+unseen_known_images = getUnseenData(images_dir=unseen_known_file_path,
+                                    max_num=max_num_prediction,
+                                    input_shape=input_shape)
+
 known_images, known_labels, known_des_names = makeImageSet(positive_images=list(unseen_known_images.values()),
                                                            tile_names=list(unseen_known_images.keys()),
                                                            shuffle_needed=True)
