@@ -745,22 +745,16 @@ def plotKFold(true_positives, false_negatives):
             axs[i, 0].set_xlabel(true_positive_tuple[0], fontsize=8)
             # axs[i, 0].set_title(true_positive_tuple[0], fontsize=6)
             axs[i, 0].imshow(true_positive_tuple[1])
-            axs[i, 0].set_xticks([], [])
-            axs[i, 0].set_yticks([], [])
-        else:
-            axs[i, 0].set_xticks([], [])
-            axs[i, 0].set_yticks([], [])
+        axs[i, 0].set_xticks([], [])
+        axs[i, 0].set_yticks([], [])
 
         false_negative_tuple = false_negatives[k_fold_num]
         if not false_negative_tuple[0] is None:
             axs[i, 1].set_xlabel(false_negative_tuple[0], fontsize=8)
             # axs[i, 1].set_title(false_negative_tuple[0], fontsize=6)
             axs[i, 1].imshow(false_negative_tuple[1])
-            axs[i, 1].set_xticks([], [])
-            axs[i, 1].set_yticks([], [])
-        else:
-            axs[i, 1].set_xticks([], [])
-            axs[i, 1].set_yticks([], [])
+        axs[i, 1].set_xticks([], [])
+        axs[i, 1].set_yticks([], [])
 
     fig.tight_layout()
     plt.show()
