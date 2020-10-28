@@ -60,6 +60,7 @@ use_model_checkpoint = True  # Determines whether the classifiers keeps track of
 monitor_early_stopping = 'val_loss'
 monitor_model_checkpoint = 'val_acc'
 use_shuffle = True
+learning_rate = 0.0002
 
 training_positive_path = 'Training/PositiveAll'
 training_negative_path = 'Training/Negative'
@@ -272,7 +273,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
         classifier(sequential): This is the sequential model.
     """
     # Initialising the CNN
-    opt = Adam(lr=0.0002)  # lr = learning rate
+    opt = Adam(lr=learning_rate)  # lr = learning rate
     classifier = Sequential()
     classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
     classifier.add(MaxPooling2D(pool_size=(3, 3), padding='same'))
