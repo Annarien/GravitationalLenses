@@ -295,7 +295,7 @@ def makeRandomRGBArray(rgb_path, number_iterations, numbers_train_neg):
     return rgb_random_array, image_title_array
 
 
-def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array):
+def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array, figure_title):
     # You should probably pass num in here or something like that and save many images
     """
     Using the image arrays (rgbImagePaths()) to make an image grid made of RGB images.
@@ -329,10 +329,10 @@ def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array):
         for column_num in range(0, len(images_for_row)):
             img = Image.open(images_for_row[column_num])
             img.thumbnail((100, 100))
-            axs[row_num, column_num].imshow(img)
+            axs[row_num, column_num].imshow(img, aspect = 'equal')
             axs[row_num, column_num].axis('off')
             imageTitle = image_title_array[image_title_num]
-            axs[row_num, column_num].set_title('%s' % imageTitle, fontdict=None, loc='center', color='k')
+            axs[row_num, column_num].set_title('%s' % imageTitle, fontsize = 10, fontdict=None, loc='center', color='k')
             image_title_num += 1
             img.close()
 
@@ -342,7 +342,8 @@ def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array):
                 axs[row_num, emptyIndex].axis('off')
 
         row_num += 1
-    fig.tight_layout()
+    fig.tight_layout(pad = 2.0)
+    fig.suptitle('%s' % figure_title)
     fig.savefig(file_path)
     plt.close(fig)
 
@@ -428,7 +429,7 @@ def plotprogressNegativePositive(number_iterations):
         # creating grids of images
         # creating the first grid, in which the DES_Processed images are seen.
         fig1, axs = plt.subplots(3, 3)
-        fig1.suptitle("Process to form Negative Images")
+        # fig1.suptitle("Process to form Negative Images")
         fig1.tight_layout(pad=1.7)
         # get column names and row names
         for ax, col in zip(axs[0], cols):
@@ -473,7 +474,7 @@ def plotprogressNegativePositive(number_iterations):
         fig2.tight_layout(pad=1.7)
         fig2.subplots_adjust(left=0.2, wspace=0.6)
         fig2.align_ylabels(axs[:, 0])
-        fig2.suptitle("Process to form Positive Images")
+        # fig2.suptitle("Process to form Positive Images")
 
 
         # get column names and row names
@@ -516,13 +517,15 @@ def plotprogressNegativePositive(number_iterations):
     file_path3 = '%s_RGB_ImageGrid.png' % train_positive_path
     # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
     # list( paths of rgb images)))
-    plotAndSaveRgbGrid(file_path3, rgb_pos_image_paths, image_title_array)
+    plotAndSaveRgbGrid(file_path3, rgb_pos_image_paths, image_title_array,
+                       figure_title='RGB Grid of the Positively Simulated Lenses')
 
     # creating the rgb grid for the DES Images
     file_path4 = '%s_RGB_ImageGrid.png' % train_negative_path
     # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
     # list( paths of rgb images)))
-    plotAndSaveRgbGrid(file_path4, rgb_des_image_paths, image_title_array)
+    plotAndSaveRgbGrid(file_path4, rgb_des_image_paths, image_title_array, figure_title='RGB Grid of the Negative '
+                                                                                        'Images')
     return numbers_train_neg
 
 
@@ -578,4 +581,9 @@ def plotKnownLenses(number_iterations, known_path=''):
     file_path5 = '%s_RGB_ImageGrid.png' % known_path
     # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
     # list( paths of rgb images)))
-    plotAndSaveRgbGrid(file_path5, rgb_known_image_paths, image_title_array)
+    if known_path == 'UnseenData/KnownLenses':
+        rgb_title = 'RGB Grid of the Unseen Known Lenses'
+    elif known_path == 'UnseenData/SelectingSimilarLensesToPositiveSimulated':
+        rgb_title = 'RGB Grid of the Selected Unseen Known Lenses'
+
+    plotAndSaveRgbGrid(file_path5, rgb_known_image_paths, image_title_array, rgb_title)
