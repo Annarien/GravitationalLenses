@@ -33,12 +33,12 @@ numbers_train_neg = plotprogressNegativePositive(number_iterations)
 # Get Random RGB images from PositiveWithDESSky
 file_path6 = '%s_randomRGB_ImageGrid.png' % train_positive_path
 rgb_random, image_title_array = makeRandomRGBArray(train_positive_path, number_iterations, numbers_train_neg)
-plotAndSaveRgbGrid(file_path6, rgb_random, image_title_array)
+# plotAndSaveRgbGrid(file_path6, rgb_random, image_title_array, figure_title='Posit')
 
 # Get Random RGB images from NegativeDES
 file_path7 = '%s_randomRGB_ImageGrid.png' % train_negative_path
 rgb_random, image_title_array = makeRandomRGBArray(train_negative_path, number_iterations, numbers_train_neg)
-plotAndSaveRgbGrid(file_path7, rgb_random, image_title_array)
+# plotAndSaveRgbGrid(file_path7, rgb_random, image_title_array)
 
 
 # plot KnownLenses rgb images
