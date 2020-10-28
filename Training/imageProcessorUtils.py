@@ -6,6 +6,7 @@ import re
 import matplotlib.pyplot as plt
 from PIL import Image
 from astropy.io import fits
+from textwrap import wrap
 
 from positiveSetUtils import getNegativeNumbers
 
@@ -63,7 +64,7 @@ def getNegativeDES(num, base_dir=train_negative_path):
 
 # Open DESSky .fits files and assign a variable to the g, r, i images.
 def getDESSky(num, base_dir='Training/DESSky'):
-    print('%s/%s_g_sky.fits' % (base_dir, num))
+    # print('%s/%s_g_sky.fits' % (base_dir, num))
     """
     This uses the num to open files of the background sky of the DES Original images for the g, r, and i bands.
 
@@ -218,8 +219,8 @@ def getKnownRGBPath(num, known_path):
         des_j(string):       Provides the DESJ2000 name of the known lenses.
         tilename(string):   Provides the DES DR1 tilename for the known lenses.
     """
-    print('known path: ' + str(known_path))
-    print('num: ' + str(num))
+    # print('known path: ' + str(known_path))
+    # print('num: ' + str(num))
     # get path of KnownRGBPath
     rgb_known = glob.glob('%s/%s_*/rgb.png' % (known_path, num))[0]
 
@@ -274,10 +275,8 @@ def makeRandomRGBArray(rgb_path, number_iterations, numbers_train_neg):
     for num in range(0, number_iterations):
         # random_num = random.randint(0, folders - 1)
         random_num = random.choice(numbers_train_neg)
-        print('RANDOM NUM: ' + str(random_num))
 
         while random_num in random_array:
-            print('RANDOM NUM: ' + str(random_num))
             # random_num = random.randint(0, folders - 1)
             random_num = random.choice(numbers_train_neg)
         random_array.append(random_num)
@@ -343,7 +342,7 @@ def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array):
                 axs[row_num, emptyIndex].axis('off')
 
         row_num += 1
-
+    fig.tight_layout()
     fig.savefig(file_path)
     plt.close(fig)
 
@@ -368,7 +367,7 @@ def getNegativeNumbers(base_dir):
             key = folder
             value = os.path.join(root, folder)
             folders[key] = value
-            print(key)
+            # print(key)
 
             num = int(re.search(r'\d+', key).group())
             numbers.append(num)
@@ -409,6 +408,11 @@ def plotprogressNegativePositive(number_iterations):
     rgb_pos_image_paths = []
     rgb_des_image_paths = []
     image_title_array = []
+    cols = ['g-band', 'r-band', 'i-band']
+    rows_neg = ['Clipped DES images', 'Normalised images', 'Background sky']
+    rows_pos = ['Simulated Lenses', 'With Background Noise', 'Normalised Simulated Lenses']
+    labels_neg = ['\n'.join(wrap(l, 15)) for l in rows_neg]
+    labels_pos = ['\n'.join(wrap(l, 15)) for l in rows_pos]
 
     numbers_train_neg, keys = getNegativeNumbers(train_negative_path)
     for index in range(0, number_iterations):
@@ -424,6 +428,18 @@ def plotprogressNegativePositive(number_iterations):
         # creating grids of images
         # creating the first grid, in which the DES_Processed images are seen.
         fig1, axs = plt.subplots(3, 3)
+        fig1.suptitle("Process to form Negative Images")
+        fig1.tight_layout(pad=1.7)
+        # get column names and row names
+        for ax, col in zip(axs[0], cols):
+            ax.set_title(col)
+        fig1.subplots_adjust(left=0.2, wspace=0.6)
+        fig1.align_ylabels(axs[:, 0])
+
+        axs[0, 0].set_ylabel(labels_neg[0], rotation=90, fontsize=10, labelpad=5, va='center')
+        axs[1, 0].set_ylabel(labels_neg[1], rotation=90, fontsize=10, labelpad=5, va='center')
+        axs[2, 0].set_ylabel(labels_neg[2], rotation=90, fontsize=10, labelpad=5, va='center')
+
         axs[0, 0].imshow(gWCS[0].data, cmap='gray')
         axs[0, 1].imshow(rWCS[0].data, cmap='gray')
         axs[0, 2].imshow(iWCS[0].data, cmap='gray')
@@ -434,7 +450,7 @@ def plotprogressNegativePositive(number_iterations):
         axs[2, 1].imshow(rDESSky[0].data, cmap='gray')
         axs[2, 2].imshow(iDESSky[0].data, cmap='gray')
 
-        print(num)
+        # print(num)
         # print(train_negative_path)
         # some_path = glob.glob('%s/%i_*/Negative_Processed_Grid.png' % (train_negative_path, num))[0]
         some_path = '%s/%s/Negative_Processed_Grid.png' % (train_negative_path, key)
@@ -454,6 +470,20 @@ def plotprogressNegativePositive(number_iterations):
 
         # creating the second grid, in which the Simulated images are seen.
         fig2, axs = plt.subplots(3, 3)
+        fig2.tight_layout(pad=1.7)
+        fig2.subplots_adjust(left=0.2, wspace=0.6)
+        fig2.align_ylabels(axs[:, 0])
+        fig2.suptitle("Process to form Positive Images")
+
+
+        # get column names and row names
+        for ax, col in zip(axs[0], cols):
+            ax.set_title(col)
+
+        axs[0, 0].set_ylabel(labels_pos[0], rotation=90, fontsize=10, labelpad=5, va='center')
+        axs[1, 0].set_ylabel(labels_pos[1], rotation=90, fontsize=10, labelpad=5, va='center')
+        axs[2, 0].set_ylabel(labels_pos[2], rotation=90, fontsize=10, labelpad=5, va='center')
+
         axs[0, 0].imshow(gPos[0].data, cmap='gray')
         axs[0, 1].imshow(rPos[0].data, cmap='gray')
         axs[0, 2].imshow(iPos[0].data, cmap='gray')
@@ -521,19 +551,19 @@ def plotKnownLenses(number_iterations, known_path=''):
             key = folder
             value = os.path.join(root, folder)
             folders[key] = value
-            print(key)
+            # print(key)
 
             num = int(re.search(r'\d+', key).group())
             random_numbers.append(num)
 
-    print('Numbers: ' + str(random_numbers))
-    print('Numbers Length: ' + str(len(random_numbers)))
+    # print('Numbers: ' + str(random_numbers))
+    # print('Numbers Length: ' + str(len(random_numbers)))
 
     # for i in range(0, 388):
     #     random_num = random.int(0, 388):
-        # get random num in range 0_388, append this to a random list.
-        # Call this  in for loop below as num = random[i]
-        # This retrieve 9 random rgb known lenses.
+    # get random num in range 0_388, append this to a random list.
+    # Call this  in for loop below as num = random[i]
+    # This retrieve 9 random rgb known lenses.
 
     rgb_known_image_paths = []
     image_title_array = []
