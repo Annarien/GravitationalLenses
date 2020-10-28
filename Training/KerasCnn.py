@@ -103,6 +103,10 @@ excel_headers.append("Monitor Early Stopping")
 excel_dictionary.append(monitor_early_stopping)
 excel_headers.append("Monitor Model Checkpoint")
 excel_dictionary.append(monitor_model_checkpoint)
+excel_headers.append("Use Shuffle")
+excel_dictionary.append(use_shuffle)
+excel_headers.append("Learning Rate")
+excel_dictionary.append(learning_rate)
 
 if not os.path.exists('../Results/%s/' % dt_string):
     os.mkdir('../Results/%s/' % dt_string)
