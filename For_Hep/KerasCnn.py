@@ -55,7 +55,7 @@ run_k_fold_validation = False  # Set this to True if you want to run K-Fold vali
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
-patience_num = 10  # Used in the early stopping to determine how quick/slow to react.
+Spatience_num = 3  # Used in the early stopping to determine how quick/slow to react.
 use_early_stopping = True  # Determines whether to use early stopping or not.
 use_model_checkpoint = True  # Determines whether the classifiers keeps track of the most accurate iteration of itself.
 monitor_early_stopping = 'val_loss'
@@ -291,7 +291,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Dropout(0.2))  # antes era 0.25
     classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
-    #classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
+    classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Flatten())  # This is added before dense layer a flatten is needed
     classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
@@ -641,7 +641,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
             imageTP = None
             if predicted_lenses:
                 randomTP = random.choice(predicted_lenses)
-                filepathTP = unseen_known_file_path+'/%s' % randomTP
+                filepathTP = unseen_known_file_path + '/%s' % randomTP
                 imageTP = gettingRandomUnseenImage(filepathTP)
             true_positives[kf_counter] = (randomTP, imageTP)
 
@@ -688,7 +688,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         plt.xlabel('Folds')
         plt.ylabel('Accuracy')
         plt.legend()
-        #plt.show()
+        plt.show()
         plt.savefig('../Results/%s/KFoldAccuracyScores.png' % dt_string)
         return true_positives, false_negatives
 
@@ -727,8 +727,8 @@ def viewActivationLayers():
 
 
 def plotKFold(true_positives, false_negatives):
-    print('True Positives: ' + str(true_positives))
-    print('False Negatives: ' + str(false_negatives))
+    # print('True Positives: ' + str(true_positives))
+    # print('False Negatives: ' + str(false_negatives))
     fig, axs = plt.subplots(k_fold_num, 2)
     fig.tight_layout(pad=3.0)
 
@@ -765,7 +765,7 @@ def plotKFold(true_positives, false_negatives):
         axs[i, 1].set_yticks([], [])
 
     fig.tight_layout()
-    #plt.show()
+    plt.show()
     fig.savefig('../Results/%s/UnseenKnownLenses/KFoldImages.png' % dt_string)
 
 
@@ -891,15 +891,15 @@ print("Unseen Known Labels Shape: " + str(known_labels.shape))
 print("Got Unseen Known Lenses Data")
 
 unseen_scores = classifier.evaluate(known_images, known_labels, batch_size=batch_size)
-unseen_loss = scores[0]
-unseen_accuracy = scores[1]
-print("Unseen loss: %s" % (unseen_loss))
-print("Unseen accuracy: %s" % (unseen_accuracy))
+unseen_loss_score = unseen_scores[0]
+unseen_accuracy_score = unseen_scores[1]
+print("Unseen loss: %s" % unseen_loss_score)
+print("Unseen accuracy: %s" % unseen_accuracy_score)
 
 excel_headers.append("Unseen_Loss")
-excel_dictionary.append(unseen_loss)
+excel_dictionary.append(unseen_loss_score)
 excel_headers.append("Unseen_Accuracy")
-excel_dictionary.append(unseen_accuracy)
+excel_dictionary.append(unseen_accuracy_score)
 
 predicted_class_probabilities_known_lenses = classifier.predict_classes(known_images, batch_size=batch_size)
 lens_predicted = np.count_nonzero(predicted_class_probabilities_known_lenses == 1)
@@ -923,8 +923,6 @@ excel_dictionary.append(lens_predicted)
 excel_headers.append("Unseen_Known_Lenses_No_Lens_Predicted")
 excel_dictionary.append(non_lens_predicted)
 
-print("Done Classifier")
-
 # K fold for training data
 true_positives, false_negatives = executeKFoldValidation(training_data,
                                                          training_labels,
@@ -937,8 +935,10 @@ true_positives, false_negatives = executeKFoldValidation(training_data,
                                                          known_des_names)
 plotKFold(true_positives, false_negatives)
 
+
+
 if makeNewCSVFile:
-    createExcelSheet('../Results/new_kerasCNN_Results.csv', excel_headers)
-    writeToFile('../Results/new_kerasCNN_Results.csv', excel_dictionary)
+    createExcelSheet('../Results/Architecture_kerasCNN_Results.csv', excel_headers)
+    writeToFile('../Results/Architecture_kerasCNN_Results.csv', excel_dictionary)
 else:
-    writeToFile('../Results/new_kerasCNN_Results.csv', excel_dictionary)
+    writeToFile('../Results/Architecture_kerasCNN_Results.csv', excel_dictionary)
