@@ -24,7 +24,8 @@ from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.keras.utils.vis_utils import plot_model
 
 # added Adam opt for learning rate
-from tensorflow.python.keras.optimizers import Adam
+#from tensorflow.python.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras import backend as K
 
 from ExcelUtils import createExcelSheet, writeToFile
@@ -41,25 +42,26 @@ excel_dictionary.append(dt_string)
 
 # Globals
 makeNewCSVFile = True
-max_num = 100  # Set to sys.maxsize when running entire data set
+max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 5  # A number between 2 and 10 that determines how many times the k-fold classifier
+k_fold_num = 2  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 3  # A number that dictates how many iterations should be run to train the classifier
+epochs = 5  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
-run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
-patience_num = 3  # Used in the early stopping to determine how quick/slow to react.
+patience_num = 10  # Used in the early stopping to determine how quick/slow to react.
 use_early_stopping = True  # Determines whether to use early stopping or not.
 use_model_checkpoint = True  # Determines whether the classifiers keeps track of the most accurate iteration of itself.
 monitor_early_stopping = 'val_loss'
 monitor_model_checkpoint = 'val_acc'
 use_shuffle = True
+learning_rate = 0.001
 
 training_positive_path = 'Training/PositiveAll'
 training_negative_path = 'Training/Negative'
@@ -102,6 +104,10 @@ excel_headers.append("Monitor Early Stopping")
 excel_dictionary.append(monitor_early_stopping)
 excel_headers.append("Monitor Model Checkpoint")
 excel_dictionary.append(monitor_model_checkpoint)
+excel_headers.append("Use Shuffle")
+excel_dictionary.append(use_shuffle)
+excel_headers.append("Learning Rate")
+excel_dictionary.append(learning_rate)
 
 if not os.path.exists('../Results/%s/' % dt_string):
     os.mkdir('../Results/%s/' % dt_string)
@@ -272,7 +278,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
         classifier(sequential): This is the sequential model.
     """
     # Initialising the CNN
-    opt = Adam(lr=0.0002)  # lr = learning rate
+    opt = Adam(lr=learning_rate)  # lr = learning rate
     classifier = Sequential()
     classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
     classifier.add(MaxPooling2D(pool_size=(3, 3), padding='same'))
@@ -285,7 +291,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Dropout(0.2))  # antes era 0.25
     classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
-    classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
+    #classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Flatten())  # This is added before dense layer a flatten is needed
     classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
@@ -604,9 +610,11 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
                       batch_size=batch_size)
 
             test_scores = model.evaluate(testing_data, testing_labels, batch_size=batch_size)
-            test_scores_list.append(test_scores[1] * 100)
+            test_scores_list.append(test_scores[1])
+            print(test_scores_list)
             unseen_scores = model.evaluate(known_images, known_labels, batch_size=batch_size)
-            unseen_scores_list.append(unseen_scores[1] * 100)
+            unseen_scores_list.append(unseen_scores[1])
+            print(unseen_scores_list)
 
             # show confusion matrix
             test_confusion_matrix, unseen_confusion_matrix = gettingKFoldConfusionMatrix(testing_data,
@@ -645,8 +653,8 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
                 imageFN = gettingRandomUnseenImage(filepathFN)
             false_negatives[kf_counter] = (randomFN, imageFN)
 
-            print("Lenses Predicted: " + str(randomTP))
-            print("Lenses Not Predicted: " + str(randomFN))
+            # print("Lenses Predicted: " + str(randomTP))
+            # print("Lenses Not Predicted: " + str(randomFN))
 
             test_matrix_list.append(test_confusion_matrix)
             unseen_matrix_list.append(unseen_confusion_matrix)
@@ -680,7 +688,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         plt.xlabel('Folds')
         plt.ylabel('Accuracy')
         plt.legend()
-        plt.show()
+        #plt.show()
         plt.savefig('../Results/%s/KFoldAccuracyScores.png' % dt_string)
         return true_positives, false_negatives
 
@@ -745,25 +753,19 @@ def plotKFold(true_positives, false_negatives):
             axs[i, 0].set_xlabel(true_positive_tuple[0], fontsize=8)
             # axs[i, 0].set_title(true_positive_tuple[0], fontsize=6)
             axs[i, 0].imshow(true_positive_tuple[1])
-            axs[i, 0].set_xticks([], [])
-            axs[i, 0].set_yticks([], [])
-        else:
-            axs[i, 0].set_xticks([], [])
-            axs[i, 0].set_yticks([], [])
+        axs[i, 0].set_xticks([], [])
+        axs[i, 0].set_yticks([], [])
 
         false_negative_tuple = false_negatives[k_fold_num]
         if not false_negative_tuple[0] is None:
             axs[i, 1].set_xlabel(false_negative_tuple[0], fontsize=8)
             # axs[i, 1].set_title(false_negative_tuple[0], fontsize=6)
             axs[i, 1].imshow(false_negative_tuple[1])
-            axs[i, 1].set_xticks([], [])
-            axs[i, 1].set_yticks([], [])
-        else:
-            axs[i, 1].set_xticks([], [])
-            axs[i, 1].set_yticks([], [])
+        axs[i, 1].set_xticks([], [])
+        axs[i, 1].set_yticks([], [])
 
     fig.tight_layout()
-    plt.show()
+    #plt.show()
     fig.savefig('../Results/%s/UnseenKnownLenses/KFoldImages.png' % dt_string)
 
 
@@ -861,13 +863,15 @@ print("Testing Labels Shape: " + str(testing_labels.shape))
 print("Got Unseen Testing data")
 
 scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
-print("Test loss: %s" % scores[0])
-print("Test accuracy: %s" % scores[1])
+loss = scores[0]
+accuracy = scores[1]
+print("Test loss: %s" % loss)
+print("Test accuracy: %s" % accuracy)
 
 excel_headers.append("Test_Loss")
-excel_dictionary.append(scores[0])
+excel_dictionary.append(loss)
 excel_headers.append("Test_Accuracy")
-excel_dictionary.append(scores[1])
+excel_dictionary.append(accuracy)
 
 gettingTrueFalsePositiveNegatives(testing_data,
                                   testing_labels,
@@ -885,6 +889,17 @@ known_images, known_labels, known_des_names = makeImageSet(positive_images=list(
 print("Unseen Known Images Shape:  " + str(known_images.shape))
 print("Unseen Known Labels Shape: " + str(known_labels.shape))
 print("Got Unseen Known Lenses Data")
+
+unseen_scores = classifier.evaluate(known_images, known_labels, batch_size=batch_size)
+unseen_loss = scores[0]
+unseen_accuracy = scores[1]
+print("Unseen loss: %s" % (unseen_loss))
+print("Unseen accuracy: %s" % (unseen_accuracy))
+
+excel_headers.append("Unseen_Loss")
+excel_dictionary.append(unseen_loss)
+excel_headers.append("Unseen_Accuracy")
+excel_dictionary.append(unseen_accuracy)
 
 predicted_class_probabilities_known_lenses = classifier.predict_classes(known_images, batch_size=batch_size)
 lens_predicted = np.count_nonzero(predicted_class_probabilities_known_lenses == 1)
