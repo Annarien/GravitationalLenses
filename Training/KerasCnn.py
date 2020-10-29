@@ -609,9 +609,11 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
                       batch_size=batch_size)
 
             test_scores = model.evaluate(testing_data, testing_labels, batch_size=batch_size)
-            test_scores_list.append(test_scores[1] * 100)
+            test_scores_list.append(test_scores[1]*100)
+            print(test_scores_list)
             unseen_scores = model.evaluate(known_images, known_labels, batch_size=batch_size)
-            unseen_scores_list.append(unseen_scores[1] * 100)
+            unseen_scores_list.append(unseen_scores[1]*100)
+            print(unseen_scores_list)
 
             # show confusion matrix
             test_confusion_matrix, unseen_confusion_matrix = gettingKFoldConfusionMatrix(testing_data,
@@ -650,8 +652,8 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
                 imageFN = gettingRandomUnseenImage(filepathFN)
             false_negatives[kf_counter] = (randomFN, imageFN)
 
-            print("Lenses Predicted: " + str(randomTP))
-            print("Lenses Not Predicted: " + str(randomFN))
+            # print("Lenses Predicted: " + str(randomTP))
+            # print("Lenses Not Predicted: " + str(randomFN))
 
             test_matrix_list.append(test_confusion_matrix)
             unseen_matrix_list.append(unseen_confusion_matrix)
@@ -860,8 +862,10 @@ print("Testing Labels Shape: " + str(testing_labels.shape))
 print("Got Unseen Testing data")
 
 scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
-print("Test loss: %s" % scores[0])
-print("Test accuracy: %s" % scores[1])
+loss = scores[0]*100
+accuracy = scores[1]*100
+print("Test loss: %s" % (loss))
+print("Test accuracy: %s" % (accuracy))
 
 excel_headers.append("Test_Loss")
 excel_dictionary.append(scores[0])
