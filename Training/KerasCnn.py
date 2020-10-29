@@ -936,9 +936,8 @@ true_positives, false_negatives = executeKFoldValidation(training_data,
 plotKFold(true_positives, false_negatives)
 
 
-
 if makeNewCSVFile:
-    createExcelSheet('../Results/new_kerasCNN_Results.csv', excel_headers)
-    writeToFile('../Results/new_kerasCNN_Results.csv', excel_dictionary)
+    createExcelSheet('../Results/Architecture_kerasCNN_Results.csv', excel_headers)
+    writeToFile('../Results/Architecture_kerasCNN_Results.csv', excel_dictionary)
 else:
-    writeToFile('../Results/new_kerasCNN_Results.csv', excel_dictionary)
+    writeToFile('../Results/Architecture_kerasCNN_Results.csv', excel_dictionary)
