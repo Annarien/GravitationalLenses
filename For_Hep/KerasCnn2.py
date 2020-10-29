@@ -24,8 +24,8 @@ from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.keras.utils.vis_utils import plot_model
 
 # added Adam opt for learning rate
-#from tensorflow.python.keras.optimizers import Adam
-from tensorflow.keras.optimizers import Adam
+from tensorflow.python.keras.optimizers import Adam
+# from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras import backend as K
 
 from ExcelUtils import createExcelSheet, writeToFile
@@ -41,7 +41,7 @@ excel_headers.append("Date and Time")
 excel_dictionary.append(dt_string)
 
 # Globals
-makeNewCSVFile = True
+makeNewCSVFile = False
 max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
@@ -49,14 +49,14 @@ validation_split = 0.2  # A float value between 0 and 1 that determines what per
 # data is used for validation.
 k_fold_num = 2  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 5  # A number that dictates how many iterations should be run to train the classifier
+epochs = 7  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
-Spatience_num = 3  # Used in the early stopping to determine how quick/slow to react.
-use_early_stopping = True  # Determines whether to use early stopping or not.
+patience_num = 3  # Used in the early stopping to determine how quick/slow to react.
+use_early_stopping = False  # Determines whether to use early stopping or not.
 use_model_checkpoint = True  # Determines whether the classifiers keeps track of the most accurate iteration of itself.
 monitor_early_stopping = 'val_loss'
 monitor_model_checkpoint = 'val_acc'
@@ -690,7 +690,8 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         plt.legend()
         plt.show()
         plt.savefig('../Results/%s/KFoldAccuracyScores.png' % dt_string)
-        return true_positives, false_negatives
+
+        plotKFold(true_positives, false_negatives)
 
 
 def viewActivationLayers():
@@ -924,18 +925,15 @@ excel_headers.append("Unseen_Known_Lenses_No_Lens_Predicted")
 excel_dictionary.append(non_lens_predicted)
 
 # K fold for training data
-true_positives, false_negatives = executeKFoldValidation(training_data,
-                                                         training_labels,
-                                                         val_data,
-                                                         val_labels,
-                                                         testing_data,
-                                                         testing_labels,
-                                                         known_images,
-                                                         known_labels,
-                                                         known_des_names)
-plotKFold(true_positives, false_negatives)
-
-
+executeKFoldValidation(training_data,
+                       training_labels,
+                       val_data,
+                       val_labels,
+                       testing_data,
+                       testing_labels,
+                       known_images,
+                       known_labels,
+                       known_des_names)
 
 if makeNewCSVFile:
     createExcelSheet('../Results/Architecture_kerasCNN_Results.csv', excel_headers)
