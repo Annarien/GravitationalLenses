@@ -25,6 +25,7 @@ from tensorflow.python.keras.utils.vis_utils import plot_model
 
 # added Adam opt for learning rate
 from tensorflow.python.keras.optimizers import Adam
+# from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras import backend as K
 
 from ExcelUtils import createExcelSheet, writeToFile
@@ -609,10 +610,10 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
                       batch_size=batch_size)
 
             test_scores = model.evaluate(testing_data, testing_labels, batch_size=batch_size)
-            test_scores_list.append(test_scores[1]*100)
+            test_scores_list.append(test_scores[1])
             print(test_scores_list)
             unseen_scores = model.evaluate(known_images, known_labels, batch_size=batch_size)
-            unseen_scores_list.append(unseen_scores[1]*100)
+            unseen_scores_list.append(unseen_scores[1])
             print(unseen_scores_list)
 
             # show confusion matrix
@@ -640,7 +641,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
             imageTP = None
             if predicted_lenses:
                 randomTP = random.choice(predicted_lenses)
-                filepathTP = unseen_known_file_path+'/%s' % randomTP
+                filepathTP = unseen_known_file_path + '/%s' % randomTP
                 imageTP = gettingRandomUnseenImage(filepathTP)
             true_positives[kf_counter] = (randomTP, imageTP)
 
@@ -726,8 +727,8 @@ def viewActivationLayers():
 
 
 def plotKFold(true_positives, false_negatives):
-    print('True Positives: ' + str(true_positives))
-    print('False Negatives: ' + str(false_negatives))
+    # print('True Positives: ' + str(true_positives))
+    # print('False Negatives: ' + str(false_negatives))
     fig, axs = plt.subplots(k_fold_num, 2)
     fig.tight_layout(pad=3.0)
 
@@ -862,15 +863,15 @@ print("Testing Labels Shape: " + str(testing_labels.shape))
 print("Got Unseen Testing data")
 
 scores = classifier.evaluate(testing_data, testing_labels, batch_size=batch_size)
-loss = scores[0]*100
-accuracy = scores[1]*100
-print("Test loss: %s" % (loss))
-print("Test accuracy: %s" % (accuracy))
+loss = scores[0]
+accuracy = scores[1]
+print("Test loss: %s" % loss)
+print("Test accuracy: %s" % accuracy)
 
 excel_headers.append("Test_Loss")
-excel_dictionary.append(scores[0])
+excel_dictionary.append(loss)
 excel_headers.append("Test_Accuracy")
-excel_dictionary.append(scores[1])
+excel_dictionary.append(accuracy)
 
 gettingTrueFalsePositiveNegatives(testing_data,
                                   testing_labels,
@@ -888,6 +889,17 @@ known_images, known_labels, known_des_names = makeImageSet(positive_images=list(
 print("Unseen Known Images Shape:  " + str(known_images.shape))
 print("Unseen Known Labels Shape: " + str(known_labels.shape))
 print("Got Unseen Known Lenses Data")
+
+unseen_scores = classifier.evaluate(known_images, known_labels, batch_size=batch_size)
+unseen_loss_score = unseen_scores[0]
+unseen_accuracy_score = unseen_scores[1]
+print("Unseen loss: %s" % unseen_loss_score)
+print("Unseen accuracy: %s" % unseen_accuracy_score)
+
+excel_headers.append("Unseen_Loss")
+excel_dictionary.append(unseen_loss_score)
+excel_headers.append("Unseen_Accuracy")
+excel_dictionary.append(unseen_accuracy_score)
 
 predicted_class_probabilities_known_lenses = classifier.predict_classes(known_images, batch_size=batch_size)
 lens_predicted = np.count_nonzero(predicted_class_probabilities_known_lenses == 1)
@@ -911,8 +923,6 @@ excel_dictionary.append(lens_predicted)
 excel_headers.append("Unseen_Known_Lenses_No_Lens_Predicted")
 excel_dictionary.append(non_lens_predicted)
 
-print("Done Classifier")
-
 # K fold for training data
 true_positives, false_negatives = executeKFoldValidation(training_data,
                                                          training_labels,
@@ -924,6 +934,8 @@ true_positives, false_negatives = executeKFoldValidation(training_data,
                                                          known_labels,
                                                          known_des_names)
 plotKFold(true_positives, false_negatives)
+
+
 
 if makeNewCSVFile:
     createExcelSheet('../Results/new_kerasCNN_Results.csv', excel_headers)
