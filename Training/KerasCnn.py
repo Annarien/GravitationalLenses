@@ -51,7 +51,7 @@ k_fold_num = 2  # A number between 2 and 10 that determines how many times the k
 # is trained.
 epochs = 3  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
-run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
@@ -690,7 +690,8 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         plt.legend()
         plt.show()
         plt.savefig('../Results/%s/KFoldAccuracyScores.png' % dt_string)
-        return true_positives, false_negatives
+
+        plotKFold(true_positives, false_negatives)
 
 
 def viewActivationLayers():
@@ -924,17 +925,15 @@ excel_headers.append("Unseen_Known_Lenses_No_Lens_Predicted")
 excel_dictionary.append(non_lens_predicted)
 
 # K fold for training data
-true_positives, false_negatives = executeKFoldValidation(training_data,
-                                                         training_labels,
-                                                         val_data,
-                                                         val_labels,
-                                                         testing_data,
-                                                         testing_labels,
-                                                         known_images,
-                                                         known_labels,
-                                                         known_des_names)
-plotKFold(true_positives, false_negatives)
-
+executeKFoldValidation(training_data,
+                       training_labels,
+                       val_data,
+                       val_labels,
+                       testing_data,
+                       testing_labels,
+                       known_images,
+                       known_labels,
+                       known_des_names)
 
 if makeNewCSVFile:
     createExcelSheet('../Results/Architecture_kerasCNN_Results.csv', excel_headers)
