@@ -422,6 +422,14 @@ def createAugmentedData(training_data, training_labels):
     print("Complete Training Label: " + str(len(complete_training_labels_set)))
 
     # create augmented data
+    # data_augmented = ImageDataGenerator(featurewise_center=True,
+    #                                     featurewise_std_normalization=True,
+    #                                     rotation_range=90,
+    #                                     width_shift_range=0.2,
+    #                                     height_shift_range=0.2,
+    #                                     horizontal_flip=True,
+    #                                     vertical_flip=True)
+
     data_augmented = ImageDataGenerator(featurewise_center=False,
                                         featurewise_std_normalization=False,
                                         rotation_range=90,
