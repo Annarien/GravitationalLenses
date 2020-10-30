@@ -42,14 +42,14 @@ excel_dictionary.append(dt_string)
 
 # Globals
 makeNewCSVFile = True
-max_num = 100  # Set to sys.maxsize when running entire data set
+max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
 k_fold_num = 2  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 3  # A number that dictates how many iterations should be run to train the classifier
+epochs = 7  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
@@ -61,7 +61,7 @@ use_model_checkpoint = True  # Determines whether the classifiers keeps track of
 monitor_early_stopping = 'val_loss'
 monitor_model_checkpoint = 'val_acc'
 use_shuffle = True
-learning_rate = 0.0002
+learning_rate = 0.001
 
 training_positive_path = 'Training/PositiveAll'
 training_negative_path = 'Training/Negative'
@@ -288,19 +288,17 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
     classifier.add(Dropout(0.5))  # added extra dropout layer
     classifier.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Dropout(0.2))  # antes era 0.25
-    classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
-    classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    # classifier.add(Dropout(0.2))  # antes era 0.25
+    # classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+    # classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
+    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Flatten())  # This is added before dense layer a flatten is needed
     classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
     classifier.add(Dropout(0.2))  # antes era 0.25
-    # Step 3 - Flattening
     classifier.add(Flatten())
     classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
     classifier.add(Dense(units=256, activation='relu'))  # added new dense layer
-    # Step 4 - Full connection
     classifier.add(Dropout(0.2))
     classifier.add(Dense(units=1, activation='sigmoid'))
     classifier.summary()
@@ -422,19 +420,19 @@ def createAugmentedData(training_data, training_labels):
     print("Complete Training Label: " + str(len(complete_training_labels_set)))
 
     # create augmented data
-    # data_augmented = ImageDataGenerator(featurewise_center=True,
-    #                                     featurewise_std_normalization=True,
-    #                                     rotation_range=90,
-    #                                     width_shift_range=0.2,
-    #                                     height_shift_range=0.2,
-    #                                     horizontal_flip=True,
-    #                                     vertical_flip=True)
-
-    data_augmented = ImageDataGenerator(featurewise_center=False,
-                                        featurewise_std_normalization=False,
+    data_augmented = ImageDataGenerator(featurewise_center=True,
+                                        featurewise_std_normalization=True,
                                         rotation_range=90,
+                                        width_shift_range=0.2,
+                                        height_shift_range=0.2,
                                         horizontal_flip=True,
                                         vertical_flip=True)
+
+    # data_augmented = ImageDataGenerator(featurewise_center=False,
+    #                                     featurewise_std_normalization=False,
+    #                                     rotation_range=90,
+    #                                     horizontal_flip=True,
+    #                                     vertical_flip=True)
     data_augmented.fit(training_data)
 
     training_data_size = training_data.shape[0]
