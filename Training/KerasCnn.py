@@ -56,7 +56,7 @@ input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
 patience_num = 3  # Used in the early stopping to determine how quick/slow to react.
-use_early_stopping = True  # Determines whether to use early stopping or not.
+use_early_stopping = False  # Determines whether to use early stopping or not.
 use_model_checkpoint = True  # Determines whether the classifiers keeps track of the most accurate iteration of itself.
 monitor_early_stopping = 'val_loss'
 monitor_model_checkpoint = 'val_acc'
@@ -293,8 +293,8 @@ def buildClassifier(input_shape=(100, 100, 3)):
     # classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
     # classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
     # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Flatten())  # This is added before dense layer a flatten is needed
-    classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
+    # classifier.add(Flatten())  # This is added before dense layer a flatten is needed
+    # classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
     classifier.add(Dropout(0.2))  # antes era 0.25
     classifier.add(Flatten())
     classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
@@ -859,7 +859,7 @@ train_val_loss_figure.savefig('../Results/%s/TrainingValidationLoss.png' % dt_st
 plt.close()
 
 # make positive and negative results and plotting the activations of positive and negative images
-viewActivationLayers()
+#viewActivationLayers()
 
 # Classifier evaluation
 test_pos = getPositiveImages(images_dir=testing_positive_path, max_num=max_num_testing, input_shape=input_shape)
