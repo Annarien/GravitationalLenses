@@ -288,13 +288,13 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
     classifier.add(Dropout(0.5))  # added extra dropout layer
     classifier.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Dropout(0.2))  # antes era 0.25
-    classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
-    classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Flatten())  # This is added before dense layer a flatten is needed
-    classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
+    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    # classifier.add(Dropout(0.2))  # antes era 0.25
+    # classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+    # classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
+    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    # classifier.add(Flatten())  # This is added before dense layer a flatten is needed
+    # classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
     classifier.add(Dropout(0.2))  # antes era 0.25
     classifier.add(Flatten())
     classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
@@ -420,11 +420,19 @@ def createAugmentedData(training_data, training_labels):
     print("Complete Training Label: " + str(len(complete_training_labels_set)))
 
     # create augmented data
-    data_augmented = ImageDataGenerator(featurewise_center=False,
-                                        featurewise_std_normalization=False,
+    data_augmented = ImageDataGenerator(featurewise_center=True,
+                                        featurewise_std_normalization=True,
                                         rotation_range=90,
+                                        width_shift_range=0.2,
+                                        height_shift_range=0.2,
                                         horizontal_flip=True,
                                         vertical_flip=True)
+
+    # data_augmented = ImageDataGenerator(featurewise_center=False,
+    #                                     featurewise_std_normalization=False,
+    #                                     rotation_range=90,
+    #                                     horizontal_flip=True,
+    #                                     vertical_flip=True)
     data_augmented.fit(training_data)
 
     training_data_size = training_data.shape[0]
@@ -851,7 +859,7 @@ train_val_loss_figure.savefig('../Results/%s/TrainingValidationLoss.png' % dt_st
 plt.close()
 
 # make positive and negative results and plotting the activations of positive and negative images
-viewActivationLayers()
+#viewActivationLayers()
 
 # Classifier evaluation
 test_pos = getPositiveImages(images_dir=testing_positive_path, max_num=max_num_testing, input_shape=input_shape)
