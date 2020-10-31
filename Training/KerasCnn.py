@@ -51,7 +51,7 @@ k_fold_num = 2  # A number between 2 and 10 that determines how many times the k
 # is trained.
 epochs = 7  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
-run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
@@ -280,14 +280,15 @@ def buildClassifier(input_shape=(100, 100, 3)):
     # Initialising the CNN
     opt = Adam(lr=learning_rate)  # lr = learning rate
     classifier = Sequential()
-    classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(3, 3), padding='same'))
-    classifier.add(Dropout(0.5))  # added extra Dropout layer
-    classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
-    classifier.add(Dropout(0.5))  # added extra dropout layer
-    classifier.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
+    # classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
+    # classifier.add(MaxPooling2D(pool_size=(3, 3), padding='same'))
+    # classifier.add(Dropout(0.5))  # added extra Dropout layer
+    # classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    # classifier.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
+    # classifier.add(Dropout(0.5))  # added extra dropout layer
+    # classifier.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
+
     # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     # classifier.add(Dropout(0.2))  # antes era 0.25
     # classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
@@ -295,10 +296,34 @@ def buildClassifier(input_shape=(100, 100, 3)):
     # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     # classifier.add(Flatten())  # This is added before dense layer a flatten is needed
     # classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
+
+    # classifier.add(Dropout(0.2))  # antes era 0.25
+    # classifier.add(Flatten())
+    # classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
+    # classifier.add(Dense(units=256, activation='relu'))  # added new dense layer
+    # classifier.add(Dropout(0.2))
+    # classifier.add(Dense(units=1, activation='sigmoid'))
+    # classifier.summary()
+
+    # commit 3fc4c76
+    classifier = Sequential()
+    classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
+    classifier.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Dropout(0.2))  # antes era 0.25
+    # Adding a third convolutional layer
+    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(Dropout(0.2))  # antes era 0.25
+    # Step 3 - Flattening
     classifier.add(Flatten())
-    classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
-    classifier.add(Dense(units=256, activation='relu'))  # added new dense layer
+    # Step 4 - Full connection
+    # classifier.add(Dense(units=512, activation='relu'))
     classifier.add(Dropout(0.2))
     classifier.add(Dense(units=1, activation='sigmoid'))
     classifier.summary()
@@ -308,6 +333,9 @@ def buildClassifier(input_shape=(100, 100, 3)):
                        loss='binary_crossentropy',
                        metrics=['accuracy'])
     plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+
+
+
     return classifier
 
 
