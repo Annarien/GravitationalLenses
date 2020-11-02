@@ -24,8 +24,8 @@ from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.keras.utils.vis_utils import plot_model
 
 # added Adam opt for learning rate
-from tensorflow.python.keras.optimizers import Adam
-# from tensorflow.keras.optimizers import Adam
+# from tensorflow.python.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras import backend as K
 
 from ExcelUtils import createExcelSheet, writeToFile
@@ -41,7 +41,7 @@ excel_headers.append("Date and Time")
 excel_dictionary.append(dt_string)
 
 # Globals
-makeNewCSVFile = True
+makeNewCSVFile = False
 max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
@@ -49,9 +49,9 @@ validation_split = 0.2  # A float value between 0 and 1 that determines what per
 # data is used for validation.
 k_fold_num = 2  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 2  # A number that dictates how many iterations should be run to train the classifier
+epochs = 7  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
-run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
@@ -64,13 +64,11 @@ use_shuffle = True
 learning_rate = 0.001
 
 training_positive_path = 'Training/PositiveAll'
-# training_positive_path = 'UnseenData/KnownLenses_training'
 training_negative_path = 'Training/Negative'
 testing_positive_path = 'Testing/PositiveAll'
 testing_negative_path = 'Testing/Negative'
-# unseen_known_file_path = 'UnseenData/Known131'
-# unseen_known_file_path = 'UnseenData/SelectingSimilarLensesToPositiveSimulated'
-unseen_known_file_path = 'UnseenData/KnownLenses'
+unseen_known_file_path = 'UnseenData/SelectingSimilarLensesToPositiveSimulated'
+# unseen_known_file_path = 'UnseenData/KnownLenses'
 
 
 # Adding global parameters to excel
@@ -128,25 +126,15 @@ def getPositiveImages(images_dir, max_num, input_shape):
                                         (num of images, input_shape[0], input_shape[1], input_shape[2]) =
                                         (num_of_images, 100, 100, 3).
     """
-    global g_img_path, r_img_path, i_img_path
     for root, dirs, _ in os.walk(images_dir):
         num_of_images = min(max_num, len(dirs))
         positive_images = np.zeros([num_of_images, 3, 100, 100])
         index = 0
-        print('image_dir: ' + str(images_dir))
         for folder in dirs:
-            if images_dir == 'Training/PositiveAll':
-                g_img_path = get_pkg_data_filename('%s/%s_g_norm.fits' % (os.path.join(root, folder), folder))
-                r_img_path = get_pkg_data_filename('%s/%s_r_norm.fits' % (os.path.join(root, folder), folder))
-                i_img_path = get_pkg_data_filename('%s/%s_i_norm.fits' % (os.path.join(root, folder), folder))
-            elif images_dir == 'UnseenData/KnownLenses_training':
-                g_img_path = get_pkg_data_filename('%s/g_norm.fits' % (os.path.join(root, folder)))
-                r_img_path = get_pkg_data_filename('%s/r_norm.fits' % (os.path.join(root, folder)))
-                i_img_path = get_pkg_data_filename('%s/i_norm.fits' % (os.path.join(root, folder)))
+            g_img_path = get_pkg_data_filename('%s/%s_g_norm.fits' % (os.path.join(root, folder), folder))
+            r_img_path = get_pkg_data_filename('%s/%s_r_norm.fits' % (os.path.join(root, folder), folder))
+            i_img_path = get_pkg_data_filename('%s/%s_i_norm.fits' % (os.path.join(root, folder), folder))
 
-            # print('g_img_path: ' + str(g_img_path))
-            # print('r_img_path: ' + str(r_img_path))
-            # print('i_img_path: ' + str(i_img_path))
             g_data = fits.open(g_img_path)[0].data[0:100, 0:100]
             r_data = fits.open(r_img_path)[0].data[0:100, 0:100]
             i_data = fits.open(i_img_path)[0].data[0:100, 0:100]
@@ -292,21 +280,47 @@ def buildClassifier(input_shape=(100, 100, 3)):
     # Initialising the CNN
     opt = Adam(lr=learning_rate)  # lr = learning rate
     classifier = Sequential()
+    # classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
+    # classifier.add(MaxPooling2D(pool_size=(3, 3), padding='same'))
+    # classifier.add(Dropout(0.5))  # added extra Dropout layer
+    # classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    # classifier.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
+    # classifier.add(Dropout(0.5))  # added extra dropout layer
+    # classifier.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
 
-    # JACOBS
-    classifier.add(Conv2D(96, kernel_size=(2, 2), activation='relu', input_shape=input_shape, padding='same'))
+    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    # classifier.add(Dropout(0.2))  # antes era 0.25
+    # classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+    # classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
+    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    # classifier.add(Flatten())  # This is added before dense layer a flatten is needed
+    # classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
+
+    # classifier.add(Dropout(0.2))  # antes era 0.25
+    # classifier.add(Flatten())
+    # classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
+    # classifier.add(Dense(units=256, activation='relu'))  # added new dense layer
+    # classifier.add(Dropout(0.2))
+    # classifier.add(Dense(units=1, activation='sigmoid'))
+    # classifier.summary()
+
+    # commit 3fc4c76
+    classifier = Sequential()
+    classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
+    classifier.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Conv2D(128, (2, 2), activation='relu', padding='same'))
+    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Conv2D(256, (2, 2), activation='relu', padding='same'))
-    classifier.add(Conv2D(256, (2, 2), activation='relu', padding='same'))
-    classifier.add(Dropout(0.2))
+    classifier.add(Dropout(0.2))  # antes era 0.25
+    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Dropout(0.2))
+    classifier.add(Dropout(0.2))  # antes era 0.25
     classifier.add(Flatten())
-    classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
-    classifier.add(Dropout(0.2))
-    classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
+    # classifier.add(Dense(units=512, activation='relu'))
     classifier.add(Dropout(0.2))
     classifier.add(Dense(units=1, activation='sigmoid'))
     classifier.summary()
@@ -315,8 +329,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.compile(optimizer=opt,
                        loss='binary_crossentropy',
                        metrics=['accuracy'])
-    plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
-
+    #plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
     return classifier
 
 
@@ -605,9 +618,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         kfold = StratifiedKFold(n_splits=k_fold_num, shuffle=True)
 
         test_scores_list = []
-        test_loss_list =[]
         unseen_scores_list = []
-        unseen_loss_list = []
         test_matrix_list = []
         unseen_matrix_list = []
         kf_counter = 0
@@ -628,14 +639,10 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
 
             test_scores = model.evaluate(testing_data, testing_labels, batch_size=batch_size)
             test_scores_list.append(test_scores[1])
-            test_loss_list.append(test_scores[0])
-            print("Test Score: " +str(test_scores_list))
-            print("Test Loss: "+str(test_loss_list))
+            print(test_scores_list)
             unseen_scores = model.evaluate(known_images, known_labels, batch_size=batch_size)
             unseen_scores_list.append(unseen_scores[1])
-            unseen_loss_list.append(unseen_scores[0])
-            print("Unseen Score: " +str(unseen_scores_list))
-            print("Unseen Loss: " +str(unseen_loss_list))
+            print(unseen_scores_list)
 
             # show confusion matrix
             test_confusion_matrix, unseen_confusion_matrix = gettingKFoldConfusionMatrix(testing_data,
@@ -681,33 +688,23 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
             unseen_matrix_list.append(unseen_confusion_matrix)
 
         test_scores_mean = np.mean(test_scores_list)
-        test_loss_mean = np.mean(test_loss_list)
         test_scores_std = np.std(test_scores_list)
         unseen_scores_mean = np.mean(unseen_scores_list)
-        unseen_loss_mean = np.mean(unseen_loss_list)
         unseen_scores_std = np.std(unseen_scores_list)
 
-        print("Test Confusion Matrices: " + str(test_matrix_list))
         print("Test Scores: " + str(test_scores_list))
         print("Test Scores Mean: " + str(test_scores_mean))
         print("Test Scores Std: " + str(test_scores_std))
-        print("Test Loss: "+str(test_loss_list))
-        print("Test Loss Mean: " +str(test_loss_mean))
-        print("Unseen Confusion Matrices: " + str(unseen_matrix_list))
+        print("Test Confusion Matrices: " + str(test_matrix_list))
         print("Unseen Scores: " + str(unseen_scores_list))
         print("Unseen Scores Mean: " + str(unseen_scores_mean))
         print("Unseen Scores Std: " + str(unseen_scores_std))
-        print("Unseen Loss: " + str(unseen_loss_list))
-        print("Unseen Loss Mean: "+str(unseen_loss_mean))
+        print("Unseen Confusion Matrices: " + str(unseen_matrix_list))
 
-        excel_headers.append("Test Loss Mean")
-        excel_dictionary.append(test_loss_mean)
         excel_headers.append("Test Scores Mean")
         excel_dictionary.append(test_scores_mean)
         excel_headers.append("Test Scores Std")
         excel_dictionary.append(test_scores_std)
-        excel_headers.append("Unseen Loss Mean")
-        excel_dictionary.append(unseen_loss_mean)
         excel_headers.append("Unseen Known Lenses Mean")
         excel_dictionary.append(unseen_scores_mean)
         excel_headers.append("Unseen Known Lenses Std")
@@ -844,8 +841,8 @@ history, classifier = usingCnnModel(training_data,
                                     val_data,
                                     val_labels)
 
-classifier.load_weights('best_weights.hdf5')
-classifier.save_weights('galaxies_cnn.h5')
+#classifier.load_weights('best_weights.hdf5')
+#classifier.save_weights('galaxies_cnn.h5')
 
 excel_headers.append("Epochs")
 excel_dictionary.append(epochs)
@@ -853,8 +850,8 @@ excel_headers.append("Batch_size")
 excel_dictionary.append(batch_size)
 
 # Plot run metrics
-acc = history.history['acc']
-val_acc = history.history['val_acc']
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
 loss = history.history['loss']
 val_loss = history.history['val_loss']
 number_of_completed_epochs = range(1, len(acc) + 1)
@@ -884,7 +881,7 @@ train_val_loss_figure.savefig('../Results/%s/TrainingValidationLoss.png' % dt_st
 plt.close()
 
 # make positive and negative results and plotting the activations of positive and negative images
-# viewActivationLayers()
+#viewActivationLayers()
 
 # Classifier evaluation
 test_pos = getPositiveImages(images_dir=testing_positive_path, max_num=max_num_testing, input_shape=input_shape)
