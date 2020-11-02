@@ -72,7 +72,6 @@ testing_negative_path = 'Testing/Negative'
 # unseen_known_file_path = 'UnseenData/SelectingSimilarLensesToPositiveSimulated'
 unseen_known_file_path = 'UnseenData/KnownLenses'
 
-
 # Adding global parameters to excel
 excel_headers.append("Max Training Num")
 excel_dictionary.append(max_num)
@@ -294,14 +293,14 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier = Sequential()
 
     # JACOBS
-    classifier.add(Conv2D(96, kernel_size=(2, 2), activation='relu', input_shape=input_shape, padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Conv2D(128, (2, 2), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Conv2D(256, (2, 2), activation='relu', padding='same'))
-    classifier.add(Conv2D(256, (2, 2), activation='relu', padding='same'))
+    classifier.add(Conv2D(96, kernel_size=(2, 2), activation='relu', input_shape=input_shape))  # padding='same'
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
+    classifier.add(Conv2D(128, (2, 2), activation='relu'))  # padding='same'
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
+    classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
+    classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
     classifier.add(Dropout(0.2))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))  # padding='same'
     classifier.add(Dropout(0.2))
     classifier.add(Flatten())
     classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
@@ -605,7 +604,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         kfold = StratifiedKFold(n_splits=k_fold_num, shuffle=True)
 
         test_scores_list = []
-        test_loss_list =[]
+        test_loss_list = []
         unseen_scores_list = []
         unseen_loss_list = []
         test_matrix_list = []
@@ -629,13 +628,13 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
             test_scores = model.evaluate(testing_data, testing_labels, batch_size=batch_size)
             test_scores_list.append(test_scores[1])
             test_loss_list.append(test_scores[0])
-            print("Test Score: " +str(test_scores_list))
-            print("Test Loss: "+str(test_loss_list))
+            print("Test Score: " + str(test_scores_list))
+            print("Test Loss: " + str(test_loss_list))
             unseen_scores = model.evaluate(known_images, known_labels, batch_size=batch_size)
             unseen_scores_list.append(unseen_scores[1])
             unseen_loss_list.append(unseen_scores[0])
-            print("Unseen Score: " +str(unseen_scores_list))
-            print("Unseen Loss: " +str(unseen_loss_list))
+            print("Unseen Score: " + str(unseen_scores_list))
+            print("Unseen Loss: " + str(unseen_loss_list))
 
             # show confusion matrix
             test_confusion_matrix, unseen_confusion_matrix = gettingKFoldConfusionMatrix(testing_data,
@@ -691,14 +690,14 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         print("Test Scores: " + str(test_scores_list))
         print("Test Scores Mean: " + str(test_scores_mean))
         print("Test Scores Std: " + str(test_scores_std))
-        print("Test Loss: "+str(test_loss_list))
-        print("Test Loss Mean: " +str(test_loss_mean))
+        print("Test Loss: " + str(test_loss_list))
+        print("Test Loss Mean: " + str(test_loss_mean))
         print("Unseen Confusion Matrices: " + str(unseen_matrix_list))
         print("Unseen Scores: " + str(unseen_scores_list))
         print("Unseen Scores Mean: " + str(unseen_scores_mean))
         print("Unseen Scores Std: " + str(unseen_scores_std))
         print("Unseen Loss: " + str(unseen_loss_list))
-        print("Unseen Loss Mean: "+str(unseen_loss_mean))
+        print("Unseen Loss Mean: " + str(unseen_loss_mean))
 
         excel_headers.append("Test Loss Mean")
         excel_dictionary.append(test_loss_mean)
