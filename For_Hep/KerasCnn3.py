@@ -24,8 +24,8 @@ from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.keras.utils.vis_utils import plot_model
 
 # added Adam opt for learning rate
-from tensorflow.python.keras.optimizers import Adam
-# from tensorflow.keras.optimizers import Adam
+# from tensorflow.python.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras import backend as K
 
 from ExcelUtils import createExcelSheet, writeToFile
