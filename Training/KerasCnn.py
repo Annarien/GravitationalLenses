@@ -42,12 +42,12 @@ excel_dictionary.append(dt_string)
 
 # Globals
 makeNewCSVFile = True
-max_num = 100  # Set to sys.maxsize when running entire data set
-max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
+max_num = 10  # Set to sys.maxsize when running entire data set
+max_num_testing = 10  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 5  # A number between 2 and 10 that determines how many times the k-fold classifier
+k_fold_num = 3  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
 epochs = 3  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
@@ -69,8 +69,8 @@ training_negative_path = 'Training/Negative'
 testing_positive_path = 'Testing/PositiveAll'
 testing_negative_path = 'Testing/Negative'
 # unseen_known_file_path = 'UnseenData/Known131'
-# unseen_known_file_path = 'UnseenData/SelectingSimilarLensesToPositiveSimulated'
-unseen_known_file_path = 'UnseenData/KnownLenses'
+unseen_known_file_path_select = 'UnseenData/SelectingSimilarLensesToPositiveSimulated'
+unseen_known_file_path_all = 'UnseenData/KnownLenses'
 
 # Adding global parameters to excel
 excel_headers.append("Max Training Num")
@@ -545,22 +545,35 @@ def gettingTrueFalsePositiveNegatives(testing_data, testing_labels, text_file_pa
     return confusion_matrix_array
 
 
-def gettingKFoldConfusionMatrix(test_data, test_labels, unseen_images, unseen_labels, kf_counter):
+def gettingKFoldConfusionMatrix(test_data, test_labels, unseen_images, unseen_labels, select_known_images,
+                                select_known_labels, kf_counter):
     test_confusion_matrix = gettingTrueFalsePositiveNegatives(test_data,
                                                               test_labels,
                                                               text_file_path='../Results/%s/TrainingTestingResults'
                                                                              '/KFold_PredictedMatrix.txt' % dt_string,
-                                                              predicted_lenses_filepath='../Results/%s/TrainingTestingResults'
+                                                              predicted_lenses_filepath='../Results/%s'
+                                                                                        '/TrainingTestingResults '
                                                                                         % dt_string,
                                                               kf_counter=kf_counter)
     unseen_confusion_matrix = gettingTrueFalsePositiveNegatives(unseen_images,
                                                                 unseen_labels,
                                                                 text_file_path='../Results/%s/UnseenKnownLenses/'
                                                                                'KFold_LensesPredicted.txt' % dt_string,
-                                                                predicted_lenses_filepath='../Results/%s/UnseenKnownLenses/'
+                                                                predicted_lenses_filepath='../Results/%s'
+                                                                                          '/UnseenKnownLenses/ '
                                                                                           % dt_string,
                                                                 kf_counter=kf_counter)
-    return test_confusion_matrix, unseen_confusion_matrix
+
+    select_confusion_matrix = gettingTrueFalsePositiveNegatives(select_known_images,
+                                                                select_known_labels,
+                                                                text_file_path='../Results/%s/UnseenKnownLensesSelect/'
+                                                                               'KFold_LensesPredicted.txt' % dt_string,
+                                                                predicted_lenses_filepath='../Results/%s'
+                                                                                          '/UnseenKnownLensesSelect/ '
+                                                                                          % dt_string,
+                                                                kf_counter=kf_counter)
+
+    return test_confusion_matrix, unseen_confusion_matrix, select_confusion_matrix
 
 
 def gettingRandomUnseenImage(filepath):
@@ -577,7 +590,8 @@ def gettingRandomUnseenImage(filepath):
 
 
 def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testing_data, testing_labels,
-                           known_images, known_labels, known_des_names):
+                           known_images, known_labels, known_des_names,
+                           select_known_images, select_known_labels):
     """
     This does the k fold cross validation which is tested against the unseen testing and known lenses.
     Args:
@@ -607,8 +621,11 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         test_loss_list = []
         unseen_scores_list = []
         unseen_loss_list = []
+        select_unseen_scores_list = []
+        select_unseen_loss_list = []
         test_matrix_list = []
         unseen_matrix_list = []
+        select_matrix_list = []
         kf_counter = 0
         true_positives = {}
         false_negatives = {}
@@ -635,11 +652,15 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
             unseen_loss_list.append(unseen_scores[0])
             print("Unseen Score: " + str(unseen_scores_list))
             print("Unseen Loss: " + str(unseen_loss_list))
+            select_scores = model.evaluate(select_known_images, select_known_labels, batch_size=batch_size)
+            select_unseen_scores_list.append(select_scores[1])
+            select_unseen_loss_list.append((select_scores[0]))
 
             # show confusion matrix
-            test_confusion_matrix, unseen_confusion_matrix = gettingKFoldConfusionMatrix(testing_data,
-                                                                                         testing_labels, known_images,
-                                                                                         known_labels, kf_counter)
+            test_confusion_matrix, unseen_confusion_matrix, select_confusion_matrix = gettingKFoldConfusionMatrix(
+                testing_data,
+                testing_labels, known_images,
+                known_labels, select_known_images, select_known_labels, kf_counter)
 
             probabilities_known_lenses = classifier.predict_classes(known_images, batch_size=batch_size)
             predicted_lens = np.count_nonzero(probabilities_known_lenses == 1)
@@ -661,7 +682,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
             imageTP = None
             if predicted_lenses:
                 randomTP = random.choice(predicted_lenses)
-                filepathTP = unseen_known_file_path + '/%s' % randomTP
+                filepathTP = unseen_known_file_path_all + '/%s' % randomTP
                 imageTP = gettingRandomUnseenImage(filepathTP)
             true_positives[kf_counter] = (randomTP, imageTP)
 
@@ -669,7 +690,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
             imageFN = None
             if predicted_no_lenses:
                 randomFN = random.choice(predicted_no_lenses)
-                filepathFN = unseen_known_file_path + '/%s' % randomFN
+                filepathFN = unseen_known_file_path_all + '/%s' % randomFN
                 imageFN = gettingRandomUnseenImage(filepathFN)
             false_negatives[kf_counter] = (randomFN, imageFN)
 
@@ -678,6 +699,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
 
             test_matrix_list.append(test_confusion_matrix)
             unseen_matrix_list.append(unseen_confusion_matrix)
+            select_matrix_list.append(select_confusion_matrix)
 
         test_scores_mean = np.mean(test_scores_list)
         test_loss_mean = np.mean(test_loss_list)
@@ -685,6 +707,9 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         unseen_scores_mean = np.mean(unseen_scores_list)
         unseen_loss_mean = np.mean(unseen_loss_list)
         unseen_scores_std = np.std(unseen_scores_list)
+        select_scores_mean = np.mean(select_unseen_scores_list)
+        select_loss_mean = np.mean(select_unseen_scores_list)
+        select_scores_std = np.mean(select_unseen_scores_list)
 
         print("Test Confusion Matrices: " + str(test_matrix_list))
         print("Test Scores: " + str(test_scores_list))
@@ -698,6 +723,12 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         print("Unseen Scores Std: " + str(unseen_scores_std))
         print("Unseen Loss: " + str(unseen_loss_list))
         print("Unseen Loss Mean: " + str(unseen_loss_mean))
+        print("Select Confusion Matrices: " + str(select_matrix_list))
+        print("Select Score: " + str(select_unseen_scores_list))
+        print("Select Scores Mean: " + str(select_scores_mean))
+        print("Select Unseen Scores Std: " + str(select_scores_std))
+        print("Select Loss: " + str(select_unseen_loss_list))
+        print("Unseen Loss Mean: " + str(select_loss_mean))
 
         excel_headers.append("Test Loss Mean")
         excel_dictionary.append(test_loss_mean)
@@ -711,9 +742,16 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         excel_dictionary.append(unseen_scores_mean)
         excel_headers.append("Unseen Known Lenses Std")
         excel_dictionary.append(unseen_scores_std)
+        excel_headers.append("Select Loss Mean")
+        excel_dictionary.append(select_loss_mean)
+        excel_headers.append("Select Scores Mean")
+        excel_dictionary.append(select_scores_mean)
+        excel_headers.append("Select Std")
+        excel_dictionary.append(select_scores_std)
 
         plt.plot(test_scores_list, color='red', label='Testing Scores')
         plt.plot(unseen_scores_list, color='blue', label='Unseen Known Lenses Scores')
+        plt.plot(select_unseen_scores_list, color='green', label="Selected Unseen Known Lenses Scores")
 
         plt.xlabel('Folds')
         plt.ylabel('Accuracy')
@@ -910,7 +948,7 @@ gettingTrueFalsePositiveNegatives(testing_data,
                                                  % dt_string,
                                   predicted_lenses_filepath='../Results/%s/TrainingTestingResults' % dt_string)
 
-unseen_known_images = getUnseenData(images_dir=unseen_known_file_path,
+unseen_known_images = getUnseenData(images_dir=unseen_known_file_path_all,
                                     max_num=max_num_prediction,
                                     input_shape=input_shape)
 
@@ -949,10 +987,55 @@ predicted_lenses, predicted_no_lenses = savePredictedLenses(known_des_names,
                                                             predicted_lenses_filepath='../Results/%s/UnseenKnownLenses'
                                                                                       % dt_string)
 
-excel_headers.append("Unseen_Known_Lenses_Predicted")
-excel_dictionary.append(lens_predicted)
-excel_headers.append("Unseen_Known_Lenses_No_Lens_Predicted")
-excel_dictionary.append(non_lens_predicted)
+######################################################################################
+unseen_known_images_select = getUnseenData(images_dir=unseen_known_file_path_select,
+                                           max_num=max_num_prediction,
+                                           input_shape=input_shape)
+
+select_known_images, select_known_labels, select_known_des_names = makeImageSet(
+    positive_images=list(unseen_known_images_select.values()),
+    tile_names=list(unseen_known_images_select.keys()),
+    shuffle_needed=True)
+print("Unseen Selected Known Images Shape:  " + str(select_known_images.shape))
+print("Unseen Selected Known Labels Shape: " + str(select_known_labels.shape))
+print("Got Unseen Selected Known Lenses Data")
+
+select_unseen_scores = classifier.evaluate(select_known_images, select_known_labels, batch_size=batch_size)
+select_unseen_loss_score = select_unseen_scores[0]
+select_unseen_accuracy_score = select_unseen_scores[1]
+print("Unseen Selected loss: %s" % select_unseen_loss_score)
+print("Unseen Selected accuracy: %s" % select_unseen_accuracy_score)
+
+excel_headers.append("Selected Unseen_Loss")
+excel_dictionary.append(select_unseen_loss_score)
+excel_headers.append("Select Unseen_Accuracy")
+excel_dictionary.append(select_unseen_accuracy_score)
+
+select_predicted_class_probabilities_known_lenses = classifier.predict_classes(select_known_images,
+                                                                               batch_size=batch_size)
+select_lens_predicted = np.count_nonzero(select_predicted_class_probabilities_known_lenses == 1)
+select_non_lens_predicted = np.count_nonzero(select_predicted_class_probabilities_known_lenses == 0)
+print("%s/%s known lenses predicted" % (select_lens_predicted, len(select_known_images)))
+print("%s/%s  non known lenses predicted" % (select_non_lens_predicted, len(select_known_images)))
+
+gettingTrueFalsePositiveNegatives(select_known_images, select_known_labels,
+                                  text_file_path='../Results/%s/UnseenKnownLensesSelect/PredictedMatrixBeforeKFOLD.txt' % dt_string,
+                                  predicted_lenses_filepath='../Results/%s/UnseenKnownLensesSelect' % dt_string)
+
+select_predicted_lenses, select_predicted_no_lenses = savePredictedLenses(select_known_des_names,
+                                                                          select_predicted_class_probabilities_known_lenses,
+                                                                          text_file_path='../Results/%s'
+                                                                                         '/UnseenKnownLensesSelect/ '
+                                                                                         'PredictedMatrixBeforeKFOLD'
+                                                                                         '.txt' % dt_string,
+                                                                          predicted_lenses_filepath='../Results/%s'
+                                                                                                    '/UnseenKnownLensesSelect'
+                                                                                                    % dt_string)
+
+excel_headers.append("Selected Unseen_Known_Lenses_Predicted")
+excel_dictionary.append(select_lens_predicted)
+excel_headers.append("Selected Unseen_Known_Lenses_No_Lens_Predicted")
+excel_dictionary.append(select_non_lens_predicted)
 
 # K fold for training data
 executeKFoldValidation(training_data,
@@ -963,7 +1046,8 @@ executeKFoldValidation(training_data,
                        testing_labels,
                        known_images,
                        known_labels,
-                       known_des_names)
+                       known_des_names,
+                       select_known_images, select_known_labels)
 
 if makeNewCSVFile:
     createExcelSheet('../Results/Architecture_kerasCNN_Results.csv', excel_headers)
