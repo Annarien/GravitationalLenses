@@ -291,25 +291,21 @@ def buildClassifier(input_shape=(100, 100, 3)):
     # Initialising the CNN
     opt = Adam(lr=learning_rate)  # lr = learning rate
     classifier = Sequential()
-    classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(3, 3), padding='same'))
-    classifier.add(Dropout(0.5))  # added extra Dropout layer
-    classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
-    classifier.add(Dropout(0.5))  # added extra dropout layer
-    classifier.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Dropout(0.2))  # antes era 0.25
-    classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
-    classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Flatten())  # This is added before dense layer a flatten is needed
-    classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
-    classifier.add(Dropout(0.2))  # antes era 0.25
+
+    # JACOBS
+    classifier.add(Conv2D(96, kernel_size=(2, 2), activation='relu', input_shape=input_shape))  # padding='same'
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
+    classifier.add(Conv2D(128, (2, 2), activation='relu'))  # padding='same'
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
+    classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
+    classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
+    classifier.add(Dropout(0.2))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))  # padding='same'
+    classifier.add(Dropout(0.2))
     classifier.add(Flatten())
     classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
-    classifier.add(Dense(units=256, activation='relu'))  # added new dense layer
+    classifier.add(Dropout(0.2))
+    classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
     classifier.add(Dropout(0.2))
     classifier.add(Dense(units=1, activation='sigmoid'))
     classifier.summary()
