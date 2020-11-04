@@ -298,6 +298,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.add(Conv2D(128, (2, 2), activation='relu'))  # padding='same'
     classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
     classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))
     classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
     classifier.add(Dropout(0.2))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))  # padding='same'
