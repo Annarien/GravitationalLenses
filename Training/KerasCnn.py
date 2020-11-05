@@ -292,33 +292,53 @@ def buildClassifier(input_shape=(100, 100, 3)):
     opt = Adam(lr=learning_rate)  # lr = learning rate
     classifier = Sequential()
 
-    # JACOBS
-    classifier.add(Conv2D(96, kernel_size=(2, 2), activation='relu', input_shape=input_shape))  # padding='same'
-    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
-    classifier.add(Dropout(0.2))
-    classifier.add(Conv2D(128, (2, 2), activation='relu'))  # padding='same'
-    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
-    classifier.add(Dropout(0.2))
-    classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
-    classifier.add(MaxPooling2D(pool_size=(2, 2)))
-    classifier.add(Dropout(0.2))
-    classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
-    classifier.add(Dropout(0.2))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))  # padding='same'
-    classifier.add(Dropout(0.2))
+    classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
+    classifier.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(Dropout(0.2)) # antes era 0.25
+    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(Dropout(0.2))# antes era 0.25
     classifier.add(Flatten())
-    classifier.add(Dense(units=2048, activation='relu'))  # added new dense layer
-    classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
-    classifier.add(Dropout(0.2))
-    classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
+    # classifier.add(Dense(units=512, activation='relu'))
     classifier.add(Dropout(0.2))
     classifier.add(Dense(units=1, activation='sigmoid'))
     classifier.summary()
 
     # Compiling the CNN
-    classifier.compile(optimizer=opt,
-                       loss='binary_crossentropy',
-                       metrics=['accuracy'])
+    classifier.compile(optimizer=opt,loss = 'binary_crossentropy',metrics = ['accuracy'])
+
+    # classifier.add(Conv2D(96, kernel_size=(2, 2), activation='relu', input_shape=input_shape))  # padding='same'
+    # classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
+    # classifier.add(Dropout(0.2))
+    # classifier.add(Conv2D(128, (2, 2), activation='relu'))  # padding='same'
+    # classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
+    # classifier.add(Dropout(0.2))
+    # classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
+    # classifier.add(MaxPooling2D(pool_size=(2, 2)))
+    # classifier.add(Dropout(0.2))
+    # classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
+    # classifier.add(Dropout(0.2))
+    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))  # padding='same'
+    # classifier.add(Dropout(0.2))
+    # classifier.add(Flatten())
+    # classifier.add(Dense(units=2048, activation='relu'))  # added new dense layer
+    # classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
+    # classifier.add(Dropout(0.2))
+    # classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
+    # classifier.add(Dropout(0.2))
+    # classifier.add(Dense(units=1, activation='sigmoid'))
+    # classifier.summary()
+    #
+    # # Compiling the CNN
+    # classifier.compile(optimizer=opt,
+    #                    loss='binary_crossentropy',
+    #                    metrics=['accuracy'])
     plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
 
     return classifier
