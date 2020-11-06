@@ -329,10 +329,10 @@ def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array, figure_tit
         for column_num in range(0, len(images_for_row)):
             img = Image.open(images_for_row[column_num])
             img.thumbnail((100, 100))
-            axs[row_num, column_num].imshow(img, aspect = 'equal')
+            axs[row_num, column_num].imshow(img, aspect='equal')
             axs[row_num, column_num].axis('off')
             imageTitle = image_title_array[image_title_num]
-            axs[row_num, column_num].set_title('%s' % imageTitle, fontsize = 10, fontdict=None, loc='center', color='k')
+            axs[row_num, column_num].set_title('%s' % imageTitle, fontsize=10, fontdict=None, loc='center', color='k')
             image_title_num += 1
             img.close()
 
@@ -342,7 +342,7 @@ def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array, figure_tit
                 axs[row_num, emptyIndex].axis('off')
 
         row_num += 1
-    fig.tight_layout(pad = 2.0)
+    fig.tight_layout(pad=2.0)
     fig.suptitle('%s' % figure_title)
     fig.savefig(file_path)
     plt.close(fig)
@@ -410,7 +410,7 @@ def plotprogressNegativePositive(number_iterations):
     rgb_des_image_paths = []
     image_title_array = []
     cols = ['g-band', 'r-band', 'i-band']
-    rows_neg = ['Clipped DES images', 'Normalised images', 'Background sky']
+    rows_neg = ['Clipped DES images', 'Normalised images']
     rows_pos = ['Simulated Lenses', 'With Background Noise', 'Normalised Simulated Lenses']
     labels_neg = ['\n'.join(wrap(l, 15)) for l in rows_neg]
     labels_pos = ['\n'.join(wrap(l, 15)) for l in rows_pos]
@@ -426,38 +426,45 @@ def plotprogressNegativePositive(number_iterations):
         gPosSky, rPosSky, iPosSky = getPosWDESSky(num)
         gPosSkyNorm, rPosSkyNorm, iPosSkyNorm = getPosWDESSkyNorm(num)
 
-        # creating grids of images
         # creating the first grid, in which the DES_Processed images are seen.
-        fig1, axs = plt.subplots(3, 3)
-        # fig1.suptitle("Process to form Negative Images")
-        fig1.tight_layout(pad=1.7)
+        fig1, axs1 = plt.subplots(2, 3)
+        fig1.suptitle("Process to form Negative Images")
+        fig1.tight_layout(pad=1.0)
         # get column names and row names
-        for ax, col in zip(axs[0], cols):
+        for ax, col in zip(axs1[0], cols):
             ax.set_title(col)
         fig1.subplots_adjust(left=0.2, wspace=0.6)
-        fig1.align_ylabels(axs[:, 0])
+        fig1.align_ylabels(axs1[:, 0])
 
-        axs[0, 0].set_ylabel(labels_neg[0], rotation=90, fontsize=10, labelpad=5, va='center')
-        axs[1, 0].set_ylabel(labels_neg[1], rotation=90, fontsize=10, labelpad=5, va='center')
-        axs[2, 0].set_ylabel(labels_neg[2], rotation=90, fontsize=10, labelpad=5, va='center')
+        axs1[0, 0].set_ylabel(labels_neg[0], rotation=90, fontsize=10, labelpad=10, va='center')
+        axs1[1, 0].set_ylabel(labels_neg[1], rotation=90, fontsize=10, labelpad=10, va='center')
+        axs1[0, 0].imshow(gWCS[0].data, cmap='gray')
+        axs1[0, 1].imshow(rWCS[0].data, cmap='gray')
+        axs1[0, 2].imshow(iWCS[0].data, cmap='gray')
+        axs1[1, 0].imshow(gDESNorm[0].data, cmap='gray')
+        axs1[1, 1].imshow(rDESNorm[0].data, cmap='gray')
+        axs1[1, 2].imshow(iDESNorm[0].data, cmap='gray')
 
-        axs[0, 0].imshow(gWCS[0].data, cmap='gray')
-        axs[0, 1].imshow(rWCS[0].data, cmap='gray')
-        axs[0, 2].imshow(iWCS[0].data, cmap='gray')
-        axs[1, 0].imshow(gDESNorm[0].data, cmap='gray')
-        axs[1, 1].imshow(rDESNorm[0].data, cmap='gray')
-        axs[1, 2].imshow(iDESNorm[0].data, cmap='gray')
-        axs[2, 0].imshow(gDESSky[0].data, cmap='gray')
-        axs[2, 1].imshow(rDESSky[0].data, cmap='gray')
-        axs[2, 2].imshow(iDESSky[0].data, cmap='gray')
-
-        # print(num)
-        # print(train_negative_path)
-        # some_path = glob.glob('%s/%i_*/Negative_Processed_Grid.png' % (train_negative_path, num))[0]
         some_path = '%s/%s/Negative_Processed_Grid.png' % (train_negative_path, key)
         print(some_path)
         fig1.savefig(some_path)
         plt.close(fig1)
+
+        fig3, axs3 = plt.subplots(1, 3)
+        fig3.suptitle("DES Background Sky Images")
+
+        for ax, col in zip(axs3, cols):
+            ax.set_title(col)
+            print(col)
+
+        axs3[0].imshow(gDESSky[0].data, cmap='gray')
+        axs3[1].imshow(rDESSky[0].data, cmap='gray')
+        axs3[2].imshow(iDESSky[0].data, cmap='gray')
+
+        some_path_fig3 = '%s/%s/RandomSky.png' % (train_negative_path, key)
+        print(some_path_fig3)
+        fig3.savefig(some_path_fig3)
+        plt.close(fig3)
 
         gWCS.close()
         rWCS.close()
@@ -470,30 +477,29 @@ def plotprogressNegativePositive(number_iterations):
         iDESSky.close()
 
         # creating the second grid, in which the Simulated images are seen.
-        fig2, axs = plt.subplots(3, 3)
-        fig2.tight_layout(pad=1.7)
+        fig2, axs2 = plt.subplots(3, 3)
+        fig2.tight_layout(pad=3.1)
         fig2.subplots_adjust(left=0.2, wspace=0.6)
-        fig2.align_ylabels(axs[:, 0])
-        # fig2.suptitle("Process to form Positive Images")
-
+        fig2.align_ylabels(axs2[:, 0])
+        fig2.suptitle("Process to form Positive Images")
 
         # get column names and row names
-        for ax, col in zip(axs[0], cols):
+        for ax, col in zip(axs2[0], cols):
             ax.set_title(col)
 
-        axs[0, 0].set_ylabel(labels_pos[0], rotation=90, fontsize=10, labelpad=5, va='center')
-        axs[1, 0].set_ylabel(labels_pos[1], rotation=90, fontsize=10, labelpad=5, va='center')
-        axs[2, 0].set_ylabel(labels_pos[2], rotation=90, fontsize=10, labelpad=5, va='center')
+        axs2[0, 0].set_ylabel(labels_pos[0], rotation=90, fontsize=10, labelpad=10, va='center')
+        axs2[1, 0].set_ylabel(labels_pos[1], rotation=90, fontsize=10, labelpad=10, va='center')
+        axs2[2, 0].set_ylabel(labels_pos[2], rotation=90, fontsize=10, labelpad=10, va='center')
 
-        axs[0, 0].imshow(gPos[0].data, cmap='gray')
-        axs[0, 1].imshow(rPos[0].data, cmap='gray')
-        axs[0, 2].imshow(iPos[0].data, cmap='gray')
-        axs[1, 0].imshow(gPosSky[0].data, cmap='gray')
-        axs[1, 1].imshow(rPosSky[0].data, cmap='gray')
-        axs[1, 2].imshow(iPosSky[0].data, cmap='gray')
-        axs[2, 0].imshow(gPosSkyNorm[0].data, cmap='gray')
-        axs[2, 1].imshow(rPosSkyNorm[0].data, cmap='gray')
-        axs[2, 2].imshow(iPosSkyNorm[0].data, cmap='gray')
+        axs2[0, 0].imshow(gPos[0].data, cmap='gray')
+        axs2[0, 1].imshow(rPos[0].data, cmap='gray')
+        axs2[0, 2].imshow(iPos[0].data, cmap='gray')
+        axs2[1, 0].imshow(gPosSky[0].data, cmap='gray')
+        axs2[1, 1].imshow(rPosSky[0].data, cmap='gray')
+        axs2[1, 2].imshow(iPosSky[0].data, cmap='gray')
+        axs2[2, 0].imshow(gPosSkyNorm[0].data, cmap='gray')
+        axs2[2, 1].imshow(rPosSkyNorm[0].data, cmap='gray')
+        axs2[2, 2].imshow(iPosSkyNorm[0].data, cmap='gray')
 
         fig2.savefig('%s/%i/Positive_Processed_Grid.png' % (train_positive_path, num))
         plt.close(fig2)
