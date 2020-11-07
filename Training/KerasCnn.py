@@ -49,7 +49,7 @@ validation_split = 0.2  # A float value between 0 and 1 that determines what per
 # data is used for validation.
 k_fold_num = 3  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 50  # A number that dictates how many iterations should be run to train the classifier
+epochs = 10  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
@@ -354,7 +354,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.add(Dropout(0.2))  # antes era 0.25
     # Adding a third convolutional layer
     classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
-    classifier.add(MaxPooling2D(2,2))
+    # classifier.add(MaxPooling2D(2,2))
     classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
     classifier.add(Dropout(0.2))  # antes era 0.25
