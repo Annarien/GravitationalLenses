@@ -712,8 +712,8 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         unseen_loss_mean = np.mean(unseen_loss_list)
         unseen_scores_std = np.std(unseen_scores_list)
         select_scores_mean = np.mean(select_unseen_scores_list)
-        select_loss_mean = np.mean(select_unseen_scores_list)
-        select_scores_std = np.mean(select_unseen_scores_list)
+        select_loss_mean = np.mean(select_unseen_loss_list)
+        select_scores_std = np.std(select_unseen_scores_list)
 
         print("Test Confusion Matrices: " + str(test_matrix_list))
         print("Test Scores: " + str(test_scores_list))

@@ -661,7 +661,7 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
             print("Unseen Loss: " + str(unseen_loss_list))
             select_scores = model.evaluate(select_known_images, select_known_labels, batch_size=batch_size)
             select_unseen_scores_list.append(select_scores[1])
-            select_unseen_loss_list.append((select_scores[0]))
+            select_unseen_loss_list.append(select_scores[0])
 
             # show confusion matrix
             test_confusion_matrix, unseen_confusion_matrix, select_confusion_matrix = gettingKFoldConfusionMatrix(
@@ -715,8 +715,8 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         unseen_loss_mean = np.mean(unseen_loss_list)
         unseen_scores_std = np.std(unseen_scores_list)
         select_scores_mean = np.mean(select_unseen_scores_list)
-        select_loss_mean = np.mean(select_unseen_scores_list)
-        select_scores_std = np.mean(select_unseen_scores_list)
+        select_loss_mean = np.mean(select_unseen_loss_list)
+        select_scores_std = np.std(select_unseen_scores_list)
 
         print("Test Confusion Matrices: " + str(test_matrix_list))
         print("Test Scores: " + str(test_scores_list))
