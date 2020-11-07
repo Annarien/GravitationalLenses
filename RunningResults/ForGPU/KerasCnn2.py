@@ -57,7 +57,7 @@ input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
 patience_num = 10  # Used in the early stopping to determine how quick/slow to react.
-use_early_stopping = False  # Determines whether to use early stopping or not.
+use_early_stopping = True  # Determines whether to use early stopping or not.
 use_model_checkpoint = True  # Determines whether the classifiers keeps track of the most accurate iteration of itself.
 monitor_early_stopping = 'val_loss'
 monitor_model_checkpoint = 'val_acc'
@@ -713,8 +713,8 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         unseen_loss_mean = np.mean(unseen_loss_list)
         unseen_scores_std = np.std(unseen_scores_list)
         select_scores_mean = np.mean(select_unseen_scores_list)
-        select_loss_mean = np.mean(select_unseen_scores_list)
-        select_scores_std = np.mean(select_unseen_scores_list)
+        select_loss_mean = np.mean(select_unseen_loss_list)
+        select_scores_std = np.std(select_unseen_scores_list)
 
         print("Test Confusion Matrices: " + str(test_matrix_list))
         print("Test Scores: " + str(test_scores_list))
