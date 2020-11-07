@@ -290,28 +290,28 @@ def buildClassifier(input_shape=(100, 100, 3)):
     """
     # Initialising the CNN
     opt = Adam(lr=learning_rate)  # lr = learning rate
-    classifier = Sequential()
+    # classifier = Sequential()
 
-    classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
-    classifier.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
-    classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Dropout(0.2)) # antes era 0.25
-    classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
-    classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Dropout(0.2))# antes era 0.25
-    classifier.add(Flatten())
-    # classifier.add(Dense(units=512, activation='relu'))
-    classifier.add(Dropout(0.2))
-    classifier.add(Dense(units=1, activation='sigmoid'))
-    classifier.summary()
-
-    # Compiling the CNN
-    classifier.compile(optimizer=opt,loss = 'binary_crossentropy',metrics = ['accuracy'])
+    # classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
+    # classifier.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
+    # classifier.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
+    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    # classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    # classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    # classifier.add(Dropout(0.2)) # antes era 0.25
+    # classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    # classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    # classifier.add(Dropout(0.2))# antes era 0.25
+    # classifier.add(Flatten())
+    # # classifier.add(Dense(units=512, activation='relu'))
+    # classifier.add(Dropout(0.2))
+    # classifier.add(Dense(units=1, activation='sigmoid'))
+    # classifier.summary()
+    #
+    # # Compiling the CNN
+    # classifier.compile(optimizer=opt,loss = 'binary_crossentropy',metrics = ['accuracy'])
 
     # classifier.add(Conv2D(96, kernel_size=(2, 2), activation='relu', input_shape=input_shape))  # padding='same'
     # classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
@@ -339,6 +339,37 @@ def buildClassifier(input_shape=(100, 100, 3)):
     # classifier.compile(optimizer=opt,
     #                    loss='binary_crossentropy',
     #                    metrics=['accuracy'])
+
+
+    classifier = Sequential()
+    classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
+    classifier.add(Dropout(0.5))  # added extra Dropout layer
+    classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
+    classifier.add(Dropout(0.5))  # added extra dropout layer
+    classifier.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(Dropout(0.2))  # antes era 0.25
+    # Adding a third convolutional layer
+    classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+    classifier.add(MaxPooling2D(2,2))
+    classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
+    classifier.add(Dropout(0.2))  # antes era 0.25
+    # Step 3 - Flattening
+    classifier.add(Flatten())
+    # Step 4 - Full connection
+    classifier.add(Dropout(0.2))
+    classifier.add(Dense(units=1, activation='sigmoid'))
+    classifier.summary()
+
+    # Compiling the CNN
+    classifier.compile(optimizer='adam',
+                       loss='binary_crossentropy',
+                       metrics=['accuracy'])
+
     plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
 
     return classifier
