@@ -47,7 +47,7 @@ max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 5  # A number between 2 and 10 that determines how many times the k-fold classifier
+k_fold_num = 10  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
 epochs = 50  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
@@ -64,11 +64,9 @@ use_shuffle = True
 learning_rate = 0.0002
 
 training_positive_path = 'Training/PositiveAll'
-# training_positive_path = 'UnseenData/KnownLenses_training'
 training_negative_path = 'Training/Negative'
 testing_positive_path = 'Testing/PositiveAll'
 testing_negative_path = 'Testing/Negative'
-# unseen_known_file_path = 'UnseenData/Known131'
 unseen_known_file_path_select = 'UnseenData/SelectingSimilarLensesToPositiveSimulated'
 unseen_known_file_path_all = 'UnseenData/KnownLenses'
 
@@ -290,86 +288,32 @@ def buildClassifier(input_shape=(100, 100, 3)):
     """
     # Initialising the CNN
     opt = Adam(lr=learning_rate)  # lr = learning rate
-    # classifier = Sequential()
-
-    # classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
-    # classifier.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
-    # classifier.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
-    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    # classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
-    # classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    # classifier.add(Dropout(0.2)) # antes era 0.25
-    # classifier.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
-    # classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    # classifier.add(Dropout(0.2))# antes era 0.25
-    # classifier.add(Flatten())
-    # # classifier.add(Dense(units=512, activation='relu'))
-    # classifier.add(Dropout(0.2))
-    # classifier.add(Dense(units=1, activation='sigmoid'))
-    # classifier.summary()
-    #
-    # # Compiling the CNN
-    # classifier.compile(optimizer=opt,loss = 'binary_crossentropy',metrics = ['accuracy'])
-
-    # classifier.add(Conv2D(96, kernel_size=(2, 2), activation='relu', input_shape=input_shape))  # padding='same'
-    # classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
-    # classifier.add(Dropout(0.2))
-    # classifier.add(Conv2D(128, (2, 2), activation='relu'))  # padding='same'
-    # classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
-    # classifier.add(Dropout(0.2))
-    # classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
-    # classifier.add(MaxPooling2D(pool_size=(2, 2)))
-    # classifier.add(Dropout(0.2))
-    # classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
-    # classifier.add(Dropout(0.2))
-    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))  # padding='same'
-    # classifier.add(Dropout(0.2))
-    # classifier.add(Flatten())
-    # classifier.add(Dense(units=2048, activation='relu'))  # added new dense layer
-    # classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
-    # classifier.add(Dropout(0.2))
-    # classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
-    # classifier.add(Dropout(0.2))
-    # classifier.add(Dense(units=1, activation='sigmoid'))
-    # classifier.summary()
-    #
-    # # Compiling the CNN
-    # classifier.compile(optimizer=opt,
-    #                    loss='binary_crossentropy',
-    #                    metrics=['accuracy'])
-
-
     classifier = Sequential()
-    classifier.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape, padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(4, 4), padding='same'))
-    classifier.add(Dropout(0.5))  # added extra Dropout layer
-    classifier.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
-    classifier.add(Dropout(0.5))  # added extra dropout layer
-    classifier.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Dropout(0.2))  # antes era 0.25
-    # Adding a third convolutional layer
-    classifier.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
-    # classifier.add(MaxPooling2D(2,2))
-    classifier.add(Conv2D(1024, (3, 3), activation='relu', padding='same'))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    classifier.add(Dropout(0.2))  # antes era 0.25
-    # Step 3 - Flattening
+
+    # JACOBS
+    classifier.add(Conv2D(32, kernel_size=(2, 2), activation='relu', input_shape=input_shape))  # padding='same'
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
+    classifier.add(Conv2D(64, (2, 2), activation='relu'))  # padding='same'
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
+    classifier.add(Dropout(0.5))
+    classifier.add(Conv2D(128, (2, 2), activation='relu'))  # padding='same'
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'    
+    classifier.add(Dropout(0.5))
+    classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
+    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))  # padding='same'
+    classifier.add(Dropout(0.5))
     classifier.add(Flatten())
-    # Step 4 - Full connection
-    classifier.add(Dropout(0.2))
+    classifier.add(Dense(units=4096, activation='relu'))  # added new dense layer
+    classifier.add(Dropout(0.5))
+    classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
+    classifier.add(Dropout(0.5))
     classifier.add(Dense(units=1, activation='sigmoid'))
     classifier.summary()
 
     # Compiling the CNN
-    classifier.compile(optimizer='adam',
+    classifier.compile(optimizer=opt,
                        loss='binary_crossentropy',
                        metrics=['accuracy'])
-
     plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
 
     return classifier
@@ -764,8 +708,8 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         unseen_loss_mean = np.mean(unseen_loss_list)
         unseen_scores_std = np.std(unseen_scores_list)
         select_scores_mean = np.mean(select_unseen_scores_list)
-        select_loss_mean = np.mean(select_unseen_loss_list)
-        select_scores_std = np.std(select_unseen_scores_list)
+        select_loss_mean = np.mean(select_unseen_scores_list)
+        select_scores_std = np.mean(select_unseen_scores_list)
 
         print("Test Confusion Matrices: " + str(test_matrix_list))
         print("Test Scores: " + str(test_scores_list))
