@@ -370,7 +370,7 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier.compile(optimizer=opt,
                        loss='binary_crossentropy',
                        metrics=['accuracy'])
-    #plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+    plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
     return classifier
 
 
@@ -976,7 +976,7 @@ train_val_loss_figure.savefig('../Results/%s/TrainingValidationLoss.png' % dt_st
 plt.close()
 
 # make positive and negative results and plotting the activations of positive and negative images
-# viewActivationLayers()
+viewActivationLayers()
 
 # Classifier evaluation
 test_pos = getPositiveImages(images_dir=testing_positive_path, max_num=max_num_testing, input_shape=input_shape)
