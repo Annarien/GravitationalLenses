@@ -64,9 +64,11 @@ use_shuffle = True
 learning_rate = 0.0002
 
 training_positive_path = 'Training/PositiveAll'
+# training_positive_path = 'UnseenData/KnownLenses_training'
 training_negative_path = 'Training/Negative'
 testing_positive_path = 'Testing/PositiveAll'
 testing_negative_path = 'Testing/Negative'
+# unseen_known_file_path = 'UnseenData/Known131'
 unseen_known_file_path_select = 'UnseenData/SelectingSimilarLensesToPositiveSimulated'
 unseen_known_file_path_all = 'UnseenData/KnownLenses'
 
