@@ -48,3 +48,4 @@ Training/DESTileImages
 *.csv
 ResultsSetup.xlsx
 ResultsSetup1.xlsx
+*.log
