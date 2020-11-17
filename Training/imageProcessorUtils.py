@@ -451,7 +451,8 @@ def plotprogressNegativePositive(number_iterations):
         plt.close(fig1)
 
         fig3, axs3 = plt.subplots(1, 3)
-        fig3.suptitle("DES Background Sky Images")
+        fig3.suptitle("DES Background Sky Images", fontsize=14)
+        fig3.tight_layout(pad = 0.3)
 
         for ax, col in zip(axs3, cols):
             ax.set_title(col)
