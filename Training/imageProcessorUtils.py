@@ -314,7 +314,7 @@ def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array, figure_tit
     len_rgb = len(rgb_image_paths)
     num_of_cols_for_rgb_grid = 3
     num_of_rows_for_rgb_grid = getNumOrRowsForGrid(num_of_cols_for_rgb_grid, rgb_image_paths)
-    fig, axs = plt.subplots(num_of_rows_for_rgb_grid, num_of_cols_for_rgb_grid)
+    fig, axs = plt.subplots(num_of_rows_for_rgb_grid, num_of_cols_for_rgb_grid, figsize=(8, 8))
     row_num = 0
     current_index = 0
     image_title_num = 0
@@ -330,8 +330,11 @@ def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array, figure_tit
             img = Image.open(images_for_row[column_num])
             img.thumbnail((100, 100))
             axs[row_num, column_num].imshow(img, aspect='equal')
-            axs[row_num, column_num].axis('off')
+            # axs[row_num, column_num].axis('off')
+            axs[row_num, column_num].set_xticks([], [])
+            axs[row_num, column_num].set_yticks([], [])
             imageTitle = image_title_array[image_title_num]
+            #axs[row_num, column_num].set_xlabel('%s' % imageTitle, fontsize=10)
             axs[row_num, column_num].set_title('%s' % imageTitle, fontsize=10, fontdict=None, loc='center', color='k')
             image_title_num += 1
             img.close()
@@ -342,7 +345,7 @@ def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array, figure_tit
                 axs[row_num, emptyIndex].axis('off')
 
         row_num += 1
-    fig.tight_layout(pad=2.0)
+    fig.tight_layout(pad=2.3)
     fig.suptitle('%s' % figure_title)
     fig.savefig(file_path)
     plt.close(fig)
@@ -452,7 +455,7 @@ def plotprogressNegativePositive(number_iterations):
 
         fig3, axs3 = plt.subplots(1, 3)
         fig3.suptitle("DES Background Sky Images", fontsize=14)
-        fig3.tight_layout(pad = 0.3)
+        fig3.tight_layout(pad=0.3)
 
         for ax, col in zip(axs3, cols):
             ax.set_title(col)

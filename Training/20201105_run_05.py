@@ -49,9 +49,9 @@ validation_split = 0.2  # A float value between 0 and 1 that determines what per
 # data is used for validation.
 k_fold_num = 5  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 50  # A number that dictates how many iterations should be run to train the classifier
+epochs = 5  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
-run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
@@ -923,7 +923,7 @@ train_val_loss_figure.savefig('../Results/%s/TrainingValidationLoss.png' % dt_st
 plt.close()
 
 # make positive and negative results and plotting the activations of positive and negative images
-# viewActivationLayers()
+viewActivationLayers()
 
 # Classifier evaluation
 test_pos = getPositiveImages(images_dir=testing_positive_path, max_num=max_num_testing, input_shape=input_shape)
