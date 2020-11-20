@@ -430,7 +430,7 @@ def plotprogressNegativePositive(number_iterations):
         gPosSkyNorm, rPosSkyNorm, iPosSkyNorm = getPosWDESSkyNorm(num)
 
         # creating the first grid, in which the DES_Processed images are seen.
-        fig1, axs1 = plt.subplots(2, 3)
+        fig1, axs1 = plt.subplots(2, 3, figsize = (10,10))
         fig1.suptitle("Process to form Negative Images")
         fig1.tight_layout(pad=1.0)
         # get column names and row names
@@ -453,7 +453,7 @@ def plotprogressNegativePositive(number_iterations):
         fig1.savefig(some_path)
         plt.close(fig1)
 
-        fig3, axs3 = plt.subplots(1, 3)
+        fig3, axs3 = plt.subplots(1, 3, figsize = (8,8))
         fig3.suptitle("DES Background Sky Images", fontsize=14)
         fig3.tight_layout(pad=0.3)
 
@@ -481,7 +481,7 @@ def plotprogressNegativePositive(number_iterations):
         iDESSky.close()
 
         # creating the second grid, in which the Simulated images are seen.
-        fig2, axs2 = plt.subplots(3, 3)
+        fig2, axs2 = plt.subplots(3, 3, figsize = (8,8))
         fig2.tight_layout(pad=3.1)
         fig2.subplots_adjust(left=0.2, wspace=0.6)
         fig2.align_ylabels(axs2[:, 0])
