@@ -314,7 +314,7 @@ def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array, figure_tit
     len_rgb = len(rgb_image_paths)
     num_of_cols_for_rgb_grid = 3
     num_of_rows_for_rgb_grid = getNumOrRowsForGrid(num_of_cols_for_rgb_grid, rgb_image_paths)
-    fig, axs = plt.subplots(num_of_rows_for_rgb_grid, num_of_cols_for_rgb_grid, figsize=(8, 8))
+    fig, axs = plt.subplots(num_of_rows_for_rgb_grid, num_of_cols_for_rgb_grid, figsize=(7, 7))
     row_num = 0
     current_index = 0
     image_title_num = 0
@@ -346,7 +346,7 @@ def plotAndSaveRgbGrid(file_path, rgb_image_paths, image_title_array, figure_tit
 
         row_num += 1
     fig.tight_layout(pad=2.3)
-    fig.suptitle('%s' % figure_title)
+    fig.suptitle('%s' % figure_title, fontsize = 16)
     fig.savefig(file_path)
     plt.close(fig)
 
@@ -592,8 +592,8 @@ def plotKnownLenses(number_iterations, known_path=''):
     # plotAndSaveRgbGrid( int(number of Rows), int(number of Columns), str(filename for where RGB will be saved),
     # list( paths of rgb images)))
     if known_path == 'UnseenData/KnownLenses':
-        rgb_title = 'RGB Grid of the Unseen Known Lenses'
+        rgb_title = 'RGB Grid of the Unseen Real Lenses'
     elif known_path == 'UnseenData/SelectingSimilarLensesToPositiveSimulated':
-        rgb_title = 'RGB Grid of the Selected Unseen Known Lenses'
+        rgb_title = 'RGB Grid of the Selected Unseen Real Lenses'
 
     plotAndSaveRgbGrid(file_path5, rgb_known_image_paths, image_title_array, rgb_title)
