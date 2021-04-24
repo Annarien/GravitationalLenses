@@ -47,15 +47,15 @@ max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 10  # A number between 2 and 10 that determines how many times the k-fold classifier
+k_fold_num = 5  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 5  # A number that dictates how many iterations should be run to train the classifier
+epochs = 50  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
-run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
-patience_num = 3  # Used in the early stopping to determine how quick/slow to react.
+patience_num = 10  # Used in the early stopping to determine how quick/slow to react.
 use_early_stopping = False  # Determines whether to use early stopping or not.
 use_model_checkpoint = True  # Determines whether the classifiers keeps track of the most accurate iteration of itself.
 monitor_early_stopping = 'val_loss'
@@ -64,9 +64,11 @@ use_shuffle = True
 learning_rate = 0.0002
 
 training_positive_path = 'Training/PositiveAll'
+# training_positive_path = 'UnseenData/KnownLenses_training'
 training_negative_path = 'Training/Negative'
 testing_positive_path = 'Testing/PositiveAll'
 testing_negative_path = 'Testing/Negative'
+# unseen_known_file_path = 'UnseenData/Known131'
 unseen_known_file_path_select = 'UnseenData/SelectingSimilarLensesToPositiveSimulated'
 unseen_known_file_path_all = 'UnseenData/KnownLenses'
 
@@ -291,22 +293,22 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier = Sequential()
 
     # JACOBS
-    classifier.add(Conv2D(32, kernel_size=(2, 2), activation='relu', input_shape=input_shape))  # padding='same'
-    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
-    classifier.add(Conv2D(64, (2, 2), activation='relu'))  # padding='same'
-    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
-    classifier.add(Dropout(0.5))
+    classifier.add(Conv2D(64, kernel_size=(3, 3), activation='relu', input_shape=input_shape))  # padding='same'
+    classifier.add(MaxPooling2D(pool_size=(3, 3)))  # padding='same'
     classifier.add(Conv2D(128, (2, 2), activation='relu'))  # padding='same'
-    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'    
-    classifier.add(Dropout(0.5))
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
+    classifier.add(Dropout(0.6))
     classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))  # padding='same'
-    classifier.add(Dropout(0.5))
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'    
+    classifier.add(Dropout(0.6))
+    #classifier.add(Conv2D(512, (2, 2), activation='relu'))  # padding='same'
+    #classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))  # padding='same'
+    #classifier.add(Dropout(0.7))
     classifier.add(Flatten())
     classifier.add(Dense(units=4096, activation='relu'))  # added new dense layer
-    classifier.add(Dropout(0.5))
+    classifier.add(Dropout(0.6))
     classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
-    classifier.add(Dropout(0.5))
+    classifier.add(Dropout(0.6))
     classifier.add(Dense(units=1, activation='sigmoid'))
     classifier.summary()
 
@@ -708,8 +710,8 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         unseen_loss_mean = np.mean(unseen_loss_list)
         unseen_scores_std = np.std(unseen_scores_list)
         select_scores_mean = np.mean(select_unseen_scores_list)
-        select_loss_mean = np.mean(select_unseen_scores_list)
-        select_scores_std = np.mean(select_unseen_scores_list)
+        select_loss_mean = np.mean(select_unseen_loss_list)
+        select_scores_std = np.std(select_unseen_scores_list)
 
         print("Test Confusion Matrices: " + str(test_matrix_list))
         print("Test Scores: " + str(test_scores_list))
@@ -896,44 +898,6 @@ loss = history.history['loss']
 val_loss = history.history['val_loss']
 number_of_completed_epochs = range(1, len(acc) + 1)
 
-
-# Accuracies
-print("Training Acc: " + str(acc))
-print("Training Loss:" + str(loss))
-print("Validation Acc: " + str(val_acc))
-print("Validation Loss: " + str(val_loss))
-
-train_mean_acc = np.mean(acc)
-train_std_acc = np.std(acc)
-train_mean_loss = np.mean(loss)
-train_std_loss = np.std(loss)
-val_mean_acc = np.mean(val_acc)
-val_std_acc = np.std(val_acc)
-val_mean_loss = np.mean(val_loss)
-val_std_loss = np.std(val_loss)
-
-excel_headers.append("Training Mean Accuracy")
-excel_dictionary.append(train_mean_acc)
-excel_headers.append("Training Std Accuracy")
-excel_dictionary.append(train_std_acc)
-excel_headers.append("Training Mean Loss")
-excel_dictionary.append(train_mean_loss)
-excel_headers.append("Training Std Loss")
-excel_dictionary.append(train_std_loss)
-excel_headers.append("Validation Mean Accuracy")
-excel_dictionary.append(val_mean_acc)
-excel_headers.append("Validation Std Accuracy")
-excel_dictionary.append(val_std_acc)
-excel_headers.append("Validation Mean Loss")
-excel_dictionary.append(val_mean_loss)
-excel_headers.append("Validation Std Loss")
-excel_dictionary.append(val_std_loss)
-
-print(f"Mean Training Acc: {np.mean(acc)} +\- {np.std(acc)}")
-print(f"Mean Training Loss: {np.mean(loss)} +\- {np.std(loss)}")
-print(f"Mean Validation Acc: {np.mean(val_acc)} +\- {np.std(val_acc)}")
-print(f"Mean Validation Loss: {np.mean(val_loss)} +\- {np.std(val_loss)}")
-
 # Accuracies
 train_val_accuracy_figure = plt.figure()
 plt.plot(number_of_completed_epochs, acc, label='Training acc')
@@ -1090,8 +1054,5 @@ executeKFoldValidation(training_data,
 if makeNewCSVFile:
     createExcelSheet('../Results/Architecture_kerasCNN_Results.csv', excel_headers)
     writeToFile('../Results/Architecture_kerasCNN_Results.csv', excel_dictionary)
-    createExcelSheet('../Results/%s/%s_KerasResults.csv' % (dt_string, dt_string), excel_headers)
-    writeToFile('../Results/%s/%s_KerasResults.csv' % (dt_string, dt_string), excel_dictionary)
 else:
     writeToFile('../Results/Architecture_kerasCNN_Results.csv', excel_dictionary)
-    writeToFile('../Results/%s/%s_KerasResults.csv' % (dt_string, dt_string), excel_dictionary)
