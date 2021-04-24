@@ -41,27 +41,27 @@ excel_headers.append("Date and Time")
 excel_dictionary.append(dt_string)
 
 # Globals
-makeNewCSVFile = False
+makeNewCSVFile = True
 max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 2  # A number between 2 and 10 that determines how many times the k-fold classifier
+k_fold_num = 5  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 7  # A number that dictates how many iterations should be run to train the classifier
+epochs = 50 # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
-patience_num = 3  # Used in the early stopping to determine how quick/slow to react.
+patience_num = 10  # Used in the early stopping to determine how quick/slow to react.
 use_early_stopping = False  # Determines whether to use early stopping or not.
 use_model_checkpoint = True  # Determines whether the classifiers keeps track of the most accurate iteration of itself.
 monitor_early_stopping = 'val_loss'
 monitor_model_checkpoint = 'val_acc'
 use_shuffle = True
-learning_rate = 0.001
+learning_rate = 0.0002
 
 training_positive_path = 'Training/PositiveAll'
 # training_positive_path = 'UnseenData/KnownLenses_training'
@@ -109,6 +109,7 @@ excel_headers.append("Use Shuffle")
 excel_dictionary.append(use_shuffle)
 excel_headers.append("Learning Rate")
 excel_dictionary.append(learning_rate)
+
 
 if not os.path.exists('../Results/'):
     os.mkdir('../Results/%s/')
@@ -296,20 +297,22 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier = Sequential()
 
     # JACOBS
-    classifier.add(Conv2D(96, kernel_size=(2, 2), activation='relu', input_shape=input_shape))  # padding='same'
-    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
+    classifier.add(Conv2D(64, kernel_size=(3, 3), activation='relu', input_shape=input_shape))  # padding='same'
+    classifier.add(MaxPooling2D(pool_size=(3, 3)))  # padding='same'
     classifier.add(Conv2D(128, (2, 2), activation='relu'))  # padding='same'
     classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
+    classifier.add(Dropout(0.6))
     classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
-    classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
-    classifier.add(Dropout(0.2))
-    classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))  # padding='same'
-    classifier.add(Dropout(0.2))
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'    
+    classifier.add(Dropout(0.6))
+    # classifier.add(Conv2D(512, (2, 2), activation='relu'))  # padding='same'
+    # classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))  # padding='same'
+    # classifier.add(Dropout(0.7))
     classifier.add(Flatten())
+    classifier.add(Dense(units=4096, activation='relu'))  # added new dense layer
+    classifier.add(Dropout(0.6))
     classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
-    classifier.add(Dropout(0.2))
-    classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
-    classifier.add(Dropout(0.2))
+    classifier.add(Dropout(0.6))
     classifier.add(Dense(units=1, activation='sigmoid'))
     classifier.summary()
 

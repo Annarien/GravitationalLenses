@@ -41,15 +41,15 @@ excel_headers.append("Date and Time")
 excel_dictionary.append(dt_string)
 
 # Globals
-makeNewCSVFile = False
+makeNewCSVFile = True
 max_num = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_testing = sys.maxsize  # Set to sys.maxsize when running entire data set
 max_num_prediction = sys.maxsize  # Set to sys.maxsize when running entire data set
 validation_split = 0.2  # A float value between 0 and 1 that determines what percentage of the training
 # data is used for validation.
-k_fold_num = 2  # A number between 2 and 10 that determines how many times the k-fold classifier
+k_fold_num = 10  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 7  # A number that dictates how many iterations should be run to train the classifier
+epochs = 50  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
@@ -61,14 +61,12 @@ use_model_checkpoint = True  # Determines whether the classifiers keeps track of
 monitor_early_stopping = 'val_loss'
 monitor_model_checkpoint = 'val_acc'
 use_shuffle = True
-learning_rate = 0.001
+learning_rate = 0.0002
 
 training_positive_path = 'Training/PositiveAll'
-# training_positive_path = 'UnseenData/KnownLenses_training'
 training_negative_path = 'Training/Negative'
 testing_positive_path = 'Testing/PositiveAll'
 testing_negative_path = 'Testing/Negative'
-# unseen_known_file_path = 'UnseenData/Known131'
 unseen_known_file_path_select = 'UnseenData/SelectingSimilarLensesToPositiveSimulated'
 unseen_known_file_path_all = 'UnseenData/KnownLenses'
 
@@ -296,20 +294,22 @@ def buildClassifier(input_shape=(100, 100, 3)):
     classifier = Sequential()
 
     # JACOBS
-    classifier.add(Conv2D(96, kernel_size=(2, 2), activation='relu', input_shape=input_shape))  # padding='same'
+    classifier.add(Conv2D(32, kernel_size=(2, 2), activation='relu', input_shape=input_shape))  # padding='same'
     classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
+    classifier.add(Conv2D(64, (2, 2), activation='relu'))  # padding='same'
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
+    classifier.add(Dropout(0.5))
     classifier.add(Conv2D(128, (2, 2), activation='relu'))  # padding='same'
-    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))  # padding='same'    
+    classifier.add(Dropout(0.5))
     classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
-    classifier.add(Conv2D(256, (2, 2), activation='relu'))  # padding='same'
-    classifier.add(Dropout(0.2))
     classifier.add(MaxPooling2D(pool_size=(2, 2), padding='same'))  # padding='same'
-    classifier.add(Dropout(0.2))
+    classifier.add(Dropout(0.5))
     classifier.add(Flatten())
+    classifier.add(Dense(units=4096, activation='relu'))  # added new dense layer
+    classifier.add(Dropout(0.5))
     classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
-    classifier.add(Dropout(0.2))
-    classifier.add(Dense(units=1024, activation='relu'))  # added new dense layer
-    classifier.add(Dropout(0.2))
+    classifier.add(Dropout(0.5))
     classifier.add(Dense(units=1, activation='sigmoid'))
     classifier.summary()
 
