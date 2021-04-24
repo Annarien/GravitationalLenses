@@ -49,9 +49,9 @@ validation_split = 0.2  # A float value between 0 and 1 that determines what per
 # data is used for validation.
 k_fold_num = 10  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 5  # A number that dictates how many iterations should be run to train the classifier
+epochs = 50  # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
-run_k_fold_validation = False  # Set this to True if you want to run K-Fold validation as well.
+run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
 augmented_multiple = 2  # This uses data augmentation to generate x-many times as much data as there is on file.
 use_augmented_data = True  # Determines whether to use data augmentation or not.
@@ -107,6 +107,9 @@ excel_headers.append("Use Shuffle")
 excel_dictionary.append(use_shuffle)
 excel_headers.append("Learning Rate")
 excel_dictionary.append(learning_rate)
+
+if not os.path.exists('../Results/'):
+    os.mkdir('../Results/%s/')
 
 if not os.path.exists('../Results/%s/' % dt_string):
     os.mkdir('../Results/%s/' % dt_string)
@@ -708,8 +711,8 @@ def executeKFoldValidation(train_data, train_labels, val_data, val_labels, testi
         unseen_loss_mean = np.mean(unseen_loss_list)
         unseen_scores_std = np.std(unseen_scores_list)
         select_scores_mean = np.mean(select_unseen_scores_list)
-        select_loss_mean = np.mean(select_unseen_scores_list)
-        select_scores_std = np.mean(select_unseen_scores_list)
+        select_loss_mean = np.mean(select_unseen_loss_list)
+        select_scores_std = np.std(select_unseen_scores_list)
 
         print("Test Confusion Matrices: " + str(test_matrix_list))
         print("Test Scores: " + str(test_scores_list))
@@ -896,7 +899,6 @@ loss = history.history['loss']
 val_loss = history.history['val_loss']
 number_of_completed_epochs = range(1, len(acc) + 1)
 
-
 # Accuracies
 print("Training Acc: " + str(acc))
 print("Training Loss:" + str(loss))
@@ -934,7 +936,6 @@ print(f"Mean Training Loss: {np.mean(loss)} +\- {np.std(loss)}")
 print(f"Mean Validation Acc: {np.mean(val_acc)} +\- {np.std(val_acc)}")
 print(f"Mean Validation Loss: {np.mean(val_loss)} +\- {np.std(val_loss)}")
 
-# Accuracies
 train_val_accuracy_figure = plt.figure()
 plt.plot(number_of_completed_epochs, acc, label='Training acc')
 plt.plot(number_of_completed_epochs, val_acc, label='Validation acc')
@@ -1092,6 +1093,7 @@ if makeNewCSVFile:
     writeToFile('../Results/Architecture_kerasCNN_Results.csv', excel_dictionary)
     createExcelSheet('../Results/%s/%s_KerasResults.csv' % (dt_string, dt_string), excel_headers)
     writeToFile('../Results/%s/%s_KerasResults.csv' % (dt_string, dt_string), excel_dictionary)
+
 else:
     writeToFile('../Results/Architecture_kerasCNN_Results.csv', excel_dictionary)
     writeToFile('../Results/%s/%s_KerasResults.csv' % (dt_string, dt_string), excel_dictionary)
