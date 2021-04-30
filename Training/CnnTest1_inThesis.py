@@ -321,7 +321,6 @@ def buildClassifier(input_shape=(100, 100, 3)):
                        loss='binary_crossentropy',
                        metrics=['accuracy'])
     plot_model(classifier, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
-
     return classifier
 
 

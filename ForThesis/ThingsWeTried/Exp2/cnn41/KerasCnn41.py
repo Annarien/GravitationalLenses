@@ -50,7 +50,7 @@ validation_split = 0.2  # A float value between 0 and 1 that determines what per
 # data is used for validation.
 k_fold_num = 5  # A number between 2 and 10 that determines how many times the k-fold classifier
 # is trained.
-epochs = 50  # A number that dictates how many iterations should be run to train the classifier
+epochs = 50 # A number that dictates how many iterations should be run to train the classifier
 batch_size = 128  # The number of items batched together during training.
 run_k_fold_validation = True  # Set this to True if you want to run K-Fold validation as well.
 input_shape = (100, 100, 3)  # The shape of the images being learned & evaluated.
@@ -110,6 +110,10 @@ excel_headers.append("Use Shuffle")
 excel_dictionary.append(use_shuffle)
 excel_headers.append("Learning Rate")
 excel_dictionary.append(learning_rate)
+
+
+if not os.path.exists('../Results/'):
+    os.mkdir('../Results/%s/')
 
 if not os.path.exists('../Results/%s/' % dt_string):
     os.mkdir('../Results/%s/' % dt_string)
@@ -897,6 +901,42 @@ val_loss = history.history['val_loss']
 number_of_completed_epochs = range(1, len(acc) + 1)
 
 # Accuracies
+print("Training Acc: " + str(acc))
+print("Training Loss:" + str(loss))
+print("Validation Acc: " + str(val_acc))
+print("Validation Loss: " + str(val_loss))
+
+train_mean_acc = np.mean(acc)
+train_std_acc = np.std(acc)
+train_mean_loss = np.mean(loss)
+train_std_loss = np.std(loss)
+val_mean_acc = np.mean(val_acc)
+val_std_acc = np.std(val_acc)
+val_mean_loss = np.mean(val_loss)
+val_std_loss = np.std(val_loss)
+
+excel_headers.append("Training Mean Accuracy")
+excel_dictionary.append(train_mean_acc)
+excel_headers.append("Training Std Accuracy")
+excel_dictionary.append(train_std_acc)
+excel_headers.append("Training Mean Loss")
+excel_dictionary.append(train_mean_loss)
+excel_headers.append("Training Std Loss")
+excel_dictionary.append(train_std_loss)
+excel_headers.append("Validation Mean Accuracy")
+excel_dictionary.append(val_mean_acc)
+excel_headers.append("Validation Std Accuracy")
+excel_dictionary.append(val_std_acc)
+excel_headers.append("Validation Mean Loss")
+excel_dictionary.append(val_mean_loss)
+excel_headers.append("Validation Std Loss")
+excel_dictionary.append(val_std_loss)
+
+print(f"Mean Training Acc: {np.mean(acc)} +\- {np.std(acc)}")
+print(f"Mean Training Loss: {np.mean(loss)} +\- {np.std(loss)}")
+print(f"Mean Validation Acc: {np.mean(val_acc)} +\- {np.std(val_acc)}")
+print(f"Mean Validation Loss: {np.mean(val_loss)} +\- {np.std(val_loss)}")
+
 train_val_accuracy_figure = plt.figure()
 plt.plot(number_of_completed_epochs, acc, label='Training acc')
 plt.plot(number_of_completed_epochs, val_acc, label='Validation acc')
@@ -1052,5 +1092,9 @@ executeKFoldValidation(training_data,
 if makeNewCSVFile:
     createExcelSheet('../Results/Architecture_kerasCNN_Results.csv', excel_headers)
     writeToFile('../Results/Architecture_kerasCNN_Results.csv', excel_dictionary)
+    createExcelSheet('../Results/%s/%s_KerasResults.csv' % (dt_string, dt_string), excel_headers)
+    writeToFile('../Results/%s/%s_KerasResults.csv' % (dt_string, dt_string), excel_dictionary)
+
 else:
     writeToFile('../Results/Architecture_kerasCNN_Results.csv', excel_dictionary)
+    writeToFile('../Results/%s/%s_KerasResults.csv' % (dt_string, dt_string), excel_dictionary)
